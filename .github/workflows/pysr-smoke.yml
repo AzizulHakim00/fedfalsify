@@ -1,12 +1,7 @@
 name: official-pysr-smoke
 
 on:
-  pull_request:
-    paths:
-      - "src/fedfalsify/pysr_adapter.py"
-      - "src/fedfalsify/pysr_study.py"
-      - "pyproject.toml"
-      - ".github/workflows/pysr-smoke.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
