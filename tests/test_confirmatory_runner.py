@@ -1,4 +1,5 @@
 from fedfalsify.confirmatory import METHODS, run_study, summarize
+from fedfalsify.confirmatory_report import add_holm_correction
 
 
 def test_confirmatory_smoke_produces_matched_rows_and_statistics() -> None:
@@ -20,3 +21,7 @@ def test_confirmatory_smoke_produces_matched_rows_and_statistics() -> None:
     report = summarize(rows, bootstrap_resamples=300)
     assert set(report["methods"]) == set(METHODS)
     assert len(report["paired"]) == len(METHODS) - 1
+    corrected = add_holm_correction(report)
+    assert corrected["multiple_testing"]["method"] == "Holm step-down"
+    for details in corrected["paired"].values():
+        assert "holm_adjusted_p_value" in details["mcnemar"]
