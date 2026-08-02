@@ -62,6 +62,11 @@ The development evidence supports a narrow claim:
 It does not establish that the method is superior to published symbolic
 regression systems, nor that the certificate is private or causal.
 
+Coefficient heterogeneity itself is established prior art in mixed models and
+integrative analysis. The project-specific hypothesis is its use as a
+conditional falsification certificate for selecting a declared gated symbolic
+repair.
+
 ## Next confirmatory study
 
 Use disjoint seeds and include:
