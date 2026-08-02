@@ -1,8 +1,12 @@
-"""FedFalsify: counterexample-guided federated mechanism discovery."""
+"""FedFalsify: certificate-guided federated symbolic discovery."""
 
 from .basis import CandidateEquation, TermCatalog
 from .benchmarks import (
+    BENCHMARKS,
     BenchmarkResult,
+    BenchmarkSpec,
+    GeneratedBenchmark,
+    generate_benchmark,
     run_exception_benchmark,
     run_spurious_correlation_benchmark,
 )
@@ -16,14 +20,18 @@ from .data import (
 from .server import DiscoveryResult, FedFalsifyDiscovery, RepairDecision
 
 __all__ = [
+    "BENCHMARKS",
     "BenchmarkResult",
+    "BenchmarkSpec",
     "CandidateEquation",
     "ClientDataset",
     "DiscoveryResult",
     "FedFalsifyDiscovery",
     "FederatedFalsifierClient",
+    "GeneratedBenchmark",
     "RepairDecision",
     "TermCatalog",
+    "generate_benchmark",
     "generate_exception_clients",
     "generate_heterogeneous_clients",
     "generate_spurious_correlation_clients",
@@ -31,4 +39,4 @@ __all__ = [
     "run_spurious_correlation_benchmark",
 ]
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
