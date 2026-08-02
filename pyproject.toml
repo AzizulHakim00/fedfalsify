@@ -30,6 +30,7 @@ fedfalsify-core-replacement = "fedfalsify.core_replacement_study:main"
 fedfalsify-confirmatory = "fedfalsify.confirmatory:main"
 fedfalsify-confirmatory-report = "fedfalsify.confirmatory_report:main"
 fedfalsify-privacy-study = "fedfalsify.privacy_study:main"
+fedfalsify-pysr = "fedfalsify.pysr_study:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
