@@ -22,7 +22,7 @@ publication-facing comparison and research-integrity framework:
 - controlled centralized tree-GP search;
 - controlled federated aggregate-fitness tree-GP-style search;
 - controlled residual-counterexample tree-GP search;
-- an optional adapter for the official PySR package;
+- an optional adapter and manually repeatable workflow for official PySR 1.5.x;
 - exact McNemar tests, Wilson intervals, paired bootstrap intervals, and Holm
   correction;
 - runtime, candidate-evaluation, and serialized-communication accounting;
@@ -43,8 +43,8 @@ reproductions of named published systems. See
   declared gated exception.
 - **v0.5:** client-validated post-search replacement of correlated core
   surrogates.
-- **v0.6:** expression-tree comparison framework, matched statistics, optional
-  official PySR adapter, communication accounting, and leakage/noise probes.
+- **v0.6:** expression-tree comparison framework, matched statistics, official
+  PySR adapter, communication accounting, and leakage/noise probes.
 
 ## Install
 
@@ -62,7 +62,8 @@ python -m pip install -e ".[sr]"
 ```
 
 The optional dependency is pinned to stable PySR 1.5.x. It is not installed in
-default CI because it requires a Julia-backed runtime.
+default CI because it requires a Julia-backed runtime. The separate
+`official-pysr-smoke` workflow can be launched manually.
 
 ## Run
 
@@ -92,11 +93,26 @@ fedfalsify-confirmatory --smoke \
   --summary results/v06_confirmatory_smoke.json
 ```
 
+Holm-corrected exact-recovery report:
+
+```bash
+fedfalsify-confirmatory-report \
+  --input results/v06_confirmatory_smoke.json \
+  --output results/v06_confirmatory_smoke_corrected.json
+```
+
 v0.6 certificate-noise and sensitivity smoke test:
 
 ```bash
 fedfalsify-privacy-study --smoke \
   --output results/v06_privacy_smoke.csv
+```
+
+Official PySR smoke after installing the `sr` extra:
+
+```bash
+fedfalsify-pysr --smoke \
+  --output results/v06_official_pysr_smoke.csv
 ```
 
 Publication-facing primary command and frozen seeds are specified in
@@ -127,14 +143,46 @@ pytest
 The v0.5 Wilson intervals overlap. These are development results, not a
 statistically confirmed superiority claim.
 
+### v0.6 broader controlled comparison
+
+A frozen development matrix covered five mechanisms, three scenarios, three
+development seeds, and four methods: 180 method-runs.
+
+| Method | Exact recovery | Term precision | Term recall | Global NMSE | Exception recovery |
+|---|---:|---:|---:|---:|---:|
+| FedFalsify v0.5 | **0.933** | **0.981** | **0.987** | **0.000010** | **1.000** |
+| Controlled centralized tree GP | 0.156 | 0.381 | 0.409 | 0.07312 | 0.800 |
+| Controlled federated tree-GP-style | 0.156 | 0.381 | 0.409 | 0.07312 | 0.800 |
+| Controlled residual-counterexample GP | 0.156 | 0.378 | 0.381 | 0.08872 | 0.778 |
+
+FedFalsify recovered 42/45 matched conditions. Three FedFalsify failures and all
+fairness limitations are retained in
+[`research/V0_6_DEVELOPMENT_FINDINGS.md`](research/V0_6_DEVELOPMENT_FINDINGS.md).
+The controlled tree budget was moderate, official PySR was not part of this
+matrix, and FedFalsify's finite catalog contains the target terms. Therefore,
+these results do not establish universal or publication-confirmed superiority.
+
+### Official PySR execution smoke
+
+A manually executed official-package smoke used PySR 1.5.10,
+SymbolicRegression.jl 1.11.3, and Julia 1.11.9. With only five iterations and two
+small populations, PySR returned:
+
+```text
+2.0648782*x1
+```
+
+for the `base` complementary-domain benchmark, with global-test NMSE `0.181411`
+and model-search runtime `10.816 s`. This validates package execution only; the
+budget is intentionally too small for a performance conclusion. See
+[`research/V0_6_PYSR_SMOKE_FINDINGS.md`](research/V0_6_PYSR_SMOKE_FINDINGS.md).
+
 ### v0.6 smoke status
 
-The CI smoke matrix verifies the comparison pipeline on only two matched
-conditions with a tiny two-generation GP budget. FedFalsify recovered both
-conditions, while the controlled GP methods did not. That output is explicitly
-not paper evidence because the sample of conditions and search budget are too
-small. Full diagnostic numbers and the reasons they cannot support a superiority
-claim are recorded in
+The default CI smoke matrix verifies the comparison pipeline on only two matched
+conditions with a tiny two-generation controlled-GP budget. It is explicitly
+not paper evidence. Full diagnostic numbers and the reasons they cannot support
+a superiority claim are recorded in
 [`research/V0_6_SMOKE_FINDINGS.md`](research/V0_6_SMOKE_FINDINGS.md).
 
 ## Confirmatory analysis
