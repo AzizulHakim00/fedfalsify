@@ -6,4 +6,6 @@ venv/
 dist/
 build/
 *.egg-info/
-results/
+results/*
+!results/colab/
+!results/colab/**
