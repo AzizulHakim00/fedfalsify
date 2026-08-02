@@ -31,3 +31,5 @@ jobs:
         run: fedfalsify-pilot --smoke --samples 120 --output results/pilot_smoke.csv
       - name: Coefficient-heterogeneity ablation smoke test
         run: fedfalsify-heterogeneity --smoke --output results/v04_smoke.csv
+      - name: Core-surrogate replacement smoke test
+        run: fedfalsify-core-replacement --smoke --output results/v05_smoke.csv
