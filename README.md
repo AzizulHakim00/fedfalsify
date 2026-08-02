@@ -103,6 +103,8 @@ disabling the coefficient-heterogeneity certificate.
 These are development results, not confirmatory publication claims. All three
 remaining v0.4 exact-recovery failures are documented in
 [`research/V0_4_DEVELOPMENT_FINDINGS.md`](research/V0_4_DEVELOPMENT_FINDINGS.md).
+The permitted claim language is mapped to executable evidence in
+[`research/V0_4_CLAIM_TO_EVIDENCE.md`](research/V0_4_CLAIM_TO_EVIDENCE.md).
 
 ## Protocol
 
