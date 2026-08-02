@@ -1,30 +1,40 @@
 # FedFalsify
 
-**Federated counterexample-guided mechanism discovery.**
+**Research prototype for federated, counterexample-guided mechanism discovery.**
 
-FedFalsify explores a different objective from ordinary federated learning:
-instead of averaging model weights, institutions act as private falsifiers of
-an interpretable scientific hypothesis. They return structured certificates
-that identify how a candidate mechanism fails; the server uses cross-client
-consensus to repair the mechanism.
+FedFalsify studies whether institutions can test and refine an interpretable
+hypothesis without sharing observation rows. Clients return aggregate residual
+certificates; the server uses cross-client evidence to add or reject symbolic
+terms.
 
-> Status: research prototype / minimum viable invention. It is not yet a
-> privacy guarantee or a validated scientific-discovery system.
+> **Scientific status:** experimental software. The repository does not claim
+> that the general idea of counterexample-guided symbolic regression,
+> falsification-driven discovery, or federated symbolic regression is new.
+> Closest prior work is documented in
+> [`research/PRIOR_ART_AND_ORIGINALITY.md`](research/PRIOR_ART_AND_ORIGINALITY.md).
 
-## What version 0.1 implements
+## Version 0.2 research milestones
 
-- Four heterogeneous simulated clients with complementary input domains.
-- A known hidden mechanism:
-  `y = 2*x1 + sin(x2) + 0.5*x3^2 + noise`.
-- A finite interpretable grammar of linear, quadratic, sine, and cosine terms.
-- Client-side falsification certificates containing aggregated residual
-  evidence and failure regions, never raw observation rows.
-- Server-side consensus scoring that adds one counterexample-supported symbolic
-  repair per discovery round.
-- Exact coefficient refitting from federated aggregate summaries.
-- Automated tests and a reproducible command-line demo.
+Version 0.2 implements three controlled synthetic studies:
 
-## Installation
+1. **Complementary-domain recovery**
+   - hidden mechanism: `2*x1 + sin(x2) + 0.5*x3^2`;
+   - clients observe different input regions;
+   - the federation recovers the common mechanism.
+2. **Spurious-correlation rejection**
+   - `x3` is strongly correlated with the outcome at only one client;
+   - core terms require agreement from a declared fraction of observing clients;
+   - the local shortcut is rejected.
+3. **Invariant core plus restricted exception**
+   - common mechanism: `2*x1 + sin(x2)`;
+   - an additional `0.75*x3^2` term applies only when `x3 > 1`;
+   - clients outside that domain are treated as unable to falsify the exception;
+   - the output separates the invariant core from the provisional exception.
+
+The implementation also prunes terms whose final fitted coefficients are
+negligible, preventing temporary repair terms from being reported as discoveries.
+
+## Install and run
 
 ```bash
 python -m venv .venv
@@ -33,63 +43,90 @@ python -m venv .venv
 python -m pip install -e ".[dev]"
 ```
 
-## Run
+Base experiment:
 
 ```bash
-fedfalsify-demo
+fedfalsify-demo --benchmark base --samples 700 --noise 0.02 --seed 2026
 ```
 
-or:
+Spurious-correlation benchmark:
 
 ```bash
-python -m fedfalsify.demo --samples 700 --noise 0.02 --rounds 7
+fedfalsify-demo --benchmark spurious --samples 800 --noise 0.02 --seed 191
 ```
 
-A successful run should recover an expression close to:
+Invariant-core/exception benchmark:
 
-```text
-2*x1 + sin(x2) + 0.5*x3^2
+```bash
+fedfalsify-demo --benchmark exception --samples 900 --noise 0.015 --seed 229
 ```
 
-Run tests:
+Tests:
 
 ```bash
 pytest
 ```
 
-## Protocol
+## Protocol implemented here
 
 ```text
-Server broadcasts candidate symbolic structure
+Server broadcasts a candidate symbolic structure
         ↓
-Clients fit/evaluate only on private local data
+Clients fit and evaluate it on private local observations
         ↓
-Clients return aggregate fit summaries and falsification certificates
+Clients return aggregate fit summaries and term-level residual certificates
         ↓
-Server ranks residual-supported missing terms
+Core terms require cross-client support among clients that observe the term
         ↓
-Server repairs the hypothesis and starts the next round
+Domain-gated terms may be retained as provisional exceptions
+        ↓
+The server refits, prunes negligible terms, and repeats
 ```
 
-## Important scientific boundary
+## What is potentially distinctive
 
-Version 0.1 avoids sharing raw rows, but aggregated statistics can still leak
-information. Do not describe the current prototype as differentially private,
-cryptographically secure, or clinically validated. The next stages must add
-privacy attacks, secure aggregation or DP, stronger baselines, expression-tree
-search, theoretical guarantees, and external validation.
+The current research hypothesis is narrow:
 
-See [`research/TECHNICAL_SPEC.md`](research/TECHNICAL_SPEC.md) for the exact
-research question, current assumptions, falsifiable claims, and next milestones.
+> Can structured aggregate certificates be used to separate cross-client
+> invariant symbolic terms, single-client shortcuts, and domain-restricted
+> exceptions in one federated repair protocol?
+
+This is a **candidate contribution**, not an established novelty claim. Prior
+art already covers federated genetic-programming symbolic regression,
+privacy-preserving symbolic regression, counterexample-driven symbolic
+regression, falsification-based experiment planning, federated invariant
+learning, and granular feedback for equation search. Any paper must compare
+against those families and must not use phrases such as "the first" until a
+systematic review supports them.
+
+## Privacy and scientific boundaries
+
+The prototype does not send raw observation rows, but it sends aggregate normal
+equations and residual summaries. These may leak information. Therefore:
+
+- no differential-privacy claim;
+- no cryptographic-security claim;
+- no causal-discovery claim;
+- no clinical-discovery claim;
+- no guarantee that a non-falsified equation is scientifically true.
+
+See the technical specification and originality protocol in `research/`.
 
 ## Repository layout
 
 ```text
-src/fedfalsify/       discovery implementation
-tests/                mechanism-recovery and certificate tests
-research/             formal research notes
+src/fedfalsify/       algorithm and benchmark implementation
+tests/                recovery, rejection, and exception tests
+research/             technical specification, prior art, and citation records
 .github/workflows/    continuous integration
 ```
+
+## Citation and attribution
+
+Software citation metadata is provided in [`CITATION.cff`](CITATION.cff).
+Literature used to define the research boundary is listed in
+[`research/REFERENCES.bib`](research/REFERENCES.bib). Citing this repository does
+not replace citing the original methods on which the research context depends.
 
 ## License
 
