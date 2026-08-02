@@ -70,7 +70,7 @@ def test_merge_validates_chunks_and_mirrors_to_drive(tmp_path: Path) -> None:
             drive_root=str(drive_root),
             expected_chunks=2,
             expected_rows=4,
-            bootstrap_resamples=100,
+            bootstrap_resamples=200,
         )
     )
 
