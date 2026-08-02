@@ -33,3 +33,5 @@ jobs:
         run: fedfalsify-heterogeneity --smoke --output results/v04_smoke.csv
       - name: Core-surrogate replacement smoke test
         run: fedfalsify-core-replacement --smoke --output results/v05_smoke.csv
+      - name: Disjoint-seed v0.5 development matrix
+        run: fedfalsify-core-replacement --output results/v05_core_replacement.csv
