@@ -39,3 +39,42 @@ jobs:
         run: fedfalsify-confirmatory-report --input results/v06_confirmatory_smoke.json --output results/v06_confirmatory_smoke_corrected.json
       - name: Certificate privacy ablation smoke test
         run: fedfalsify-privacy-study --smoke --output results/v06_privacy_smoke.csv
+      - name: Audited Colab dry run
+        run: |
+          fedfalsify-colab run-chunk \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --benchmarks base \
+            --scenarios complementary \
+            --noise 0.03 \
+            --samples 60 \
+            --clients 4 \
+            --seeds 9001 \
+            --chunk-index 0 \
+            --total-chunks 1 \
+            --population-size 12 \
+            --generations 2 \
+            --max-genes 3 \
+            --bootstrap-resamples 500
+          fedfalsify-colab-audit seal-chunk \
+            --repo-root . \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --chunk-index 0 \
+            --total-chunks 1
+          fedfalsify-colab-audit verify-run \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --expected-chunks 1 \
+            --expected-rows 4
+          fedfalsify-colab merge \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --expected-chunks 1 \
+            --expected-rows 4 \
+            --bootstrap-resamples 500
+          fedfalsify-colab-audit seal-final \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --expected-rows 4
+          test -f results/colab/ci-colab-dry-run/VERIFIED.json
