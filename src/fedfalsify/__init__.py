@@ -29,6 +29,7 @@ from .server import DiscoveryResult, FedFalsifyDiscovery, RepairDecision
 from .statistics import (
     BootstrapInterval,
     McNemarResult,
+    holm_adjust,
     mcnemar_exact,
     paired_bootstrap_difference,
     wilson_interval,
@@ -61,6 +62,7 @@ __all__ = [
     "generate_exception_clients",
     "generate_heterogeneous_clients",
     "generate_spurious_correlation_clients",
+    "holm_adjust",
     "leave_one_out_sensitivity",
     "mcnemar_exact",
     "paired_bootstrap_difference",
