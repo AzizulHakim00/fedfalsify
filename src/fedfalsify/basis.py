@@ -1,28 +1,32 @@
-"""Interpretable basis functions used by the first FedFalsify prototype.
+"""Interpretable basis functions for FedFalsify experiments.
 
-The prototype intentionally starts with a finite grammar. This makes exact
-mechanism recovery measurable and lets the server repair a hypothesis by adding
-one falsification-supported term at a time.
+The current research prototype intentionally uses a finite grammar. This makes
+mechanism recovery measurable and allows the server to repair one explicit
+hypothesis term at a time. Domain-gated terms are marked as exceptions so the
+final result can distinguish an invariant core from a restricted validity rule.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Literal
 
 import numpy as np
 
 Array = np.ndarray
+TermKind = Literal["core", "exception"]
 
 
 @dataclass(frozen=True)
 class BasisTerm:
-    """A named, deterministic basis function."""
+    """A named, deterministic basis function with provenance metadata."""
 
     name: str
     function: Callable[[Array], Array]
     complexity: int
     display: str
+    kind: TermKind = "core"
+    validity: str | None = None
 
     def evaluate(self, x: Array) -> Array:
         values = np.asarray(self.function(x), dtype=float)
@@ -34,9 +38,9 @@ class BasisTerm:
 
 
 class TermCatalog:
-    """Finite symbolic grammar for the minimum viable invention."""
+    """Finite symbolic grammar for controlled mechanism-discovery studies."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, include_exception_terms: bool = False) -> None:
         self._terms: dict[str, BasisTerm] = {
             "1": BasisTerm("1", lambda x: np.ones(x.shape[0]), 1, "1"),
             "x1": BasisTerm("x1", lambda x: x[:, 0], 1, "x₁"),
@@ -52,6 +56,15 @@ class TermCatalog:
             "cos(x2)": BasisTerm("cos(x2)", lambda x: np.cos(x[:, 1]), 2, "cos(x₂)"),
             "cos(x3)": BasisTerm("cos(x3)", lambda x: np.cos(x[:, 2]), 2, "cos(x₃)"),
         }
+        if include_exception_terms:
+            self._terms["I(x3>1)*x3^2"] = BasisTerm(
+                "I(x3>1)*x3^2",
+                lambda x: np.where(x[:, 2] > 1.0, x[:, 2] ** 2, 0.0),
+                4,
+                "𝟙[x₃>1]·x₃²",
+                kind="exception",
+                validity="x3 > 1",
+            )
 
     def names(self) -> tuple[str, ...]:
         return tuple(self._terms)
@@ -92,10 +105,27 @@ class CandidateEquation:
         design = catalog.matrix(x, self.active_terms)
         return design @ np.asarray(self.coefficients, dtype=float)
 
-    def expression(self, catalog: TermCatalog, precision: int = 4) -> str:
+    def core_terms(self, catalog: TermCatalog) -> tuple[str, ...]:
+        return tuple(
+            name for name in self.active_terms if catalog.get(name).kind == "core"
+        )
+
+    def exception_terms(self, catalog: TermCatalog) -> tuple[str, ...]:
+        return tuple(
+            name for name in self.active_terms if catalog.get(name).kind == "exception"
+        )
+
+    def expression(
+        self,
+        catalog: TermCatalog,
+        precision: int = 4,
+        *,
+        terms: Iterable[str] | None = None,
+    ) -> str:
+        allowed = set(self.active_terms if terms is None else terms)
         pieces: list[str] = []
         for coefficient, name in zip(self.coefficients, self.active_terms):
-            if abs(coefficient) < 10 ** (-(precision + 1)):
+            if name not in allowed or abs(coefficient) < 10 ** (-(precision + 1)):
                 continue
             display = catalog.get(name).display
             value = f"{abs(coefficient):.{precision}g}"
@@ -105,3 +135,14 @@ class CandidateEquation:
             else:
                 pieces.append((" - " if coefficient < 0 else " + ") + body)
         return "".join(pieces) if pieces else "0"
+
+    def invariant_expression(self, catalog: TermCatalog, precision: int = 4) -> str:
+        return self.expression(catalog, precision, terms=self.core_terms(catalog))
+
+    def exception_expressions(
+        self, catalog: TermCatalog, precision: int = 4
+    ) -> tuple[str, ...]:
+        expressions: list[str] = []
+        for term in self.exception_terms(catalog):
+            expressions.append(self.expression(catalog, precision, terms=(term,)))
+        return tuple(expressions)
