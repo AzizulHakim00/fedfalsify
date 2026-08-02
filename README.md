@@ -7,41 +7,44 @@ hypothesis without sharing observation rows. Clients return aggregate fit,
 residual, coefficient-shift, and replacement evidence; the server uses that
 evidence to add, reject, gate, or conservatively replace symbolic terms.
 
-> **Scientific status:** experimental finite-grammar software. The repository
-> does not claim that federated symbolic regression, counterexample guidance,
-> coefficient heterogeneity, or sequential replacement are generally new.
-> Closest prior art and permitted claim language are documented in
-> [`research/PRIOR_ART_AND_ORIGINALITY.md`](research/PRIOR_ART_AND_ORIGINALITY.md).
+> **Scientific status:** experimental research software. The repository does
+> not claim that federated symbolic regression, counterexample guidance,
+> coefficient heterogeneity, genetic programming, or sequential replacement are
+> generally new. Closest prior art and permitted claim language are documented
+> in [`research/PRIOR_ART_AND_ORIGINALITY.md`](research/PRIOR_ART_AND_ORIGINALITY.md).
 
-## Version 0.5
+## Version 0.6
 
-Version 0.5 preserves the v0.4 coefficient-heterogeneity certificate and adds a
-**federated post-search core-surrogate replacement stage**.
+Version 0.6 preserves the frozen v0.5 FedFalsify algorithm and adds a
+publication-facing comparison and research-integrity framework:
 
-After ordinary discovery finishes, the replacement stage evaluates conservative
-one-for-one and two-for-one core-term swaps. A proposed swap is accepted only
-when it:
+- a deterministic expression-tree grammar;
+- controlled centralized tree-GP search;
+- controlled federated aggregate-fitness tree-GP-style search;
+- controlled residual-counterexample tree-GP search;
+- an optional adapter for the official PySR package;
+- exact McNemar tests, Wilson intervals, paired bootstrap intervals, and Holm
+  correction;
+- runtime, candidate-evaluation, and serialized-communication accounting;
+- leave-one-out certificate sensitivity probes; and
+- a certificate-only Gaussian-noise utility ablation.
 
-1. improves a prespecified objective combining pooled and worst-client error;
-2. improves at least a declared fraction of clients;
-3. does not materially worsen most clients;
-4. receives cross-client coefficient support for the incoming term;
-5. remains significant after federated refitting; and
-6. does not increase reported symbolic complexity.
-
-Every accepted replacement is recorded in a machine-readable ledger. The v0.4
-method remains executable as the direct ablation.
+The controlled GP methods are independent project baselines, not faithful
+reproductions of named published systems. See
+[`research/V0_6_BASELINE_PROVENANCE.md`](research/V0_6_BASELINE_PROVENANCE.md).
 
 ## Version history
 
 - **v0.2:** complementary-domain recovery, shortcut rejection, and explicit
   invariant-core/exception output.
-- **v0.3:** frozen pilot protocol, controlled baselines, five mechanisms,
-  multi-seed CSV runner, and originality safeguards.
+- **v0.3:** frozen pilot protocol, controlled finite-catalog baselines, five
+  mechanisms, multi-seed CSV runner, and originality safeguards.
 - **v0.4:** uncertainty-normalized cross-client coefficient contrast for a
   declared gated exception.
 - **v0.5:** client-validated post-search replacement of correlated core
   surrogates.
+- **v0.6:** expression-tree comparison framework, matched statistics, optional
+  official PySR adapter, communication accounting, and leakage/noise probes.
 
 ## Install
 
@@ -52,6 +55,15 @@ python -m venv .venv
 python -m pip install -e ".[dev]"
 ```
 
+Optional official PySR baseline:
+
+```bash
+python -m pip install -e ".[sr]"
+```
+
+The optional dependency is pinned to stable PySR 1.5.x. It is not installed in
+default CI because it requires a Julia-backed runtime.
+
 ## Run
 
 Base demonstration:
@@ -60,13 +72,7 @@ Base demonstration:
 fedfalsify-demo --benchmark base --samples 700 --noise 0.02 --seed 2026
 ```
 
-Preregistered v0.3 pilot smoke test:
-
-```bash
-fedfalsify-pilot --smoke --output results/pilot_smoke.csv
-```
-
-v0.4 coefficient-heterogeneity ablation:
+v0.4 coefficient-heterogeneity smoke test:
 
 ```bash
 fedfalsify-heterogeneity --smoke --output results/v04_smoke.csv
@@ -78,11 +84,23 @@ v0.5 core-replacement smoke test:
 fedfalsify-core-replacement --smoke --output results/v05_smoke.csv
 ```
 
-Fixed v0.5 disjoint-seed development matrix:
+v0.6 matched comparison smoke test:
 
 ```bash
-fedfalsify-core-replacement --output results/v05_core_replacement.csv
+fedfalsify-confirmatory --smoke \
+  --output results/v06_confirmatory_smoke.csv \
+  --summary results/v06_confirmatory_smoke.json
 ```
+
+v0.6 certificate-noise and sensitivity smoke test:
+
+```bash
+fedfalsify-privacy-study --smoke \
+  --output results/v06_privacy_smoke.csv
+```
+
+Publication-facing primary command and frozen seeds are specified in
+[`research/V0_6_CONFIRMATORY_PROTOCOL.md`](research/V0_6_CONFIRMATORY_PROTOCOL.md).
 
 Tests:
 
@@ -90,7 +108,7 @@ Tests:
 pytest
 ```
 
-## Controlled development evidence
+## Development evidence
 
 ### v0.4 exception certificate
 
@@ -101,42 +119,64 @@ pytest
 
 ### v0.5 disjoint-seed replacement study
 
-The fixed v0.5 matrix contains five mechanisms, two sample sizes, ten seeds
-disjoint from v0.4 development, and two methods: 200 method-runs total.
-
 | Method | Exact recovery | Term precision | Term recall | Global NMSE | Exception recovery |
 |---|---:|---:|---:|---:|---:|
 | v0.4 | 0.920 | 0.982 | 0.985 | 0.00022 | 1.000 |
 | v0.5 | **0.960** | **0.994** | **0.993** | **0.00014** | **1.000** |
 
-The 95% Wilson intervals for exact recovery overlap, so these development
-results do not establish statistically significant superiority. Four v0.5
-failures remain and are documented rather than removed.
+The v0.5 Wilson intervals overlap. These are development results, not a
+statistically confirmed superiority claim.
 
-See:
+### v0.6 smoke status
 
-- [`research/V0_4_DEVELOPMENT_FINDINGS.md`](research/V0_4_DEVELOPMENT_FINDINGS.md)
-- [`research/V0_5_DEVELOPMENT_PROTOCOL.md`](research/V0_5_DEVELOPMENT_PROTOCOL.md)
-- [`research/V0_5_DEVELOPMENT_FINDINGS.md`](research/V0_5_DEVELOPMENT_FINDINGS.md)
-- [`research/V0_5_CLAIM_TO_EVIDENCE.md`](research/V0_5_CLAIM_TO_EVIDENCE.md)
+The CI smoke matrix verifies the comparison pipeline on only two matched
+conditions with a tiny two-generation GP budget. FedFalsify recovered both
+conditions, while the controlled GP methods did not. That output is explicitly
+not paper evidence because the sample of conditions and search budget are too
+small. Full diagnostic numbers and the reasons they cannot support a superiority
+claim are recorded in
+[`research/V0_6_SMOKE_FINDINGS.md`](research/V0_6_SMOKE_FINDINGS.md).
 
-## Protocol
+## Confirmatory analysis
 
-```text
-Server broadcasts a symbolic candidate
-        ↓
-Clients return aggregate fit, residual, and coefficient evidence
-        ↓
-Cross-client support rejects declared local shortcuts
-        ↓
-Coefficient contrast prioritizes restricted-domain exceptions
-        ↓
-The server refits and significance-prunes temporary terms
-        ↓
-A conservative post-search stage tests client-validated core swaps
-        ↓
-Final output separates invariant core, exceptions, and replacement ledger
-```
+The matched runner reports:
+
+- exact symbolic recovery;
+- term precision and recall;
+- global-test NMSE;
+- shortcut acceptance;
+- exception recovery;
+- runtime;
+- candidate evaluations;
+- serialized communication bytes;
+- exact McNemar tests;
+- Wilson intervals;
+- paired bootstrap differences.
+
+The registered protocol requires Holm correction across primary exact-recovery
+comparisons and completely fresh seeds `9001`--`9020`.
+
+## Privacy and leakage scope
+
+The prototype does not send raw rows, but aggregate normal equations, residual
+statistics, coefficient adjustments, and repeated structural queries may leak
+information.
+
+Version 0.6 adds:
+
+- leave-one-out certificate sensitivity;
+- controlled certificate perturbation;
+- utility measurements under certificate noise.
+
+It still provides:
+
+- no differential-privacy guarantee;
+- no epsilon/delta accountant;
+- no cryptographic-security guarantee;
+- no membership-inference protection claim.
+
+Fit summaries remain unperturbed in the current noise ablation. See
+[`research/V0_6_PRIVACY_SCOPE.md`](research/V0_6_PRIVACY_SCOPE.md).
 
 ## Candidate contribution
 
@@ -147,28 +187,26 @@ The current narrow hypothesis is:
 > to separate invariant terms, local shortcuts, restricted exceptions, and
 > correlated core surrogates during federated symbolic repair?
 
-This remains a candidate contribution until compared directly with published
-centralized and federated symbolic-regression methods.
+This remains a candidate contribution until the frozen confirmatory study and
+published-system comparisons are complete.
 
-## Privacy and scientific boundaries
+## Scientific boundaries
 
-The prototype does not send raw rows, but aggregate normal equations, residual
-statistics, coefficient adjustments, and repeated structural queries may leak
-information. Therefore there is currently:
+There is currently:
 
-- no differential-privacy guarantee;
-- no cryptographic-security guarantee;
 - no causal-discovery claim;
 - no clinical-discovery claim;
 - no guarantee that a non-falsified equation is scientifically true;
-- no claim of superiority over published symbolic-regression systems.
+- no claim of general superiority over PySR, genetic programming, or published
+  federated symbolic-regression systems;
+- no claim that the controlled baselines reproduce author implementations.
 
 ## Repository layout
 
 ```text
-src/fedfalsify/       algorithm, replacement stage, baselines, and runners
-tests/                recovery, shortcut, exception, replacement, and ablations
-research/             protocols, findings, prior art, and claim maps
+src/fedfalsify/       algorithm, tree baselines, statistics, privacy probes
+tests/                recovery, shortcut, exception, replacement, runner tests
+research/             protocols, findings, prior art, provenance, claim maps
 .github/workflows/    reproducibility and regression checks
 ```
 
