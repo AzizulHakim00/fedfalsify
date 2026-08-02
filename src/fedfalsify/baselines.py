@@ -78,7 +78,9 @@ def federated_mse(
 ) -> tuple[float, int]:
     certificates = [client.falsify(candidate) for client in clients]
     total = sum(certificate.support for certificate in certificates)
-    mse = sum(certificate.mse * certificate.support for certificate in certificates) / total
+    mse = sum(
+        certificate.mse * certificate.support for certificate in certificates
+    ) / total
     payload_bytes = sum(
         len(json.dumps(certificate.to_dict(), separators=(",", ":")).encode("utf-8"))
         for certificate in certificates
@@ -250,6 +252,7 @@ def fedfalsify_method(
     max_terms: int = 6,
     target_mse: float = 0.003,
     min_repair_score: float = 0.05,
+    use_coefficient_heterogeneity: bool = True,
 ) -> MethodOutput:
     start = perf_counter()
     result = FedFalsifyDiscovery(
@@ -259,6 +262,7 @@ def fedfalsify_method(
         max_terms=max_terms,
         target_mse=target_mse,
         min_repair_score=min_repair_score,
+        use_coefficient_heterogeneity=use_coefficient_heterogeneity,
     ).discover()
     communication = 0
     for record in result.history:
@@ -269,12 +273,15 @@ def fedfalsify_method(
             )
             certificate = client.falsify(record.candidate)
             communication += len(
-                json.dumps(certificate.to_dict(), separators=(",", ":")).encode(
-                    "utf-8"
-                )
+                json.dumps(certificate.to_dict(), separators=(",", ":")).encode("utf-8")
             )
+    method = (
+        "fedfalsify"
+        if use_coefficient_heterogeneity
+        else "fedfalsify-no-heterogeneity"
+    )
     return MethodOutput(
-        "fedfalsify",
+        method,
         (result.candidate,),
         len(result.history),
         communication,
