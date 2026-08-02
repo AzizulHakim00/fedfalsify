@@ -1,4 +1,4 @@
-"""Serializable privacy-minimizing messages exchanged by FedFalsify clients."""
+"""Serializable aggregate messages exchanged by FedFalsify clients."""
 
 from __future__ import annotations
 
@@ -8,10 +8,14 @@ from typing import Any
 
 @dataclass(frozen=True)
 class TermEvidence:
+    """Aggregate evidence for one inactive symbolic term."""
+
     term: str
     residual_inner_product: float
     term_energy: float
     residual_correlation: float
+    local_slope: float
+    observed_support: int
 
 
 @dataclass(frozen=True)
