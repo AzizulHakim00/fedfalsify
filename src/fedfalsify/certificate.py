@@ -1,4 +1,4 @@
-"""Serializable aggregate messages exchanged by FedFalsify clients."""
+"""Serializable aggregate protocol messages."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class TermEvidence:
-    """Aggregate evidence for one inactive symbolic term."""
+    """Conditional residual evidence for one inactive symbolic term."""
 
     term: str
     residual_inner_product: float
@@ -16,6 +16,19 @@ class TermEvidence:
     residual_correlation: float
     local_slope: float
     observed_support: int
+
+
+@dataclass(frozen=True)
+class CoefficientEvidence:
+    """Local coefficient adjustment after conditioning on the candidate model."""
+
+    term: str
+    local_adjustment: float
+    standard_error: float
+    z_score: float
+    effective_energy: float
+    observed_support: int
+    estimable: bool
 
 
 @dataclass(frozen=True)
@@ -39,6 +52,7 @@ class FalsificationCertificate:
     mean_residual: float
     residual_energy: float
     term_evidence: tuple[TermEvidence, ...]
+    coefficient_evidence: tuple[CoefficientEvidence, ...]
     worst_region: FailureRegion | None
 
     def to_dict(self) -> dict[str, Any]:
