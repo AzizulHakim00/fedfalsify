@@ -1,10 +1,4 @@
-"""Interpretable basis functions for FedFalsify experiments.
-
-The current research prototype intentionally uses a finite grammar. This makes
-mechanism recovery measurable and allows the server to repair one explicit
-hypothesis term at a time. Domain-gated terms are marked as exceptions so the
-final result can distinguish an invariant core from a restricted validity rule.
-"""
+"""Interpretable basis functions for controlled FedFalsify studies."""
 
 from __future__ import annotations
 
@@ -19,7 +13,7 @@ TermKind = Literal["core", "exception"]
 
 @dataclass(frozen=True)
 class BasisTerm:
-    """A named, deterministic basis function with provenance metadata."""
+    """A named basis function with structural and validity metadata."""
 
     name: str
     function: Callable[[Array], Array]
@@ -27,6 +21,7 @@ class BasisTerm:
     display: str
     kind: TermKind = "core"
     validity: str | None = None
+    source_term: str | None = None
 
     def evaluate(self, x: Array) -> Array:
         values = np.asarray(self.function(x), dtype=float)
@@ -38,7 +33,7 @@ class BasisTerm:
 
 
 class TermCatalog:
-    """Finite symbolic grammar for controlled mechanism-discovery studies."""
+    """Finite symbolic grammar used by the current prototype."""
 
     def __init__(self, *, include_exception_terms: bool = False) -> None:
         self._terms: dict[str, BasisTerm] = {
@@ -64,6 +59,7 @@ class TermCatalog:
                 "𝟙[x₃>1]·x₃²",
                 kind="exception",
                 validity="x3 > 1",
+                source_term="x3^2",
             )
 
     def names(self) -> tuple[str, ...]:
@@ -102,18 +98,13 @@ class CandidateEquation:
             raise ValueError("The intercept term '1' must remain active")
 
     def predict(self, x: Array, catalog: TermCatalog) -> Array:
-        design = catalog.matrix(x, self.active_terms)
-        return design @ np.asarray(self.coefficients, dtype=float)
+        return catalog.matrix(x, self.active_terms) @ np.asarray(self.coefficients, dtype=float)
 
     def core_terms(self, catalog: TermCatalog) -> tuple[str, ...]:
-        return tuple(
-            name for name in self.active_terms if catalog.get(name).kind == "core"
-        )
+        return tuple(name for name in self.active_terms if catalog.get(name).kind == "core")
 
     def exception_terms(self, catalog: TermCatalog) -> tuple[str, ...]:
-        return tuple(
-            name for name in self.active_terms if catalog.get(name).kind == "exception"
-        )
+        return tuple(name for name in self.active_terms if catalog.get(name).kind == "exception")
 
     def expression(
         self,
@@ -142,7 +133,7 @@ class CandidateEquation:
     def exception_expressions(
         self, catalog: TermCatalog, precision: int = 4
     ) -> tuple[str, ...]:
-        expressions: list[str] = []
-        for term in self.exception_terms(catalog):
-            expressions.append(self.expression(catalog, precision, terms=(term,)))
-        return tuple(expressions)
+        return tuple(
+            self.expression(catalog, precision, terms=(term,))
+            for term in self.exception_terms(catalog)
+        )
