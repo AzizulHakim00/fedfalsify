@@ -27,3 +27,5 @@ jobs:
         run: fedfalsify-demo --benchmark spurious --samples 400 --noise 0.03 --seed 191
       - name: Exception benchmark
         run: fedfalsify-demo --benchmark exception --samples 450 --noise 0.02 --seed 229
+      - name: Preregistered pilot smoke test
+        run: python -m fedfalsify.experiments --smoke --samples 120 --output results/smoke.csv
