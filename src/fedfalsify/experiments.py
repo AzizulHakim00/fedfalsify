@@ -1,4 +1,4 @@
-"""Unified, reproducible pilot runner for preregistered FedFalsify comparisons."""
+"""Unified, reproducible pilot runner for FedFalsify comparisons."""
 
 from __future__ import annotations
 
@@ -74,6 +74,15 @@ def run_one(
             catalog,
             max_terms=max_terms,
             target_mse=target_mse,
+            use_coefficient_heterogeneity=True,
+        )
+    elif method == "fedfalsify-no-heterogeneity":
+        output = fedfalsify_method(
+            clients,
+            catalog,
+            max_terms=max_terms,
+            target_mse=target_mse,
+            use_coefficient_heterogeneity=False,
         )
     else:
         raise KeyError(f"Unknown method: {method}")
@@ -84,6 +93,8 @@ def run_one(
         catalog,
         noise_ratio=noise_ratio,
         seed=seed,
+        samples_per_client=samples_per_client,
+        max_terms=max_terms,
     )
 
 
@@ -129,20 +140,21 @@ def write_csv(rows: list[EvaluationRow], output: Path) -> None:
 
 def print_summary(rows: list[EvaluationRow]) -> None:
     print("\nPilot summary (mean over requested settings)")
-    print("=" * 88)
+    print("=" * 104)
     print(
-        f"{'method':26} {'exact':>8} {'precision':>10} "
-        f"{'recall':>8} {'NMSE':>10} {'spur.':>8}"
+        f"{'method':30} {'exact':>8} {'precision':>10} "
+        f"{'recall':>8} {'NMSE':>10} {'spur.':>8} {'except.':>9}"
     )
     for method in sorted({row.method for row in rows}):
         selected = [row for row in rows if row.method == method]
         print(
-            f"{method:26} "
+            f"{method:30} "
             f"{mean(row.exact_recovery for row in selected):8.3f} "
             f"{mean(row.term_precision for row in selected):10.3f} "
             f"{mean(row.term_recall for row in selected):8.3f} "
             f"{mean(row.test_nmse for row in selected):10.4f} "
-            f"{mean(row.spurious_accepted for row in selected):8.3f}"
+            f"{mean(row.spurious_accepted for row in selected):8.3f} "
+            f"{mean(row.exception_recovered for row in selected):9.3f}"
         )
 
 
@@ -157,14 +169,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--methods", default=",".join(DEFAULT_METHODS))
     parser.add_argument("--samples", type=int, default=300)
     parser.add_argument("--max-terms", type=int, default=6)
-    parser.add_argument(
-        "--output", type=Path, default=Path("results/pilot.csv")
-    )
-    parser.add_argument(
-        "--smoke",
-        action="store_true",
-        help="Run one benchmark, three scenarios, one seed and all methods for CI.",
-    )
+    parser.add_argument("--output", type=Path, default=Path("results/pilot.csv"))
+    parser.add_argument("--smoke", action="store_true")
     return parser
 
 
