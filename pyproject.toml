@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedfalsify"
-version = "0.3.0"
+version = "0.4.0"
 description = "Certificate-guided federated symbolic discovery research prototype"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,6 +22,7 @@ dev = [
 [project.scripts]
 fedfalsify-demo = "fedfalsify.demo:main"
 fedfalsify-pilot = "fedfalsify.experiments:main"
+fedfalsify-heterogeneity = "fedfalsify.heterogeneity_study:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
