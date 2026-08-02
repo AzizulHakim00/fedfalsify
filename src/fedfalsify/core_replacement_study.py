@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-from dataclasses import asdict
 from pathlib import Path
 from statistics import mean
 from time import perf_counter
@@ -84,6 +83,8 @@ def _run_method(
             catalog,
             noise_ratio=noise_ratio,
             seed=seed,
+            samples_per_client=samples_per_client,
+            max_terms=max_terms,
         ),
         replacements,
     )
@@ -112,7 +113,6 @@ def run_study(
                         method=method,
                     )
                     record = evaluation.to_dict()
-                    record["samples_per_client"] = samples_per_client
                     record["replacement_count"] = len(replacements)
                     record["replacement_ledger"] = " | ".join(
                         f"{'+'.join(item.removed_terms)}->{item.added_term}"
