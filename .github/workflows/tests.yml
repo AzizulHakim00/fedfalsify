@@ -21,5 +21,9 @@ jobs:
         run: python -m pip install -e ".[dev]"
       - name: Test
         run: pytest
-      - name: Run discovery demo
-        run: fedfalsify-demo --samples 300 --noise 0.03 --rounds 7
+      - name: Base discovery demo
+        run: fedfalsify-demo --benchmark base --samples 300 --noise 0.03 --rounds 7
+      - name: Spurious-correlation benchmark
+        run: fedfalsify-demo --benchmark spurious --samples 400 --noise 0.03 --seed 191
+      - name: Exception benchmark
+        run: fedfalsify-demo --benchmark exception --samples 450 --noise 0.02 --seed 229
