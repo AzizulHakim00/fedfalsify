@@ -66,6 +66,20 @@ adjustments are used as a falsification certificate to prioritize a declared
 domain-gated symbolic exception over globally correlated surrogate expressions
 during iterative federated repair.
 
+### Sequential and floating replacement search
+
+Adding, deleting, and conditionally replacing selected variables is established
+feature-selection prior art. Floating search methods alternate forward and
+backward steps to reconsider previously selected subsets. Therefore, v0.5 must
+not claim that post-search replacement, one-for-one swaps, or two-for-one swaps
+are new by themselves.
+
+The v0.5 candidate contribution is narrower: proposed symbolic swaps are fitted
+from federated aggregate normal equations and accepted only when a combined
+certificate shows robust objective improvement, client-level non-degradation,
+and cross-client coefficient support for the incoming term. Every accepted swap
+is recorded in an auditable replacement ledger.
+
 ## Narrow candidate contribution
 
 The repository currently tests the following combination:
@@ -77,10 +91,13 @@ The repository currently tests the following combination:
 4. a gated term observable in only a restricted domain can be reported as a
    provisional exception rather than forced into the invariant core;
 5. the output explicitly separates the invariant symbolic core from
-   domain-restricted exceptions; and
+   domain-restricted exceptions;
 6. a gated exception may be prioritized when its source term exhibits a strong,
    uncertainty-normalized coefficient shift between clients inside and outside
-   the declared validity domain.
+   the declared validity domain; and
+7. a post-search core replacement is accepted only when aggregate fit,
+   worst-client behavior, client-level non-degradation, incoming coefficient
+   support, and symbolic complexity jointly favor the replacement.
 
 This combination is a **novelty hypothesis**. It becomes a defensible research
 contribution only after systematic search and direct experiments against the
@@ -91,9 +108,10 @@ closest methods.
 The repository implementation is written specifically for this project using
 NumPy and Python standard-library components. No external SR source code has
 been copied into the repository. General ideas such as least-squares normal
-equations, residualization, coefficient tests, meta-analysis, CEGIS-style
-iteration, and symbolic basis functions are established techniques and are
-cited as background rather than claimed as inventions.
+equations, residualization, coefficient tests, meta-analysis, floating search,
+sequential replacement, CEGIS-style iteration, and symbolic basis functions are
+established techniques and are cited as background rather than claimed as
+inventions.
 
 ## Writing rules for the paper
 
@@ -132,8 +150,9 @@ Before submission:
 Safe before full comparison:
 
 > We investigate a federated certificate protocol that combines conditional
-> residual evidence and cross-client coefficient shifts to separate invariant
-> symbolic terms, local shortcuts, and restricted-domain exceptions.
+> residual evidence, cross-client coefficient shifts, and conservative
+> client-validated core replacement to separate invariant symbolic terms, local
+> shortcuts, and restricted-domain exceptions.
 
 Unsafe at the current stage:
 
