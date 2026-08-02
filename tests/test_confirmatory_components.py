@@ -12,7 +12,11 @@ from fedfalsify.privacy import (
     certificate_vector,
     leave_one_out_sensitivity,
 )
-from fedfalsify.statistics import mcnemar_exact, paired_bootstrap_difference
+from fedfalsify.statistics import (
+    holm_adjust,
+    mcnemar_exact,
+    paired_bootstrap_difference,
+)
 
 
 def test_expression_library_contains_benchmark_structures() -> None:
@@ -70,6 +74,10 @@ def test_paired_statistics_are_dependency_free_and_deterministic() -> None:
     )
     assert interval.estimate == -0.5
     assert interval.lower <= interval.estimate <= interval.upper
+    adjusted = holm_adjust({"a": 0.01, "b": 0.04, "c": 0.03})
+    assert adjusted["a"] == 0.03
+    assert adjusted["c"] == 0.06
+    assert adjusted["b"] == 0.06
 
 
 def test_certificate_noise_and_sensitivity_are_auditable() -> None:
