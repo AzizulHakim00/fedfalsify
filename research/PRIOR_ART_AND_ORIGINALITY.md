@@ -27,9 +27,23 @@ without raw-data centralization is new.
 Counterexample-driven symbolic regression is also prior art. Błądek and Krawiec
 used formal verification to obtain counterexamples that guide genetic
 programming under formal constraints. Logic-guided genetic algorithms likewise
-use violated mathematical truths to generate corrective examples. Therefore,
-FedFalsify must not claim that using counterexamples to improve symbolic
-regression is new.
+use violated mathematical truths to generate corrective examples. Informal
+counterexample-driven GP has also used error-focused observations without a
+formal verifier. Therefore, FedFalsify must not claim that counterexamples,
+residual-focused examples, or error reweighting in symbolic regression are new.
+
+### Expression-tree symbolic regression and PySR
+
+Genetic programming and expression-tree symbolic regression are established
+methods. PySR and SymbolicRegression.jl provide mature evolutionary equation
+search with configurable operators, complexity limits, populations, and model
+selection. FedFalsify must not claim invention of expression trees,
+multi-population search, genetic operators, linear scaling, Pareto selection, or
+complexity-accuracy trade-offs.
+
+The v0.6 tree-GP baselines are independent controlled implementations. They are
+not PySR and are not author-code reproductions. The optional `official-pysr`
+adapter must be clearly separated from the project tree baselines in every table.
 
 ### Falsification-driven scientific modeling
 
@@ -80,6 +94,17 @@ certificate shows robust objective improvement, client-level non-degradation,
 and cross-client coefficient support for the incoming term. Every accepted swap
 is recorded in an auditable replacement ledger.
 
+### Privacy and noisy statistics
+
+Non-sharing of raw rows is not equivalent to privacy. Summary statistics,
+normal equations, gradients, coefficients, and repeated adaptive queries can
+leak information. Gaussian perturbation by itself is not a differential-privacy
+guarantee without a neighboring-dataset definition, clipping, sensitivity,
+composition, and an epsilon/delta accountant.
+
+Version 0.6 therefore treats leave-one-out sensitivity and certificate noise as
+leakage/utility probes only. It must not claim differential privacy.
+
 ## Narrow candidate contribution
 
 The repository currently tests the following combination:
@@ -103,13 +128,28 @@ This combination is a **novelty hypothesis**. It becomes a defensible research
 contribution only after systematic search and direct experiments against the
 closest methods.
 
+## Baseline naming and provenance rules
+
+The v0.6 controlled baselines must be labeled exactly as project baselines:
+
+- controlled centralized tree-GP baseline;
+- controlled federated tree-GP-style baseline;
+- controlled residual-counterexample GP baseline.
+
+Do not rename them after a published method. Do not state that they reproduce
+Dong et al., BFSR, PySR, or counterexample-driven formal GP. The only official
+package adapter currently included is the optional PySR adapter.
+
+See `V0_6_BASELINE_PROVENANCE.md` for the full boundary.
+
 ## Independent implementation record
 
 The repository implementation is written specifically for this project using
 NumPy and Python standard-library components. No external SR source code has
-been copied into the repository. General ideas such as least-squares normal
-equations, residualization, coefficient tests, meta-analysis, floating search,
-sequential replacement, CEGIS-style iteration, and symbolic basis functions are
+been copied into the repository. General ideas such as genetic programming,
+least-squares normal equations, residualization, coefficient tests,
+meta-analysis, floating search, sequential replacement, CEGIS-style iteration,
+expression trees, residual reweighting, and symbolic basis functions are
 established techniques and are cited as background rather than claimed as
 inventions.
 
@@ -129,6 +169,8 @@ inventions.
   project-specific.
 - Retain dated Git commits, experiment configurations, and result files as a
   provenance record.
+- Distinguish official package results, project reimplementations, and reported
+  literature results in every table.
 
 ## Pre-submission audit
 
@@ -141,9 +183,11 @@ Before submission:
    similarity percentage;
 5. confirm that all borrowed datasets, code, equations, and definitions satisfy
    their licenses and citation requirements;
-6. archive code, seeds, configurations, and a claim-to-evidence table;
-7. remove "first", "novel", and "discovery" claims that are not directly
-   supported by the completed comparison.
+6. archive code, seeds, configurations, raw result tables, and a
+   claim-to-evidence table;
+7. verify every baseline label against `V0_6_BASELINE_PROVENANCE.md`;
+8. remove "first", "novel", "privacy preserving", and "discovery" claims that
+   are not directly supported by the completed comparison.
 
 ## Claim language
 
@@ -158,5 +202,9 @@ Unsafe at the current stage:
 
 > We present the first federated falsification algorithm and discover a new
 > scientific law.
+
+> Our Gaussian certificate mechanism guarantees privacy.
+
+> Our controlled tree-GP baseline reproduces published federated GP.
 
 See `REFERENCES.bib` for the sources defining this research boundary.
