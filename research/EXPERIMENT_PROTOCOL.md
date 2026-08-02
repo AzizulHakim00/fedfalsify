@@ -116,3 +116,16 @@ multiple pairwise comparisons.
 Passing this pilot would support only a controlled finite-grammar statement. It
 would not establish privacy, causality, clinical validity, universal symbolic
 regression superiority or discovery of a scientific law.
+
+## Dated amendment — 2026-08-02
+
+The v0.3 pilot revealed low-sample restricted-exception failures caused by
+correlated surrogate terms. The original protocol above remains frozen. The
+subsequent v0.4 coefficient-heterogeneity algorithm and its exploratory
+development matrix are documented separately in:
+
+- `V0_4_DEVELOPMENT_PROTOCOL.md`
+- `V0_4_DEVELOPMENT_FINDINGS.md`
+
+The v0.4 development results must not be described as preregistered v0.3
+confirmatory evidence.
