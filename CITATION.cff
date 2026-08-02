@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: "Hakim"
     given-names: "Azizul"
-version: 0.5.0
+version: 0.6.0
 date-released: 2026-08-03
 url: "https://github.com/AzizulHakim00/fedfalsify"
 license: MIT
