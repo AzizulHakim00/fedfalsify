@@ -33,3 +33,7 @@ jobs:
         run: fedfalsify-heterogeneity --smoke --output results/v04_smoke.csv
       - name: Core-surrogate replacement smoke test
         run: fedfalsify-core-replacement --smoke --output results/v05_smoke.csv
+      - name: Expression-tree confirmatory smoke test
+        run: fedfalsify-confirmatory --smoke --output results/v06_confirmatory_smoke.csv --summary results/v06_confirmatory_smoke.json
+      - name: Certificate privacy ablation smoke test
+        run: fedfalsify-privacy-study --smoke --output results/v06_privacy_smoke.csv
