@@ -15,7 +15,9 @@ executed in GitHub Actions without per-benchmark retuning.
 
 The exact-recovery increase is four percentage points. The confidence intervals
 overlap, so this development matrix alone does not justify a strong statistical
-superiority claim.
+superiority claim. Both methods used the same generated dataset in every
+setting; a later confirmatory analysis must therefore use paired outcomes rather
+than treating the recovery proportions as independent.
 
 ## Interpretation
 
@@ -70,9 +72,18 @@ not yet expression-tree symbolic regression.
 - causal or scientific-law discovery;
 - universal resolution of correlated-surrogate failures.
 
-## Next confirmatory gate
+## Next confirmatory study
 
-The next experiment must use new seeds and published symbolic-regression
-baselines. It should also report paired outcomes, bootstrap confidence intervals,
-communication cost, and certificate leakage. No v0.5 threshold should be changed
-using the four failures above before that confirmatory comparison is frozen.
+Use new seeds and include:
+
+- at least 20 matched seeds across noise and sample-size conditions;
+- centralized PySR or another established expression-tree SR implementation;
+- a faithful federated symbolic-regression baseline;
+- a non-federated counterexample-guided SR baseline;
+- paired exact-recovery testing such as McNemar's exact test;
+- bootstrap confidence intervals for continuous paired differences;
+- multiple-comparison correction;
+- runtime, communication, and certificate-leakage analysis.
+
+No v0.5 threshold should be changed using the four failures above before the
+confirmatory comparison is frozen.
