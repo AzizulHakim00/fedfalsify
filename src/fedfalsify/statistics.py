@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import math
 import random
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 
@@ -84,6 +84,32 @@ def mcnemar_exact(
             2.0 * _binomial_cdf(min(reference_only, comparator_only), discordant),
         )
     return McNemarResult(reference_only, comparator_only, discordant, p_value)
+
+
+def holm_adjust(p_values: Mapping[str, float]) -> dict[str, float]:
+    """Holm step-down adjusted p-values keyed by comparison label.
+
+    The implementation preserves monotonic adjusted values after ordering and
+    returns values in the caller's original key space.
+    """
+
+    if not p_values:
+        return {}
+    for label, value in p_values.items():
+        if not 0.0 <= float(value) <= 1.0:
+            raise ValueError(f"p-value for {label!r} must lie in [0, 1]")
+    ordered = sorted(
+        ((label, float(value)) for label, value in p_values.items()),
+        key=lambda item: item[1],
+    )
+    total = len(ordered)
+    adjusted_ordered: list[tuple[str, float]] = []
+    running = 0.0
+    for index, (label, value) in enumerate(ordered):
+        candidate = min(1.0, (total - index) * value)
+        running = max(running, candidate)
+        adjusted_ordered.append((label, running))
+    return {label: value for label, value in adjusted_ordered}
 
 
 def paired_bootstrap_difference(
