@@ -28,4 +28,6 @@ jobs:
       - name: Exception benchmark
         run: fedfalsify-demo --benchmark exception --samples 450 --noise 0.02 --seed 229
       - name: Preregistered pilot smoke test
-        run: python -m fedfalsify.experiments --smoke --samples 120 --output results/smoke.csv
+        run: fedfalsify-pilot --smoke --samples 120 --output results/pilot_smoke.csv
+      - name: Coefficient-heterogeneity ablation smoke test
+        run: fedfalsify-heterogeneity --smoke --output results/v04_smoke.csv
