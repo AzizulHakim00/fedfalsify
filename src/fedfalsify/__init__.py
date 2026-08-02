@@ -17,6 +17,11 @@ from .data import (
     generate_heterogeneous_clients,
     generate_spurious_correlation_clients,
 )
+from .replacement import (
+    CoreReplacementResult,
+    FederatedCoreReplacement,
+    ReplacementCertificate,
+)
 from .server import DiscoveryResult, FedFalsifyDiscovery, RepairDecision
 
 __all__ = [
@@ -25,11 +30,14 @@ __all__ = [
     "BenchmarkSpec",
     "CandidateEquation",
     "ClientDataset",
+    "CoreReplacementResult",
     "DiscoveryResult",
     "FedFalsifyDiscovery",
+    "FederatedCoreReplacement",
     "FederatedFalsifierClient",
     "GeneratedBenchmark",
     "RepairDecision",
+    "ReplacementCertificate",
     "TermCatalog",
     "generate_benchmark",
     "generate_exception_clients",
@@ -39,4 +47,4 @@ __all__ = [
     "run_spurious_correlation_benchmark",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
