@@ -51,6 +51,21 @@ Recent equation-search work uses term-level or influence-level feedback to guide
 symbolic refinement. Consequently, the presence of granular residual feedback
 is not by itself a sufficient novelty claim.
 
+### Cross-site coefficient heterogeneity
+
+Site-specific effects, mixed models, heterogeneous meta-analysis, and
+summary-statistic inference under data-sharing constraints are established
+research areas. Fed-GLMM estimates federated generalized linear mixed models,
+and integrative sparse-regression methods explicitly model similar but
+non-identical coefficients across data sources. FedFalsify must therefore not
+claim that local coefficient estimates, coefficient contrasts, or cross-site
+heterogeneity are new by themselves.
+
+The v0.4 novelty hypothesis is narrower: conditional source-term coefficient
+adjustments are used as a falsification certificate to prioritize a declared
+domain-gated symbolic exception over globally correlated surrogate expressions
+during iterative federated repair.
+
 ## Narrow candidate contribution
 
 The repository currently tests the following combination:
@@ -60,9 +75,12 @@ The repository currently tests the following combination:
 3. a term observable everywhere but supported at one client is treated as a
    shortcut and rejected;
 4. a gated term observable in only a restricted domain can be reported as a
-   provisional exception rather than forced into the invariant core; and
+   provisional exception rather than forced into the invariant core;
 5. the output explicitly separates the invariant symbolic core from
-   domain-restricted exceptions.
+   domain-restricted exceptions; and
+6. a gated exception may be prioritized when its source term exhibits a strong,
+   uncertainty-normalized coefficient shift between clients inside and outside
+   the declared validity domain.
 
 This combination is a **novelty hypothesis**. It becomes a defensible research
 contribution only after systematic search and direct experiments against the
@@ -73,9 +91,9 @@ closest methods.
 The repository implementation is written specifically for this project using
 NumPy and Python standard-library components. No external SR source code has
 been copied into the repository. General ideas such as least-squares normal
-equations, residual correlations, CEGIS-style iteration, and symbolic basis
-functions are established techniques and are cited as background rather than
-claimed as inventions.
+equations, residualization, coefficient tests, meta-analysis, CEGIS-style
+iteration, and symbolic basis functions are established techniques and are
+cited as background rather than claimed as inventions.
 
 ## Writing rules for the paper
 
@@ -113,7 +131,8 @@ Before submission:
 
 Safe before full comparison:
 
-> We investigate a federated certificate protocol for separating invariant
+> We investigate a federated certificate protocol that combines conditional
+> residual evidence and cross-client coefficient shifts to separate invariant
 > symbolic terms, local shortcuts, and restricted-domain exceptions.
 
 Unsafe at the current stage:
