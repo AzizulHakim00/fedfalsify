@@ -18,6 +18,8 @@ class EvaluationRow:
     noise_ratio: float
     seed: int
     method: str
+    samples_per_client: int
+    max_terms: int
     exact_recovery: float
     term_precision: float
     term_recall: float
@@ -106,6 +108,8 @@ def evaluate_output(
     *,
     noise_ratio: float,
     seed: int,
+    samples_per_client: int,
+    max_terms: int,
 ) -> EvaluationRow:
     x_test, y_test = generate_global_test_data(generated, seed=seed + 100_000)
     metrics = [
@@ -121,6 +125,8 @@ def evaluate_output(
         noise_ratio=noise_ratio,
         seed=seed,
         method=output.method,
+        samples_per_client=samples_per_client,
+        max_terms=max_terms,
         exact_recovery=float(means[0]),
         term_precision=float(means[1]),
         term_recall=float(means[2]),
