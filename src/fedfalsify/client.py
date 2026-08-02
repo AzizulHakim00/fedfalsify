@@ -10,11 +10,7 @@ from .data import ClientDataset
 
 
 class FederatedFalsifierClient:
-    """Simulated private institution.
-
-    The server can request aggregated summaries and certificates, but this
-    class never exposes its raw ``ClientDataset`` through a public property.
-    """
+    """Simulated private institution exposing only aggregate protocol messages."""
 
     def __init__(self, dataset: ClientDataset, catalog: TermCatalog) -> None:
         self._dataset = dataset
@@ -49,17 +45,21 @@ class FederatedFalsifierClient:
         centered_residual_energy = float(centered_residual @ centered_residual)
         for name in inactive:
             values = self._catalog.get(name).evaluate(self._dataset.x)
+            observed_support = int(np.count_nonzero(np.abs(values) > 1e-12))
             centered_values = values - values.mean()
             term_energy = float(centered_values @ centered_values)
             numerator = float(centered_values @ centered_residual)
             denominator = np.sqrt(max(term_energy * centered_residual_energy, 1e-24))
             correlation = float(numerator / denominator)
+            local_slope = float(numerator / max(term_energy, 1e-24))
             evidence.append(
                 TermEvidence(
                     term=name,
                     residual_inner_product=numerator,
                     term_energy=term_energy,
                     residual_correlation=correlation,
+                    local_slope=local_slope,
+                    observed_support=observed_support,
                 )
             )
 
