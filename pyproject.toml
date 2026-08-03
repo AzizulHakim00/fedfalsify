@@ -36,6 +36,7 @@ fedfalsify-colab-audit = "fedfalsify.colab_audit:main"
 fedfalsify-transactions-analysis = "fedfalsify.transactions_analysis_fixed:main"
 fedfalsify-transactions-ablation = "fedfalsify.transactions_ablation_v2:main"
 fedfalsify-transactions-pysr = "fedfalsify.transactions_pysr:main"
+fedfalsify-transactions-adaptive-tree = "fedfalsify.transactions_adaptive_tree_fixed:main"
 fedfalsify-external-beijing = "fedfalsify.external_beijing:main"
 
 [tool.setuptools.packages.find]
