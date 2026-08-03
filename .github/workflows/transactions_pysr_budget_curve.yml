@@ -1,0 +1,96 @@
+name: transactions-pysr-budget-curve
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+    paths:
+      - .github/workflows/transactions_pysr_budget_curve.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  budget-curve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.11"
+      - name: Install official PySR
+        run: python -m pip install -e ".[dev,sr]"
+      - name: Run matched 5, 10, and 20 iteration budgets
+        run: |
+          rm -rf results/transactions_pysr_budget_curve
+          for iterations in 5 10 20; do
+            mkdir -p "results/transactions_pysr_budget_curve/i${iterations}"
+            fedfalsify-transactions-pysr \
+              --benchmarks base,poly3 \
+              --scenarios complementary,spurious \
+              --noise 0.03,0.10 \
+              --samples 300 \
+              --clients 4 \
+              --seeds 10002 \
+              --niterations "${iterations}" \
+              --populations 4 \
+              --population-size 30 \
+              --maxsize 18 \
+              --semantic-samples 1000 \
+              --output "results/transactions_pysr_budget_curve/i${iterations}/rows.csv" \
+              --manifest "results/transactions_pysr_budget_curve/i${iterations}/manifest.json"
+          done
+      - name: Summarize budget curve
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+          import statistics
+
+          root = Path("results/transactions_pysr_budget_curve")
+          summary = {"schema_version": 1, "seed": 10002, "budgets": {}}
+          for iterations in (5, 10, 20):
+              with (root / f"i{iterations}" / "rows.csv").open(
+                  newline="", encoding="utf-8"
+              ) as handle:
+                  rows = list(csv.DictReader(handle))
+              assert len(rows) == 8
+              runtimes = [float(row["runtime_seconds"]) for row in rows]
+              post_warmup = runtimes[1:]
+              summary["budgets"][str(iterations)] = {
+                  "runs": 8,
+                  "semantic_all_1e3": sum(
+                      float(row["semantic_all_1e3"]) for row in rows
+                  ) / 8,
+                  "semantic_all_1e2": sum(
+                      float(row["semantic_all_1e2"]) for row in rows
+                  ) / 8,
+                  "median_runtime_all": statistics.median(runtimes),
+                  "median_runtime_post_warmup": statistics.median(post_warmup),
+                  "mean_runtime_post_warmup": statistics.mean(post_warmup),
+                  "median_complexity": statistics.median(
+                      int(row["expression_complexity"]) for row in rows
+                  ),
+                  "first_run_runtime": runtimes[0],
+              }
+          summary["scientific_role"] = (
+              "development budget calibration; not final comparison"
+          )
+          (root / "summary.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+      - name: Upload budget-curve evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: transactions-pysr-budget-curve
+          path: results/transactions_pysr_budget_curve
+          if-no-files-found: error
+          retention-days: 90
