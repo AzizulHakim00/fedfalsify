@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "analysis": "Transactions Phase 1 semantic equivalence and failure taxonomy",
+  "workflow_run_id": 30853146563,
+  "artifact_id": 8871396938,
+  "artifact_digest": "sha256:cf2de872e2e2c92a0de49fcffc5e771dede35262ba6d8cd6ae76ae60116f6cbe",
+  "frozen_input": "results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv",
+  "frozen_input_rows": 2400,
+  "frozen_input_sha256": "163620ab26c938aedd3fa44096c7145780d6ff9aa143ca8b863ea077ba9d3c45",
+  "domain_samples": 4000,
+  "strict_threshold": 0.001,
+  "relaxed_threshold": 0.01,
+  "all_equations_parsed": true,
+  "methods": {
+    "fedfalsify-v05": {
+      "runs": 600,
+      "strict_exact_recovery": 0.9333333333333333,
+      "semantic_interpolation_recovery": 0.965,
+      "semantic_all_recovery": 0.9416666666666667,
+      "semantic_all_relaxed_recovery": 0.965,
+      "interpolation_nmse": 0.00016941417840491993,
+      "mild_extrapolation_nmse": 0.0005386326335036354,
+      "strong_extrapolation_nmse": 0.0009515304221996584,
+      "mean_expression_complexity": 26.626666666666665,
+      "threshold_sensitivity": {
+        "1e-04": 0.9083333333333333,
+        "1e-03": 0.9416666666666667,
+        "1e-02": 0.965
+      }
+    },
+    "centralized-tree-gp": {
+      "runs": 600,
+      "strict_exact_recovery": 0.23833333333333334,
+      "semantic_interpolation_recovery": 0.5583333333333333,
+      "semantic_all_recovery": 0.4766666666666667,
+      "semantic_all_relaxed_recovery": 0.5566666666666666,
+      "interpolation_nmse": 0.03741453598278361,
+      "mild_extrapolation_nmse": 0.11304038818364726,
+      "strong_extrapolation_nmse": 0.47968215967186345,
+      "mean_expression_complexity": 37.88,
+      "threshold_sensitivity": {
+        "1e-04": 0.43166666666666664,
+        "1e-03": 0.4766666666666667,
+        "1e-02": 0.5566666666666666
+      }
+    },
+    "federated-tree-gp-style": {
+      "runs": 600,
+      "strict_exact_recovery": 0.23833333333333334,
+      "semantic_interpolation_recovery": 0.5583333333333333,
+      "semantic_all_recovery": 0.4766666666666667,
+      "semantic_all_relaxed_recovery": 0.5566666666666666,
+      "interpolation_nmse": 0.03741453598278361,
+      "mild_extrapolation_nmse": 0.11304038818364726,
+      "strong_extrapolation_nmse": 0.47968215967186345,
+      "mean_expression_complexity": 37.88,
+      "threshold_sensitivity": {
+        "1e-04": 0.43166666666666664,
+        "1e-03": 0.4766666666666667,
+        "1e-02": 0.5566666666666666
+      }
+    },
+    "centralized-residual-counterexample-gp": {
+      "runs": 600,
+      "strict_exact_recovery": 0.225,
+      "semantic_interpolation_recovery": 0.5183333333333333,
+      "semantic_all_recovery": 0.43333333333333335,
+      "semantic_all_relaxed_recovery": 0.5416666666666666,
+      "interpolation_nmse": 0.04027575803400313,
+      "mild_extrapolation_nmse": 0.13814052452493666,
+      "strong_extrapolation_nmse": 0.9522140326587178,
+      "mean_expression_complexity": 36.97,
+      "threshold_sensitivity": {
+        "1e-04": 0.39166666666666666,
+        "1e-03": 0.43333333333333335,
+        "1e-02": 0.5416666666666666
+      }
+    }
+  },
+  "fedfalsify_strict_failures": {
+    "count": 40,
+    "by_category": {
+      "missing_and_extra_terms": 34,
+      "strict_mismatch_semantic_success": 5,
+      "extra_terms": 1
+    },
+    "by_benchmark": {
+      "poly3": 34,
+      "nested_sine": 4,
+      "base": 2,
+      "interaction": 0,
+      "trig_product": 0
+    },
+    "by_noise_ratio": {
+      "0.10": 36,
+      "0.03": 4
+    },
+    "by_scenario": {
+      "spurious": 14,
+      "complementary": 13,
+      "exception": 13
+    }
+  },
+  "archived_file_hashes": {
+    "transactions_semantic_rows.csv": "aeb9dc5b071aaad9ff7f8cd3da604e0d31611f2e7a0cd972cdf45f582fab1425",
+    "transactions_summary.json": "8f093fd40a56e8ecb9b1b6b56184e7a8a1c2b870094b2bb58e5f4521835cf83e",
+    "fedfalsify_failure_taxonomy.csv": "4c4fe4b3a69ca05f22bed34c82d328334532d3d4cd808e247289a0a092951329"
+  },
+  "scientific_boundary": [
+    "Post-hoc analysis of frozen v0.6 evidence.",
+    "Seeds 9001--9020 must not be retuned.",
+    "Semantic equivalence does not imply mechanistic identifiability.",
+    "Official external baselines and external datasets remain required."
+  ]
+}
