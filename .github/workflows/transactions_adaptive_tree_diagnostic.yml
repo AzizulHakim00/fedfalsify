@@ -1,0 +1,78 @@
+name: transactions-adaptive-tree-diagnostic
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/transactions_adaptive_tree_diagnostic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolate-certificate-condition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        benchmark: [base, poly3]
+        scenario: [complementary, spurious, exception]
+        noise: ["0.03", "0.10"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Run isolated full-budget certificate search
+        run: |
+          mkdir -p diagnostic
+          set +e
+          fedfalsify-transactions-adaptive-tree \
+            --benchmarks "${{ matrix.benchmark }}" \
+            --scenarios "${{ matrix.scenario }}" \
+            --noise "${{ matrix.noise }}" \
+            --samples 300 \
+            --clients 4 \
+            --seeds 10012 \
+            --methods certificate-guided-federated-tree \
+            --population-size 48 \
+            --generations 12 \
+            --max-genes 4 \
+            --max-complexity 7 \
+            --bootstrap-resamples 200 \
+            --output diagnostic/rows.csv \
+            --summary diagnostic/summary.json \
+            > diagnostic/run.log 2>&1
+          code=$?
+          echo "$code" > diagnostic/exit_code.txt
+          cat diagnostic/run.log
+          exit 0
+      - name: Record diagnostic metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          metadata = {
+              "benchmark": "${{ matrix.benchmark }}",
+              "scenario": "${{ matrix.scenario }}",
+              "noise": "${{ matrix.noise }}",
+              "seed": 10012,
+              "exit_code": int(Path("diagnostic/exit_code.txt").read_text().strip()),
+              "rows_exists": Path("diagnostic/rows.csv").exists(),
+              "summary_exists": Path("diagnostic/summary.json").exists(),
+          }
+          Path("diagnostic/metadata.json").write_text(
+              json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          PY
+      - name: Upload isolated diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-diagnostic-${{ matrix.benchmark }}-${{ matrix.scenario }}-${{ matrix.noise }}
+          path: diagnostic
+          if-no-files-found: error
+          retention-days: 30
