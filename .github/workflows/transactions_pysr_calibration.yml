@@ -1,12 +1,6 @@
 name: transactions-pysr-calibration
 
 on:
-  pull_request:
-    paths:
-      - src/fedfalsify/transactions_pysr.py
-      - tests/test_transactions_pysr.py
-      - pyproject.toml
-      - .github/workflows/transactions_pysr_calibration.yml
   workflow_dispatch:
 
 permissions:
@@ -112,8 +106,7 @@ jobs:
               }
           )
           manifest_path.write_text(
-              json.dumps(manifest, indent=2, sort_keys=True),
-              encoding="utf-8",
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
           )
           PY
       - name: Upload official PySR calibration
