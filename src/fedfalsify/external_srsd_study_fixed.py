@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import csv
-from dataclasses import asdict
+from dataclasses import dataclass
 import json
 import numpy as np
 
@@ -13,6 +13,34 @@ from .baselines import centralized_forward, fedfalsify_method, score_only_federa
 from .client import FederatedFalsifierClient
 from .external_common import FlexibleTermCatalog, fit_standardization, regression_metrics, standardized_clients
 from .pysr_adapter import run_pysr
+
+
+@dataclass(frozen=True)
+class CorrectedProblemSpec:
+    problem: str
+    true_variables: int
+    truth_name: str
+    truth_display: str
+
+    def truth_values(self, x: np.ndarray) -> np.ndarray:
+        if self.problem in {"feynman-i.12.1", "feynman-i.14.3"}:
+            return x[:, 0] * x[:, 1]
+        if self.problem == "feynman-i.18.12":
+            return x[:, 0] * x[:, 1] * np.sin(x[:, 2])
+        if self.problem == "feynman-ii.15.4":
+            return x[:, 0] * x[:, 1] * np.cos(x[:, 2])
+        if self.problem == "feynman-ii.27.18":
+            return x[:, 0] ** 2
+        raise KeyError(self.problem)
+
+
+PROBLEMS = (
+    CorrectedProblemSpec("feynman-i.12.1", 2, "truth_product", "x0·x1"),
+    CorrectedProblemSpec("feynman-i.14.3", 2, "truth_gravity_product", "m·z"),
+    CorrectedProblemSpec("feynman-i.18.12", 3, "truth_sine_product", "r·F·sin(theta)"),
+    CorrectedProblemSpec("feynman-ii.15.4", 3, "truth_cosine_product", "mu·B·cos(theta)"),
+    CorrectedProblemSpec("feynman-ii.27.18", 1, "truth_square", "E²"),
+)
 
 
 def build_catalog(spec, feature_count: int, scaling, *, include_truth: bool) -> FlexibleTermCatalog:
@@ -33,15 +61,33 @@ def build_catalog(spec, feature_count: int, scaling, *, include_truth: bool) -> 
     for index in range(feature_count):
         prefix = "dummy" if index >= spec.true_variables else "x"
         name = f"{prefix}{index}"
+        terms.append(BasisTerm(name, lambda x, i=index: physical(x)[:, i], 1, name))
+        exact_square = (
+            not include_truth
+            and spec.problem == "feynman-ii.27.18"
+            and index == 0
+        )
+        if not exact_square:
+            terms.append(BasisTerm(
+                f"{name}^2",
+                lambda x, i=index: physical(x)[:, i] ** 2,
+                2,
+                f"{name}²",
+            ))
         terms.extend([
-            BasisTerm(name, lambda x, i=index: physical(x)[:, i], 1, name),
-            BasisTerm(f"{name}^2", lambda x, i=index: physical(x)[:, i] ** 2, 2, f"{name}²"),
             BasisTerm(f"sin({name})", lambda x, i=index: np.sin(physical(x)[:, i]), 2, f"sin({name})"),
             BasisTerm(f"cos({name})", lambda x, i=index: np.cos(physical(x)[:, i]), 2, f"cos({name})"),
         ])
+    product_truth_problems = {"feynman-i.12.1", "feynman-i.14.3"}
     for left in range(feature_count):
         for right in range(left + 1, feature_count):
-            if spec.problem == "feynman-i.12.1" and left == 0 and right == 1:
+            exact_product = (
+                not include_truth
+                and spec.problem in product_truth_problems
+                and left == 0
+                and right == 1
+            )
+            if exact_product:
                 continue
             name = f"v{left}*v{right}"
             terms.append(BasisTerm(
@@ -120,6 +166,8 @@ def run_problem(cache_dir, spec, *, pysr_iterations: int = 30):
         "client_definition": "quartiles of the first physical input on official training data",
         "official_split_retained": True,
         "structure_preserving_scaling": "true catalog term reconstructs original physical coordinates",
+        "fixed_physical_constants": "absorbed into the fitted scalar coefficient",
+        "misspecification_rule": "remove the named truth term and any algebraically identical catalog duplicate",
     }
     return rows, manifest
 
@@ -128,7 +176,7 @@ def main() -> None:
     args = _core.build_parser().parse_args()
     rows = []
     manifests = []
-    for spec in _core.PROBLEMS:
+    for spec in PROBLEMS:
         problem_rows, manifest = run_problem(args.cache_dir, spec, pysr_iterations=args.pysr_iterations)
         rows.extend(problem_rows)
         manifests.append(manifest)
@@ -138,17 +186,18 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(row.to_dict() for row in rows)
     summary = {
-        "schema_version": 2,
+        "schema_version": 3,
         "status": "external-validation",
         "dataset": "SRSD-Feynman Easy",
         "license": "CC BY 4.0",
-        "problems": [spec.problem for spec in _core.PROBLEMS],
+        "problems": [spec.problem for spec in PROBLEMS],
         "rows": len(rows),
         "methods": _core.summarize(rows),
         "manifests": manifests,
         "scientific_boundary": [
             "The supported FedFalsify catalog contains one composite ground-truth term.",
-            "The misspecified condition removes that term without retuning.",
+            "The misspecified condition removes that term and algebraically identical duplicates without retuning.",
+            "Fixed physical constants are learned through the fitted scalar coefficient.",
             "Physical equations are evaluated after reversing training-only input scaling.",
             "PySR searches adaptively over shared primitive operators.",
             "Dummy variables are deterministic study augmentations, not original SRSD columns.",
