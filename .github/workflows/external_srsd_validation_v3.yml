@@ -1,165 +1,17 @@
 name: transactions-external-srsd-validation-v3
 
 on:
-  pull_request:
-    paths:
-      - src/fedfalsify/external_common.py
-      - src/fedfalsify/external_srsd_study.py
-      - src/fedfalsify/external_srsd_study_fixed.py
-      - src/fedfalsify/external_srsd_study_v3.py
-      - tests/test_external_common.py
-      - tests/test_external_studies.py
-      - research/TRANSACTIONS_EXTERNAL_VALIDATION_PROTOCOL.md
-      - pyproject.toml
-      - .github/workflows/external_srsd_validation_v3.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  srsd-v3:
-    name: admissible-srsd-five-equation-study
+  frozen-diagnostic-notice:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: "1.11"
-      - name: Install dependencies
-        run: python -m pip install -e ".[dev,sr]"
-      - name: Validate scale and unique-truth governance
-        run: pytest tests/test_external_common.py tests/test_external_studies.py
-      - name: Warm up official PySR outside measured study
+      - name: Explain v3 diagnostic status
         run: |
-          mkdir -p /tmp/external-pysr-warmup
-          fedfalsify-pysr \
-            --benchmark base \
-            --scenarios complementary \
-            --seed 11998 \
-            --smoke \
-            --output /tmp/external-pysr-warmup/rows.csv
-      - name: Run admissible frozen SRSD study
-        run: |
-          rm -rf results/external_srsd_v3 .cache/srsd-feynman_easy
-          fedfalsify-external-srsd-study \
-            --cache-dir .cache/srsd-feynman_easy \
-            --pysr-iterations 30 \
-            --output results/external_srsd_v3/rows.csv \
-            --summary results/external_srsd_v3/summary.json
-      - name: Validate complete failure-retaining evidence
-        run: |
-          python - <<'PY'
-          import csv
-          import json
-          import math
-          from pathlib import Path
-
-          root = Path("results/external_srsd_v3")
-          rows = list(csv.DictReader((root / "rows.csv").open(newline="", encoding="utf-8")))
-          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
-          expected_problems = [
-              "feynman-i.12.1",
-              "feynman-i.14.3",
-              "feynman-i.18.12",
-              "feynman-ii.15.4",
-              "feynman-ii.27.18",
-          ]
-          assert summary["schema_version"] == 3
-          assert summary["status"] == "external-validation"
-          assert summary["problems"] == expected_problems
-          assert len(rows) == 35
-          assert {row["problem"] for row in rows} == set(expected_problems)
-          assert {row["method"] for row in rows} == {
-              "fedfalsify", "centralized-forward", "score-only-federated", "official-pysr"
-          }
-          assert {row["catalog_condition"] for row in rows} == {
-              "truth-supported", "catalog-misspecified", "adaptive-search"
-          }
-          identities = {
-              (row["problem"], row["method"], row["catalog_condition"])
-              for row in rows
-          }
-          assert len(identities) == 35
-          assert all(math.isfinite(float(row["test_nmse"])) and float(row["test_nmse"]) >= 0 for row in rows)
-          assert len(summary["manifests"]) == 5
-          dimensions = {
-              item["problem"]: item["true_variables"]
-              for item in summary["manifests"]
-          }
-          assert dimensions == {
-              "feynman-i.12.1": 2,
-              "feynman-i.14.3": 2,
-              "feynman-i.18.12": 3,
-              "feynman-ii.15.4": 3,
-              "feynman-ii.27.18": 1,
-          }
-          # A zero equation must not become a false semantic success merely
-          # because the physical target magnitude is tiny.
-          for row in rows:
-              if row["expression"].strip() in {"0", "0.0"}:
-                  assert float(row["semantic_1e4"]) == 0.0
-          # Strict recovery is identifiable only for named truth-supported rows.
-          supported = [
-              row for row in rows
-              if row["catalog_condition"] == "truth-supported"
-          ]
-          assert len(supported) == 15
-          assert all(float(row["strict_exact_recovery"]) in {0.0, 1.0} for row in supported)
-          PY
-      - name: Seal admissible evidence
-        run: |
-          python - <<'PY'
-          import hashlib
-          import json
-          from datetime import datetime, timezone
-          from pathlib import Path
-          import platform
-          import subprocess
-          import pysr
-
-          root = Path("results/external_srsd_v3")
-          def digest(path):
-              value = hashlib.sha256()
-              with path.open("rb") as handle:
-                  for block in iter(lambda: handle.read(1024 * 1024), b""):
-                      value.update(block)
-              return value.hexdigest()
-          files = {
-              path.name: {"bytes": path.stat().st_size, "sha256": digest(path)}
-              for path in sorted(root.iterdir()) if path.is_file()
-          }
-          manifest = {
-              "schema_version": 3,
-              "status": "external-validation-complete",
-              "study": "Admissible scale-aware SRSD-Feynman five-equation study",
-              "created_at_utc": datetime.now(timezone.utc).isoformat(),
-              "source_git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
-              "python": platform.python_version(),
-              "pysr": pysr.__version__,
-              "rows": 35,
-              "problems": 5,
-              "files": files,
-              "negative_results_retained": True,
-              "catalog_misspecification_retained": True,
-              "failed_schema_predecessor_run": 30860646170,
-              "inadmissible_diagnostic_v2_run": 30861162857,
-              "repair_scope": [
-                  "scale-aware training-only standardization and NMSE",
-                  "one identifiable structural truth representation",
-                  "no change to problems, clients, methods, budgets, or seeds"
-              ]
-          }
-          (root / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: external-srsd-v3
-          path: results/external_srsd_v3
-          if-no-files-found: error
-          retention-days: 90
+          echo "SRSD v3 fixed target-scale and truth-alias defects but retained unit-sensitive finite basis columns."
+          echo "Historical artifact: workflow 30861771502, artifact 8874702449."
+          echo "The final unit-invariant study is external_srsd_validation_v4.yml."
