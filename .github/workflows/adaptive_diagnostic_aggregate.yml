@@ -1,0 +1,116 @@
+name: adaptive-diagnostic-aggregate
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+    paths:
+      - .github/workflows/adaptive_diagnostic_aggregate.yml
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/fedfalsify-mvi
+      - name: Download isolated diagnostic artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf downloaded results/transactions_adaptive_diagnostic
+          mkdir -p downloaded results/transactions_adaptive_diagnostic
+          gh run download 30857453307 \
+            --repo "${GITHUB_REPOSITORY}" \
+            --dir downloaded
+      - name: Aggregate diagnostic evidence
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          from pathlib import Path
+
+          source = Path("downloaded")
+          output = Path("results/transactions_adaptive_diagnostic")
+          conditions = []
+          combined_rows = []
+          for metadata_path in sorted(source.rglob("metadata.json")):
+              directory = metadata_path.parent
+              metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+              log_path = directory / "run.log"
+              rows_path = directory / "rows.csv"
+              log_text = log_path.read_text(encoding="utf-8", errors="replace") if log_path.exists() else ""
+              metadata["log_tail"] = "\n".join(log_text.splitlines()[-20:])
+              metadata["artifact_directory"] = directory.parent.name
+              if rows_path.exists():
+                  with rows_path.open(newline="", encoding="utf-8") as handle:
+                      rows = list(csv.DictReader(handle))
+                  metadata["row_count"] = len(rows)
+                  combined_rows.extend(rows)
+                  if rows:
+                      row = rows[0]
+                      metadata["exact_recovery"] = float(row["exact_recovery"])
+                      metadata["semantic_all_1e3"] = float(row["semantic_all_1e3"])
+                      metadata["semantic_all_1e2"] = float(row["semantic_all_1e2"])
+                      metadata["strong_extrapolation_nmse"] = float(row["strong_extrapolation_nmse"])
+                      metadata["runtime_seconds"] = float(row["runtime_seconds"])
+                      metadata["communication_bytes"] = int(row["communication_bytes"])
+                      metadata["certificate_penalty"] = float(row["certificate_penalty"])
+                      metadata["violating_certificates"] = int(row["violating_certificates"])
+                      metadata["discovered_terms"] = row["discovered_terms"]
+                      metadata["expression"] = row["expression"]
+              else:
+                  metadata["row_count"] = 0
+              conditions.append(metadata)
+
+          if len(conditions) != 12:
+              raise RuntimeError(f"expected 12 diagnostic conditions, found {len(conditions)}")
+          failed = [item for item in conditions if item["exit_code"] != 0]
+          summary = {
+              "schema_version": 1,
+              "status": "all-conditions-completed" if not failed else "condition-failures",
+              "source_workflow_run_id": 30857453307,
+              "conditions": conditions,
+              "condition_count": len(conditions),
+              "failed_condition_count": len(failed),
+              "completed_row_count": len(combined_rows),
+              "scientific_role": "diagnosis of full-budget adaptive-search failure",
+          }
+          output.mkdir(parents=True, exist_ok=True)
+          (output / "summary.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          if combined_rows:
+              with (output / "rows.csv").open("w", newline="", encoding="utf-8") as handle:
+                  writer = csv.DictWriter(handle, fieldnames=list(combined_rows[0]))
+                  writer.writeheader()
+                  writer.writerows(combined_rows)
+          digest = hashlib.sha256((output / "summary.json").read_bytes()).hexdigest()
+          (output / "manifest.json").write_text(
+              json.dumps(
+                  {
+                      "schema_version": 1,
+                      "status": "completed",
+                      "source_workflow_run_id": 30857453307,
+                      "summary_sha256": digest,
+                      "condition_count": len(conditions),
+                      "failed_condition_count": len(failed),
+                  },
+                  indent=2,
+                  sort_keys=True,
+              ),
+              encoding="utf-8",
+          )
+          PY
+      - name: Commit diagnostic summary
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- results/transactions_adaptive_diagnostic
+          git commit -m "results: archive adaptive diagnostic summary"
+          git push origin "HEAD:feat/fedfalsify-mvi"
