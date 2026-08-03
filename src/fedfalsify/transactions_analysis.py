@@ -1,7 +1,7 @@
 """Transactions-level semantic equivalence and failure analysis.
 
 This module intentionally analyzes frozen confirmatory CSV files without
-modifying or re-running the original experiments. It evaluates reported
+modifying or re-running the original experiments.  It evaluates reported
 expressions on deterministic interpolation and extrapolation domains, then
 separates strict structural failures from functional-equivalence successes.
 """
@@ -425,6 +425,33 @@ def _group_summary(rows: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def _threshold_sensitivity(
+    rows: list[dict[str, object]],
+    thresholds: tuple[float, ...] = (1e-4, 1e-3, 1e-2),
+) -> dict[str, dict[str, float]]:
+    by_method: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for row in rows:
+        by_method[str(row["method"])].append(row)
+    result: dict[str, dict[str, float]] = {}
+    metric_names = (
+        "interpolation_nmse",
+        "client_support_nmse",
+        "mild_extrapolation_nmse",
+        "strong_extrapolation_nmse",
+    )
+    for method, selected in sorted(by_method.items()):
+        method_result: dict[str, float] = {}
+        for threshold in thresholds:
+            successes = 0
+            for row in selected:
+                values = [float(row[name]) for name in metric_names]
+                if all(np.isfinite(value) for value in values) and max(values) <= threshold:
+                    successes += 1
+            method_result[f"{threshold:.0e}"] = successes / len(selected)
+        result[method] = method_result
+    return result
+
+
 def analyze_rows(
     input_rows: list[dict[str, str]],
     *,
@@ -499,6 +526,7 @@ def analyze_rows(
             method: _group_summary(rows)
             for method, rows in sorted(by_method.items())
         },
+        "semantic_threshold_sensitivity": _threshold_sensitivity(enriched),
         "breakdown": [
             {
                 "method": key[0],
