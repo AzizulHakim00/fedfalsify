@@ -1,9 +1,14 @@
 name: transactions-adaptive-tree-calibration
 
 on:
-  push:
-    branches: [feat/fedfalsify-mvi]
+  pull_request:
     paths:
+      - src/fedfalsify/certificate_tree.py
+      - src/fedfalsify/certificate_tree_fixed.py
+      - src/fedfalsify/transactions_adaptive_tree.py
+      - src/fedfalsify/transactions_adaptive_tree_fixed.py
+      - tests/test_certificate_tree.py
+      - tests/test_transactions_adaptive_tree.py
       - .github/workflows/transactions_adaptive_tree_calibration.yml
   workflow_dispatch:
 
