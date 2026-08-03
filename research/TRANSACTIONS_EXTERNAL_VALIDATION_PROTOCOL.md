@@ -49,6 +49,9 @@ terms, and six preregistered interactions. No station-specific term is allowed.
 - pooled linear ridge on all selected linear terms;
 - local-only finite-catalog model;
 - official PySR pooled-data baseline;
+- pooled `HistGradientBoostingRegressor` trained on the identical sampled rows as
+  a strong non-symbolic predictive context baseline, not as an interpretable
+  contribution;
 - leave-one-station-out FedFalsify and centralized-forward sensitivity.
 
 ### Primary endpoints
@@ -61,7 +64,8 @@ terms, and six preregistered interactions. No station-specific term is allowed.
 
 MAE, RMSE, expression complexity, runtime, communication, and leave-one-station-out
 error are secondary endpoints. Each station is the inferential unit; hourly rows
-are not treated as independent replications.
+are not treated as independent replications. The non-symbolic model establishes a
+predictive context ceiling and is not eligible for symbolic-interpretability claims.
 
 ## 3. Study E2 — SRSD-Feynman ground-truth suite
 
