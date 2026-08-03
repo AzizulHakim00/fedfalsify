@@ -26,6 +26,12 @@ class FederatedFalsifierClient:
     def client_id(self) -> str:
         return self._dataset.client_id
 
+    @property
+    def sample_count(self) -> int:
+        """Return client support metadata already carried by fit summaries."""
+
+        return int(self._dataset.x.shape[0])
+
     def fit_summary(self, active_terms: tuple[str, ...]) -> FitSummary:
         design = self._catalog.matrix(self._dataset.x, active_terms)
         gram = design.T @ design
