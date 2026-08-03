@@ -1,29 +1,10 @@
 name: transactions-phase1
 
 on:
-  push:
-    branches: [feat/fedfalsify-transactions]
-    paths:
-      - src/fedfalsify/transactions_analysis.py
-      - src/fedfalsify/transactions_analysis_fixed.py
-      - tests/test_transactions_analysis.py
-      - tests/test_transactions_analysis_fixed.py
-      - pyproject.toml
-      - .github/workflows/transactions_phase1.yml
-      - results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv
-  pull_request:
-    paths:
-      - src/fedfalsify/transactions_analysis.py
-      - src/fedfalsify/transactions_analysis_fixed.py
-      - tests/test_transactions_analysis.py
-      - tests/test_transactions_analysis_fixed.py
-      - pyproject.toml
-      - .github/workflows/transactions_phase1.yml
-      - results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   analyze-frozen-evidence:
@@ -53,8 +34,10 @@ jobs:
           import json
           from pathlib import Path
 
-          path = Path("results/transactions_phase1/transactions_summary.json")
-          summary = json.loads(path.read_text(encoding="utf-8"))
+          summary = json.loads(
+              Path("results/transactions_phase1/transactions_summary.json")
+              .read_text(encoding="utf-8")
+          )
           assert summary["input_rows"] == 2400
           assert summary["unique_method_condition_rows"] == 2400
           assert summary["duplicate_method_condition_rows"] == 0
@@ -113,8 +96,7 @@ jobs:
               "files": files,
           }
           (root / "manifest.json").write_text(
-              json.dumps(manifest, indent=2, sort_keys=True),
-              encoding="utf-8",
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
           )
           PY
       - name: Upload Phase 1 evidence
@@ -124,15 +106,3 @@ jobs:
           path: results/transactions_phase1
           if-no-files-found: error
           retention-days: 90
-      - name: Commit analysis evidence on Transactions branch
-        if: github.event_name == 'push' && github.ref_name == 'feat/fedfalsify-transactions'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- results/transactions_phase1
-          if git diff --cached --quiet; then
-            echo "No Phase 1 evidence changes to commit."
-            exit 0
-          fi
-          git commit -m "results: archive Transactions Phase 1 semantic analysis"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
