@@ -1,0 +1,114 @@
+name: external-beijing-diagnostic
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+    paths:
+      - .github/workflows/external_beijing_diagnostic.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/fedfalsify-mvi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Diagnose official archive
+        run: |
+          rm -rf data/external/beijing results/external_beijing_diagnostic
+          mkdir -p data/external/beijing results/external_beijing_diagnostic
+          python - <<'PY'
+          import csv
+          import hashlib
+          import io
+          import json
+          from pathlib import Path
+          import traceback
+          import zipfile
+
+          from fedfalsify.external_beijing import download_archive
+          from fedfalsify.external_beijing_fixed import prepare_archive
+
+          archive_path = Path("data/external/beijing/beijing_air_quality.zip")
+          download_archive(archive_path)
+
+          def digest(path: Path) -> str:
+              value = hashlib.sha256()
+              value.update(path.read_bytes())
+              return value.hexdigest()
+
+          diagnostic = {
+              "archive_sha256": digest(archive_path),
+              "archive_bytes": archive_path.stat().st_size,
+              "outer_members": [],
+              "nested_archives": [],
+          }
+          with zipfile.ZipFile(archive_path) as outer:
+              diagnostic["outer_members"] = [
+                  {"name": name, "bytes": outer.getinfo(name).file_size}
+                  for name in outer.namelist()
+              ]
+              for name in outer.namelist():
+                  if not name.lower().endswith(".zip"):
+                      continue
+                  payload = outer.read(name)
+                  nested_info = {"name": name, "bytes": len(payload), "members": []}
+                  with zipfile.ZipFile(io.BytesIO(payload)) as nested:
+                      for member in nested.namelist():
+                          item = {
+                              "name": member,
+                              "bytes": nested.getinfo(member).file_size,
+                          }
+                          if member.lower().endswith(".csv"):
+                              with nested.open(member) as binary:
+                                  text = io.TextIOWrapper(binary, encoding="utf-8-sig", newline="")
+                                  reader = csv.reader(text)
+                                  item["header"] = next(reader, [])
+                          nested_info["members"].append(item)
+                  diagnostic["nested_archives"].append(nested_info)
+
+          try:
+              clients = prepare_archive(
+                  archive_path,
+                  train_fraction=0.60,
+                  validation_fraction=0.20,
+                  min_usable_rows=1000,
+              )
+              diagnostic["prepare_status"] = "success"
+              diagnostic["station_count"] = len(clients)
+              diagnostic["stations"] = [client.station for client in clients]
+              diagnostic["total_raw_rows"] = sum(client.raw_rows for client in clients)
+              diagnostic["total_prepared_rows"] = sum(
+                  len(client.train.y) + len(client.validation.y) + len(client.test.y)
+                  for client in clients
+              )
+              diagnostic["total_dropped_missing_target"] = sum(
+                  client.dropped_missing_target for client in clients
+              )
+          except Exception as exc:
+              diagnostic["prepare_status"] = "failed"
+              diagnostic["exception_type"] = type(exc).__name__
+              diagnostic["exception_message"] = str(exc)
+              diagnostic["traceback"] = traceback.format_exc()
+
+          output = Path("results/external_beijing_diagnostic/diagnostic.json")
+          output.write_text(
+              json.dumps(diagnostic, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          PY
+      - name: Commit diagnostic result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- results/external_beijing_diagnostic/diagnostic.json
+          git commit -m "results: archive Beijing preparation diagnostic"
+          git push origin "HEAD:feat/fedfalsify-mvi"
