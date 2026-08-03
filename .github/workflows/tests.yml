@@ -57,7 +57,31 @@ jobs:
           assert summary["input_rows"] == 2400
           assert summary["unique_method_condition_rows"] == 2400
           assert summary["duplicate_method_condition_rows"] == 0
-          assert summary["methods"]["fedfalsify-v05"]["parse_failures"] == 0
+          parse_failures = {
+              method: values["parse_failures"]
+              for method, values in summary["methods"].items()
+          }
+          print("Semantic parse failures:", parse_failures)
+          assert all(value == 0 for value in parse_failures.values()), parse_failures
+          PY
+      - name: Transactions ablation smoke test
+        run: |
+          fedfalsify-transactions-ablation \
+            --smoke \
+            --bootstrap-resamples 200 \
+            --output results/transactions_ablation_smoke.csv \
+            --summary results/transactions_ablation_smoke_raw.json \
+            --holm-summary results/transactions_ablation_smoke_holm.json
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          with Path("results/transactions_ablation_smoke.csv").open(
+              newline="", encoding="utf-8"
+          ) as handle:
+              rows = list(csv.DictReader(handle))
+          assert len(rows) == 14
+          assert {int(row["seed"]) for row in rows} == {10001}
           PY
       - name: Audited Colab dry run
         run: |
