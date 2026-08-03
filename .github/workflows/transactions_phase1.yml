@@ -1,0 +1,121 @@
+name: transactions-phase1
+
+on:
+  push:
+    branches: [feat/fedfalsify-transactions]
+    paths:
+      - src/fedfalsify/transactions_analysis.py
+      - tests/test_transactions_analysis.py
+      - pyproject.toml
+      - .github/workflows/transactions_phase1.yml
+      - results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  analyze-frozen-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/fedfalsify-transactions
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Test semantic analysis
+        run: pytest tests/test_transactions_analysis.py
+      - name: Analyze frozen Study A evidence
+        run: |
+          rm -rf results/transactions_phase1
+          fedfalsify-transactions-analysis \
+            --input results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv \
+            --output-dir results/transactions_phase1 \
+            --samples 4000 \
+            --strict-threshold 0.001 \
+            --relaxed-threshold 0.01
+      - name: Validate scientific invariants
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("results/transactions_phase1/transactions_summary.json")
+          summary = json.loads(path.read_text(encoding="utf-8"))
+          assert summary["input_rows"] == 2400
+          assert summary["unique_method_condition_rows"] == 2400
+          assert summary["duplicate_method_condition_rows"] == 0
+          assert summary["fedfalsify_strict_failures"]["count"] == 40
+          assert abs(
+              summary["methods"]["fedfalsify-v05"]["strict_exact_recovery"]
+              - 0.9333333333333333
+          ) < 1e-12
+          for method, values in summary["methods"].items():
+              assert values["runs"] == 600, method
+              assert values["parse_failures"] == 0, (method, values)
+          PY
+      - name: Seal Phase 1 analysis
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import subprocess
+
+          root = Path("results/transactions_phase1")
+          input_path = Path(
+              "results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv"
+          )
+
+          def digest(path: Path) -> str:
+              value = hashlib.sha256()
+              with path.open("rb") as handle:
+                  for block in iter(lambda: handle.read(1024 * 1024), b""):
+                      value.update(block)
+              return value.hexdigest()
+
+          files = {
+              path.relative_to(root).as_posix(): {
+                  "bytes": path.stat().st_size,
+                  "sha256": digest(path),
+              }
+              for path in sorted(root.rglob("*"))
+              if path.is_file() and path.name != "manifest.json"
+          }
+          manifest = {
+              "schema_version": 1,
+              "status": "completed",
+              "analysis": "Transactions Phase 1 semantic equivalence and failure taxonomy",
+              "created_at_utc": datetime.now(timezone.utc).isoformat(),
+              "source_git_commit": subprocess.check_output(
+                  ["git", "rev-parse", "HEAD"], text=True
+              ).strip(),
+              "frozen_input": input_path.as_posix(),
+              "frozen_input_sha256": digest(input_path),
+              "frozen_input_rows": 2400,
+              "domain_samples": 4000,
+              "strict_threshold": 0.001,
+              "relaxed_threshold": 0.01,
+              "files": files,
+          }
+          (root / "manifest.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True),
+              encoding="utf-8",
+          )
+          PY
+      - name: Commit analysis evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- results/transactions_phase1
+          if git diff --cached --quiet; then
+            echo "No Phase 1 evidence changes to commit."
+            exit 0
+          fi
+          git commit -m "results: archive Transactions Phase 1 semantic analysis"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
