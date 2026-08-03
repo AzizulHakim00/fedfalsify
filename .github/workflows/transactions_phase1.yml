@@ -5,7 +5,18 @@ on:
     branches: [feat/fedfalsify-transactions]
     paths:
       - src/fedfalsify/transactions_analysis.py
+      - src/fedfalsify/transactions_analysis_fixed.py
       - tests/test_transactions_analysis.py
+      - tests/test_transactions_analysis_fixed.py
+      - pyproject.toml
+      - .github/workflows/transactions_phase1.yml
+      - results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv
+  pull_request:
+    paths:
+      - src/fedfalsify/transactions_analysis.py
+      - src/fedfalsify/transactions_analysis_fixed.py
+      - tests/test_transactions_analysis.py
+      - tests/test_transactions_analysis_fixed.py
       - pyproject.toml
       - .github/workflows/transactions_phase1.yml
       - results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv
@@ -19,8 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feat/fedfalsify-transactions
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -28,7 +37,7 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev]"
       - name: Test semantic analysis
-        run: pytest tests/test_transactions_analysis.py
+        run: pytest tests/test_transactions_analysis.py tests/test_transactions_analysis_fixed.py
       - name: Analyze frozen Study A evidence
         run: |
           rm -rf results/transactions_phase1
@@ -108,7 +117,15 @@ jobs:
               encoding="utf-8",
           )
           PY
-      - name: Commit analysis evidence
+      - name: Upload Phase 1 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: transactions-phase1-evidence
+          path: results/transactions_phase1
+          if-no-files-found: error
+          retention-days: 90
+      - name: Commit analysis evidence on Transactions branch
+        if: github.event_name == 'push' && github.ref_name == 'feat/fedfalsify-transactions'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
