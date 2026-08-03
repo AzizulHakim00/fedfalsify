@@ -1,137 +1,18 @@
 name: transactions-external-srsd-validation-v2
 
 on:
-  pull_request:
-    paths:
-      - src/fedfalsify/external_common.py
-      - src/fedfalsify/external_srsd_study.py
-      - src/fedfalsify/external_srsd_study_fixed.py
-      - tests/test_external_common.py
-      - tests/test_external_studies.py
-      - research/TRANSACTIONS_EXTERNAL_VALIDATION_PROTOCOL.md
-      - pyproject.toml
-      - .github/workflows/external_srsd_validation_v2.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  srsd:
-    name: corrected-srsd-five-equation-study
+  frozen-diagnostic-notice:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: "1.11"
-      - name: Install dependencies
-        run: python -m pip install -e ".[dev,sr]"
-      - name: Validate corrected schemas and misspecification governance
-        run: pytest tests/test_external_common.py tests/test_external_studies.py
-      - name: Warm up official PySR outside measured study
+      - name: Explain v2 diagnostic status
         run: |
-          mkdir -p /tmp/external-pysr-warmup
-          fedfalsify-pysr \
-            --benchmark base \
-            --scenarios complementary \
-            --seed 11998 \
-            --smoke \
-            --output /tmp/external-pysr-warmup/rows.csv
-      - name: Run corrected frozen SRSD study
-        run: |
-          rm -rf results/external_srsd_v2 .cache/srsd-feynman_easy
-          fedfalsify-external-srsd-study \
-            --cache-dir .cache/srsd-feynman_easy \
-            --pysr-iterations 30 \
-            --output results/external_srsd_v2/rows.csv \
-            --summary results/external_srsd_v2/summary.json
-      - name: Validate complete evidence
-        run: |
-          python - <<'PY'
-          import csv
-          import json
-          from pathlib import Path
-
-          root = Path("results/external_srsd_v2")
-          rows = list(csv.DictReader((root / "rows.csv").open(newline="", encoding="utf-8")))
-          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
-          assert summary["schema_version"] == 3
-          assert summary["status"] == "external-validation"
-          assert summary["problems"] == [
-              "feynman-i.12.1",
-              "feynman-i.14.3",
-              "feynman-i.18.12",
-              "feynman-ii.15.4",
-              "feynman-ii.27.18",
-          ]
-          assert len(rows) == 35
-          assert {row["method"] for row in rows} == {
-              "fedfalsify", "centralized-forward", "score-only-federated", "official-pysr"
-          }
-          assert {row["catalog_condition"] for row in rows} == {
-              "truth-supported", "catalog-misspecified", "adaptive-search"
-          }
-          assert all(float(row["test_nmse"]) >= 0 for row in rows)
-          assert len(summary["manifests"]) == 5
-          dimensions = {
-              item["problem"]: item["true_variables"]
-              for item in summary["manifests"]
-          }
-          assert dimensions == {
-              "feynman-i.12.1": 2,
-              "feynman-i.14.3": 2,
-              "feynman-i.18.12": 3,
-              "feynman-ii.15.4": 3,
-              "feynman-ii.27.18": 1,
-          }
-          PY
-      - name: Seal evidence
-        run: |
-          python - <<'PY'
-          import hashlib
-          import json
-          from datetime import datetime, timezone
-          from pathlib import Path
-          import platform
-          import subprocess
-          import pysr
-
-          root = Path("results/external_srsd_v2")
-          def digest(path):
-              value = hashlib.sha256()
-              with path.open("rb") as handle:
-                  for block in iter(lambda: handle.read(1024 * 1024), b""):
-                      value.update(block)
-              return value.hexdigest()
-          files = {
-              path.name: {"bytes": path.stat().st_size, "sha256": digest(path)}
-              for path in sorted(root.iterdir()) if path.is_file()
-          }
-          manifest = {
-              "schema_version": 2,
-              "status": "external-validation-complete",
-              "study": "Corrected SRSD-Feynman five-equation external study",
-              "created_at_utc": datetime.now(timezone.utc).isoformat(),
-              "source_git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
-              "python": platform.python_version(),
-              "pysr": pysr.__version__,
-              "files": files,
-              "negative_results_retained": True,
-              "catalog_misspecification_retained": True,
-              "failed_predecessor_run": 30860646170,
-              "repair_scope": "dataset schema and algebraically strict misspecification only",
-          }
-          (root / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: external-srsd-v2
-          path: results/external_srsd_v2
-          if-no-files-found: error
-          retention-days: 90
+          echo "SRSD v2 is retained as diagnostic evidence only."
+          echo "Audit found absolute-scale normalization and duplicate truth-alias defects."
+          echo "Historical artifact: workflow 30861162857, artifact 8874469580."
+          echo "The admissible repaired study is external_srsd_validation_v3.yml."
