@@ -32,37 +32,37 @@ jobs:
           pytest \
             tests/test_certificate_tree.py \
             tests/test_transactions_adaptive_tree.py
-      - name: Run matched adaptive calibration
+      - name: Run corrected full-budget adaptive calibration
         run: |
-          rm -rf results/transactions_adaptive_tree_calibration
-          mkdir -p results/transactions_adaptive_tree_calibration
+          rm -rf results/transactions_adaptive_tree_calibration_v2
+          mkdir -p results/transactions_adaptive_tree_calibration_v2
           fedfalsify-transactions-adaptive-tree \
             --benchmarks base,poly3 \
             --scenarios complementary,spurious,exception \
             --noise 0.03,0.10 \
             --samples 300 \
             --clients 4 \
-            --seeds 10011 \
+            --seeds 10012 \
             --methods certificate-guided-federated-tree,centralized-tree-gp,federated-tree-gp-style,centralized-residual-counterexample-gp \
-            --population-size 16 \
-            --generations 3 \
-            --max-genes 3 \
+            --population-size 48 \
+            --generations 12 \
+            --max-genes 4 \
             --max-complexity 7 \
-            --bootstrap-resamples 1000 \
-            --output results/transactions_adaptive_tree_calibration/rows.csv \
-            --summary results/transactions_adaptive_tree_calibration/summary.json
-      - name: Validate calibration matrix
+            --bootstrap-resamples 2000 \
+            --output results/transactions_adaptive_tree_calibration_v2/rows.csv \
+            --summary results/transactions_adaptive_tree_calibration_v2/summary.json
+      - name: Validate corrected calibration matrix
         run: |
           python - <<'PY'
           import csv
           import json
           from pathlib import Path
 
-          root = Path("results/transactions_adaptive_tree_calibration")
+          root = Path("results/transactions_adaptive_tree_calibration_v2")
           with (root / "rows.csv").open(newline="", encoding="utf-8") as handle:
               rows = list(csv.DictReader(handle))
           assert len(rows) == 48
-          assert {int(row["seed"]) for row in rows} == {10011}
+          assert {int(row["seed"]) for row in rows} == {10012}
           assert len({row["method"] for row in rows}) == 4
           identities = {
               (
@@ -81,10 +81,13 @@ jobs:
           assert all(float(row["certificate_penalty"]) >= 0 for row in certificate_rows)
           summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
           assert summary["status"] == "development"
+          assert summary["protocol"]["population_size"] == 48
+          assert summary["protocol"]["generations"] == 12
+          assert summary["protocol"]["max_genes"] == 4
           assert len(summary["methods"]) == 4
           assert all(item["pairs"] == 12 for item in summary["paired"].values())
           PY
-      - name: Seal calibration evidence
+      - name: Seal corrected calibration evidence
         run: |
           python - <<'PY'
           import hashlib
@@ -93,7 +96,7 @@ jobs:
           from pathlib import Path
           import subprocess
 
-          root = Path("results/transactions_adaptive_tree_calibration")
+          root = Path("results/transactions_adaptive_tree_calibration_v2")
 
           def digest(path: Path) -> str:
               value = hashlib.sha256()
@@ -111,17 +114,17 @@ jobs:
               ).strip(),
               "rows_sha256": digest(root / "rows.csv"),
               "rows_bytes": (root / "rows.csv").stat().st_size,
-              "scientific_role": "adaptive-search development calibration only",
+              "scientific_role": "corrected full-budget adaptive-search development calibration",
               "final_validation": False,
           }
           summary_path.write_text(
               json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8"
           )
           PY
-      - name: Upload adaptive calibration
+      - name: Upload corrected adaptive calibration
         uses: actions/upload-artifact@v4
         with:
-          name: transactions-adaptive-tree-calibration
-          path: results/transactions_adaptive_tree_calibration
+          name: transactions-adaptive-tree-calibration-v2
+          path: results/transactions_adaptive_tree_calibration_v2
           if-no-files-found: error
           retention-days: 90
