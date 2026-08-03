@@ -33,6 +33,7 @@ fedfalsify-privacy-study = "fedfalsify.privacy_study:main"
 fedfalsify-pysr = "fedfalsify.pysr_study:main"
 fedfalsify-colab = "fedfalsify.colab_pipeline:main"
 fedfalsify-colab-audit = "fedfalsify.colab_audit:main"
+fedfalsify-transactions-analysis = "fedfalsify.transactions_analysis:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
