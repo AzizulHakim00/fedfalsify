@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "status": "two-dataset-external-execution-complete",
+  "studies": [
+    {
+      "study": "UCI Beijing 12-station contemporaneous PM2.5 association",
+      "workflow_run": 30860646170,
+      "artifact_id": 8874265597,
+      "artifact_name": "external-beijing-v1",
+      "artifact_digest": "sha256:8d00c6d856d3888cfcc549a22c94f1d9e8962425360296eb010ca72cdb71992b",
+      "source_merge_commit": "fe25d5df66d0350327cdff8015f3c30797adc6ef",
+      "natural_clients": 12,
+      "result_role": "negative external boundary for current full FedFalsify",
+      "headline": "Full FedFalsify mean station NMSE 0.1191; score-only federated and centralized-forward 0.0872; gradient-boosting context baseline 0.0714."
+    },
+    {
+      "study": "Final unit-invariant SRSD-Feynman five-equation suite",
+      "workflow_run": 30862392893,
+      "artifact_id": 8874930076,
+      "artifact_name": "external-srsd-v4",
+      "artifact_digest": "sha256:5ff59b002458a9cd439c105757bebf579d836a361b4aac80f43e3956a7af4c8b",
+      "source_merge_commit": "b62bd3627e59e3165f9c4aa3d64259d4c2e39fdc",
+      "domain_clients_per_problem": 4,
+      "problems": 5,
+      "result_role": "known-ground-truth external mechanism validation",
+      "headline": "Truth-supported exact recovery: centralized and score-only 5/5, full FedFalsify 4/5, official PySR adaptive semantic recovery 3/5; finite methods 0/5 under catalog misspecification."
+    }
+  ],
+  "cross_study_conclusion": [
+    "The two external studies are complete and retain negative outcomes.",
+    "Current full FedFalsify is not ready as the final Transactions method.",
+    "Score-only federated search is a strong fallback but requires fresh validation before promotion.",
+    "Catalog misspecification and premature certificate stopping are now evidence-backed limitations.",
+    "External artifacts are immutable baselines for future sample-split/adaptive development."
+  ],
+  "remaining_q1_gates": [
+    "second maintained external symbolic-regression implementation",
+    "sample-split or cross-fitted certificate algorithm",
+    "fresh scalability study across clients, overlap, imbalance, and feature dimension",
+    "hierarchical benchmark/seed inference",
+    "independent final confirmation on untouched seeds 11001+",
+    "manuscript only after final claim-to-evidence review"
+  ]
+}
