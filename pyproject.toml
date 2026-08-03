@@ -41,7 +41,7 @@ fedfalsify-transactions-adaptive-tree = "fedfalsify.transactions_adaptive_tree_f
 fedfalsify-certificate-theory = "fedfalsify.certificate_bounds:main"
 fedfalsify-external-beijing = "fedfalsify.external_beijing:main"
 fedfalsify-external-beijing-study = "fedfalsify.external_beijing_study_fixed:main"
-fedfalsify-external-srsd-study = "fedfalsify.external_srsd_study_v3:main"
+fedfalsify-external-srsd-study = "fedfalsify.external_srsd_study_v4:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
