@@ -1,0 +1,94 @@
+{
+  "command": "run-chunk",
+  "completed_at_utc": "2026-08-03T17:38:23.138467+00:00",
+  "config": {
+    "all_seeds": [
+      9001,
+      9002,
+      9003,
+      9004,
+      9005,
+      9006,
+      9007,
+      9008,
+      9009,
+      9010,
+      9011,
+      9012,
+      9013,
+      9014,
+      9015,
+      9016,
+      9017,
+      9018,
+      9019,
+      9020
+    ],
+    "benchmarks": [
+      "base",
+      "poly3",
+      "nested_sine",
+      "trig_product",
+      "interaction"
+    ],
+    "bootstrap_resamples": 4000,
+    "chunk_index_zero_based": 0,
+    "client_counts": [
+      4
+    ],
+    "generations": 12,
+    "max_genes": 4,
+    "max_terms": 6,
+    "methods": [
+      "fedfalsify-v05",
+      "centralized-tree-gp",
+      "federated-tree-gp-style",
+      "centralized-residual-counterexample-gp"
+    ],
+    "noise_ratios": [
+      0.03,
+      0.1
+    ],
+    "population_size": 48,
+    "samples_per_client": [
+      300
+    ],
+    "scenarios": [
+      "complementary",
+      "spurious",
+      "exception"
+    ],
+    "selected_seeds": [
+      9001,
+      9002,
+      9003,
+      9004,
+      9005
+    ],
+    "total_chunks": 4
+  },
+  "created_at_utc": "2026-08-03T17:38:23.136079+00:00",
+  "expected_row_count": 600,
+  "fedfalsify_version": "0.6.0",
+  "files": {
+    "rows.csv": {
+      "bytes": 192962,
+      "sha256": "03e6019bff021d470cd23fb6204c549638f76a0d020af585473e670bfc4c6480"
+    },
+    "summary_holm.json": {
+      "bytes": 4382,
+      "sha256": "680b06aed8b198e7fd32368f8ccd31311d927f9c3f0ec5c0a28b7dd055d28762"
+    },
+    "summary_raw.json": {
+      "bytes": 4029,
+      "sha256": "5aac2242df1871aef91b9485bc08e554ff727de781105f0d2eec3fd0c77b5104"
+    }
+  },
+  "git_commit": "2ebd4510f21c7ee1efa309abab4235338b9f625c",
+  "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "row_count": 600,
+  "run_id": "v06-primary-confirmatory",
+  "schema_version": 1,
+  "status": "completed"
+}
