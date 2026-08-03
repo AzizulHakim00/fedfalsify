@@ -2,7 +2,7 @@ name: tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/fedfalsify-transactions]
   pull_request:
 
 permissions:
@@ -39,6 +39,26 @@ jobs:
         run: fedfalsify-confirmatory-report --input results/v06_confirmatory_smoke.json --output results/v06_confirmatory_smoke_corrected.json
       - name: Certificate privacy ablation smoke test
         run: fedfalsify-privacy-study --smoke --output results/v06_privacy_smoke.csv
+      - name: Transactions semantic-analysis smoke test
+        run: |
+          fedfalsify-transactions-analysis \
+            --input results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv \
+            --output-dir results/transactions_ci \
+            --samples 200
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(
+              Path("results/transactions_ci/transactions_summary.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert summary["input_rows"] == 2400
+          assert summary["unique_method_condition_rows"] == 2400
+          assert summary["duplicate_method_condition_rows"] == 0
+          assert summary["methods"]["fedfalsify-v05"]["parse_failures"] == 0
+          PY
       - name: Audited Colab dry run
         run: |
           fedfalsify-colab run-chunk \
