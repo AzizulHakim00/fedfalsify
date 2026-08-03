@@ -1,5 +1,6 @@
 {
   "command": "run-chunk",
+  "completed_at_utc": "2026-08-03T17:52:58.594954+00:00",
   "config": {
     "all_seeds": [
       9001,
@@ -66,12 +67,28 @@
     ],
     "total_chunks": 4
   },
-  "created_at_utc": "2026-08-03T17:24:08.529663+00:00",
+  "created_at_utc": "2026-08-03T17:52:58.593150+00:00",
+  "expected_row_count": 600,
   "fedfalsify_version": "0.6.0",
-  "git_commit": "2ebd4510f21c7ee1efa309abab4235338b9f625c",
+  "files": {
+    "rows.csv": {
+      "bytes": 187835,
+      "sha256": "1c1fc0c62cd11abd48e381a70c218d52b67aa441b9f5349f96d73b2072ac021d"
+    },
+    "summary_holm.json": {
+      "bytes": 4382,
+      "sha256": "a7ab6af467630b1833cc42e9606a983facc8ed4b90601a1491ae124054253d70"
+    },
+    "summary_raw.json": {
+      "bytes": 4032,
+      "sha256": "2869089a99878eec036c648de07e6556c3b55ddc587964ca36235a76dda8f4af"
+    }
+  },
+  "git_commit": "387e83a04ced187779d890c2a7bfa4a9849adde8",
   "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
   "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "row_count": 600,
   "run_id": "v06-primary-confirmatory",
   "schema_version": 1,
-  "status": "running"
+  "status": "completed"
 }
