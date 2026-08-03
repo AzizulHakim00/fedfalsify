@@ -1,14 +1,6 @@
 name: transactions-ablation-development
 
 on:
-  pull_request:
-    paths:
-      - src/fedfalsify/transactions_ablation.py
-      - src/fedfalsify/transactions_ablation_fixed.py
-      - tests/test_transactions_ablation.py
-      - tests/test_transactions_ablation_fixed.py
-      - pyproject.toml
-      - .github/workflows/transactions_ablation_dev.yml
   workflow_dispatch:
 
 permissions:
@@ -60,13 +52,9 @@ jobs:
           assert len({row["method"] for row in rows}) == 8
           identities = {
               (
-                  row["benchmark"],
-                  row["scenario"],
-                  row["noise_ratio"],
-                  row["samples_per_client"],
-                  row["num_clients"],
-                  row["seed"],
-                  row["method"],
+                  row["benchmark"], row["scenario"], row["noise_ratio"],
+                  row["samples_per_client"], row["num_clients"],
+                  row["seed"], row["method"],
               )
               for row in rows
           }
@@ -113,11 +101,7 @@ jobs:
               "seeds": list(range(10001, 10006)),
               "frozen_seed_overlap": [],
               "benchmarks": [
-                  "base",
-                  "poly3",
-                  "nested_sine",
-                  "trig_product",
-                  "interaction"
+                  "base", "poly3", "nested_sine", "trig_product", "interaction"
               ],
               "scenarios": ["complementary", "spurious", "exception"],
               "noise_ratios": [0.03, 0.10],
@@ -131,8 +115,7 @@ jobs:
               ]
           }
           (root / "manifest.json").write_text(
-              json.dumps(manifest, indent=2, sort_keys=True),
-              encoding="utf-8",
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
           )
           PY
       - name: Upload development ablation evidence
