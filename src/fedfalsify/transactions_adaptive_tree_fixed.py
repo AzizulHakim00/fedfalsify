@@ -1,9 +1,12 @@
-"""Serialization-safe entry point for the adaptive Transactions study."""
+"""Serialization-safe and exception-aware adaptive Transactions entry point."""
 
 from __future__ import annotations
 
 from dataclasses import asdict
 
+# Import first so the core adaptive runner resolves the corrected exception
+# observability semantics through the patched certificate module globals.
+from . import certificate_tree_fixed as _certificate_tree_fixed  # noqa: F401
 from . import transactions_adaptive_tree as _core
 from .statistics import (
     mcnemar_exact as _mcnemar_exact,
