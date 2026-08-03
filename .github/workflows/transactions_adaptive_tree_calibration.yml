@@ -1,130 +1,16 @@
 name: transactions-adaptive-tree-calibration
 
 on:
-  pull_request:
-    paths:
-      - src/fedfalsify/certificate_tree.py
-      - src/fedfalsify/certificate_tree_fixed.py
-      - src/fedfalsify/transactions_adaptive_tree.py
-      - src/fedfalsify/transactions_adaptive_tree_fixed.py
-      - tests/test_certificate_tree.py
-      - tests/test_transactions_adaptive_tree.py
-      - .github/workflows/transactions_adaptive_tree_calibration.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  adaptive-calibration:
+  archived-study:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install
-        run: python -m pip install -e ".[dev]"
-      - name: Test adaptive search and study governance
+      - name: Archived evidence notice
         run: |
-          pytest \
-            tests/test_certificate_tree.py \
-            tests/test_transactions_adaptive_tree.py
-      - name: Run corrected full-budget adaptive calibration
-        run: |
-          rm -rf results/transactions_adaptive_tree_calibration_v2
-          mkdir -p results/transactions_adaptive_tree_calibration_v2
-          fedfalsify-transactions-adaptive-tree \
-            --benchmarks base,poly3 \
-            --scenarios complementary,spurious,exception \
-            --noise 0.03,0.10 \
-            --samples 300 \
-            --clients 4 \
-            --seeds 10012 \
-            --methods certificate-guided-federated-tree,centralized-tree-gp,federated-tree-gp-style,centralized-residual-counterexample-gp \
-            --population-size 48 \
-            --generations 12 \
-            --max-genes 4 \
-            --max-complexity 7 \
-            --bootstrap-resamples 2000 \
-            --output results/transactions_adaptive_tree_calibration_v2/rows.csv \
-            --summary results/transactions_adaptive_tree_calibration_v2/summary.json
-      - name: Validate corrected calibration matrix
-        run: |
-          python - <<'PY'
-          import csv
-          import json
-          from pathlib import Path
-
-          root = Path("results/transactions_adaptive_tree_calibration_v2")
-          with (root / "rows.csv").open(newline="", encoding="utf-8") as handle:
-              rows = list(csv.DictReader(handle))
-          assert len(rows) == 48
-          assert {int(row["seed"]) for row in rows} == {10012}
-          assert len({row["method"] for row in rows}) == 4
-          identities = {
-              (
-                  row["benchmark"], row["scenario"], row["noise_ratio"],
-                  row["samples_per_client"], row["num_clients"],
-                  row["seed"], row["method"],
-              )
-              for row in rows
-          }
-          assert len(identities) == 48
-          certificate_rows = [
-              row for row in rows
-              if row["method"] == "certificate-guided-federated-tree"
-          ]
-          assert len(certificate_rows) == 12
-          assert all(float(row["certificate_penalty"]) >= 0 for row in certificate_rows)
-          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
-          assert summary["status"] == "development"
-          assert summary["protocol"]["population_size"] == 48
-          assert summary["protocol"]["generations"] == 12
-          assert summary["protocol"]["max_genes"] == 4
-          assert len(summary["methods"]) == 4
-          assert all(item["pairs"] == 12 for item in summary["paired"].values())
-          PY
-      - name: Seal corrected calibration evidence
-        run: |
-          python - <<'PY'
-          import hashlib
-          import json
-          from datetime import datetime, timezone
-          from pathlib import Path
-          import subprocess
-
-          root = Path("results/transactions_adaptive_tree_calibration_v2")
-
-          def digest(path: Path) -> str:
-              value = hashlib.sha256()
-              with path.open("rb") as handle:
-                  for block in iter(lambda: handle.read(1024 * 1024), b""):
-                      value.update(block)
-              return value.hexdigest()
-
-          summary_path = root / "summary.json"
-          summary = json.loads(summary_path.read_text(encoding="utf-8"))
-          summary["calibration_manifest"] = {
-              "sealed_at_utc": datetime.now(timezone.utc).isoformat(),
-              "source_git_commit": subprocess.check_output(
-                  ["git", "rev-parse", "HEAD"], text=True
-              ).strip(),
-              "rows_sha256": digest(root / "rows.csv"),
-              "rows_bytes": (root / "rows.csv").stat().st_size,
-              "scientific_role": "corrected full-budget adaptive-search development calibration",
-              "final_validation": False,
-          }
-          summary_path.write_text(
-              json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8"
-          )
-          PY
-      - name: Upload corrected adaptive calibration
-        uses: actions/upload-artifact@v4
-        with:
-          name: transactions-adaptive-tree-calibration-v2
-          path: results/transactions_adaptive_tree_calibration_v2
-          if-no-files-found: error
-          retention-days: 90
+          echo "The corrected adaptive calibration is complete and archived."
+          echo "Manual reruns must preserve the frozen seed and configuration."
