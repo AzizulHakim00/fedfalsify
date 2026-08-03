@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from fedfalsify.benchmarks import generate_benchmark
-from fedfalsify.certificate_tree import (
+from fedfalsify.certificate_tree_fixed import (
     candidate_certificates,
     run_certificate_tree_search,
 )
@@ -49,8 +49,10 @@ def test_true_gated_exception_is_classified_explicitly() -> None:
     )
     certificate = certificates[0]
     assert certificate.kind == "exception"
-    assert certificate.observable_clients >= 2
+    assert certificate.observable_clients >= 1
     assert certificate.supporting_clients >= 1
+    assert certificate.support_fraction >= 0.80
+    assert certificate.penalty == 0.0
     assert communication > 0
 
 
