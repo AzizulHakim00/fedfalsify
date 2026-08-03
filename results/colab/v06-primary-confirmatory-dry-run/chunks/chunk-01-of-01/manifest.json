@@ -1,0 +1,64 @@
+{
+  "command": "run-chunk",
+  "completed_at_utc": "2026-08-03T17:21:41.330140+00:00",
+  "config": {
+    "all_seeds": [
+      9001
+    ],
+    "benchmarks": [
+      "base"
+    ],
+    "bootstrap_resamples": 500,
+    "chunk_index_zero_based": 0,
+    "client_counts": [
+      4
+    ],
+    "generations": 2,
+    "max_genes": 3,
+    "max_terms": 6,
+    "methods": [
+      "fedfalsify-v05",
+      "centralized-tree-gp",
+      "federated-tree-gp-style",
+      "centralized-residual-counterexample-gp"
+    ],
+    "noise_ratios": [
+      0.03
+    ],
+    "population_size": 12,
+    "samples_per_client": [
+      60
+    ],
+    "scenarios": [
+      "complementary"
+    ],
+    "selected_seeds": [
+      9001
+    ],
+    "total_chunks": 1
+  },
+  "created_at_utc": "2026-08-03T17:21:41.328041+00:00",
+  "expected_row_count": 4,
+  "fedfalsify_version": "0.6.0",
+  "files": {
+    "rows.csv": {
+      "bytes": 1334,
+      "sha256": "4fa1f2bfdbe1b75975bff89996c80477e0cbf83e9b8c136ad491884139c3385c"
+    },
+    "summary_holm.json": {
+      "bytes": 4006,
+      "sha256": "6ae6d60d40be812af8aac53bf68135251fe06b9144a23d03b6da138f3561d288"
+    },
+    "summary_raw.json": {
+      "bytes": 3710,
+      "sha256": "047912bee75b83302cc883f24add1ddafe35f23ac8a06a40254f65586f1dc053"
+    }
+  },
+  "git_commit": "0654b2a19d826e8aca848f856d81522b2efbac99",
+  "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "row_count": 4,
+  "run_id": "v06-primary-confirmatory-dry-run",
+  "schema_version": 1,
+  "status": "completed"
+}
