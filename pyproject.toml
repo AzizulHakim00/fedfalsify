@@ -34,7 +34,7 @@ fedfalsify-pysr = "fedfalsify.pysr_study:main"
 fedfalsify-colab = "fedfalsify.colab_pipeline:main"
 fedfalsify-colab-audit = "fedfalsify.colab_audit:main"
 fedfalsify-transactions-analysis = "fedfalsify.transactions_analysis_fixed:main"
-fedfalsify-transactions-ablation = "fedfalsify.transactions_ablation_fixed:main"
+fedfalsify-transactions-ablation = "fedfalsify.transactions_ablation_v2:main"
 fedfalsify-transactions-pysr = "fedfalsify.transactions_pysr:main"
 fedfalsify-external-beijing = "fedfalsify.external_beijing:main"
 
