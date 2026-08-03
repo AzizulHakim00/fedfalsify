@@ -97,6 +97,14 @@ def systematic_sample(x: np.ndarray, y: np.ndarray, maximum: int) -> tuple[np.nd
 
 
 def fit_standardization(clients: Iterable[ExternalClientData]) -> Standardization:
+    """Fit stable training-only scaling from client aggregate moments.
+
+    The implementation intentionally has no absolute magnitude floor. Scientific
+    variables may legitimately live near 1e-30, so replacing their scale by 1.0
+    would collapse a non-constant regression task into an apparent zero target.
+    Constant columns alone receive unit scale.
+    """
+
     materialized = tuple(clients)
     if not materialized:
         raise ValueError("at least one client is required")
@@ -104,19 +112,29 @@ def fit_standardization(clients: Iterable[ExternalClientData]) -> Standardizatio
     if any(client.x.shape[1] != feature_count for client in materialized):
         raise ValueError("external clients must share a feature count")
     total = sum(len(client.y) for client in materialized)
-    x_sum = sum((client.x.sum(axis=0) for client in materialized), start=np.zeros(feature_count))
-    x_sq_sum = sum(
-        ((client.x * client.x).sum(axis=0) for client in materialized),
+    x_sum = sum(
+        (client.x.sum(axis=0) for client in materialized),
         start=np.zeros(feature_count),
     )
     y_sum = sum(float(client.y.sum()) for client in materialized)
-    y_sq_sum = sum(float(client.y @ client.y) for client in materialized)
     x_mean = x_sum / total
-    x_var = np.maximum(x_sq_sum / total - x_mean * x_mean, 0.0)
     y_mean = y_sum / total
-    y_var = max(y_sq_sum / total - y_mean * y_mean, 0.0)
-    x_scale = np.where(np.sqrt(x_var) > 1e-12, np.sqrt(x_var), 1.0)
-    y_scale = max(float(np.sqrt(y_var)), 1.0)
+
+    # A two-pass aggregate variance avoids catastrophic cancellation for small
+    # physical quantities while retaining the station/client aggregation model.
+    x_squared_deviation = sum(
+        (((client.x - x_mean) ** 2).sum(axis=0) for client in materialized),
+        start=np.zeros(feature_count),
+    )
+    y_squared_deviation = sum(
+        float(((client.y - y_mean) ** 2).sum()) for client in materialized
+    )
+    x_var = np.maximum(x_squared_deviation / total, 0.0)
+    y_var = max(y_squared_deviation / total, 0.0)
+    raw_x_scale = np.sqrt(x_var)
+    raw_y_scale = float(np.sqrt(y_var))
+    x_scale = np.where(raw_x_scale > 0.0, raw_x_scale, 1.0)
+    y_scale = raw_y_scale if raw_y_scale > 0.0 else 1.0
     return Standardization(
         tuple(float(value) for value in x_mean),
         tuple(float(value) for value in x_scale),
@@ -139,17 +157,28 @@ def standardized_clients(
 
 
 def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    """Return physical-unit error and scale-aware normalized MSE.
+
+    NMSE uses the observed target variance without an absolute denominator floor.
+    For an exactly constant target, perfect predictions receive zero and any
+    non-zero error receives infinity because normalized error is undefined.
+    """
+
     truth = np.asarray(y_true, dtype=float)
     prediction = np.asarray(y_pred, dtype=float)
     if truth.shape != prediction.shape:
         raise ValueError("metric arrays must have identical shapes")
     residual = truth - prediction
     mse = float(np.mean(residual * residual))
-    variance = float(np.var(truth))
+    variance = float(np.mean((truth - float(np.mean(truth))) ** 2))
+    if variance > 0.0:
+        nmse = float(mse / variance)
+    else:
+        nmse = 0.0 if mse == 0.0 else float("inf")
     return {
         "mae": float(np.mean(np.abs(residual))),
         "rmse": float(np.sqrt(mse)),
-        "nmse": float(mse / max(variance, 1e-12)),
+        "nmse": nmse,
     }
 
 
