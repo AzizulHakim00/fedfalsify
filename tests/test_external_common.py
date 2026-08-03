@@ -32,6 +32,31 @@ def test_aggregate_standardization_is_finite_and_invertible() -> None:
     assert np.allclose(scaling.inverse_y(pooled_y), np.arange(20.0))
 
 
+def test_tiny_nonconstant_physical_targets_are_not_collapsed() -> None:
+    base = np.linspace(1.0, 2.0, 20)
+    x = np.column_stack([base * 1e-24, base * 1e-3])
+    y = (base**2) * 1e-27
+    clients = [
+        ExternalClientData("a", x[:10], y[:10]),
+        ExternalClientData("b", x[10:], y[10:]),
+    ]
+    scaling = fit_standardization(clients)
+    assert 0.0 < scaling.x_scale[0] < 1e-23
+    assert 0.0 < scaling.y_scale < 1e-26
+    transformed = standardized_clients(clients, scaling)
+    pooled_y = np.concatenate([client.y for client in transformed])
+    assert np.isclose(np.var(pooled_y), 1.0)
+    assert np.allclose(scaling.inverse_y(pooled_y), y)
+
+
+def test_tiny_target_nmse_uses_observed_variance() -> None:
+    y = np.asarray([1.0, 2.0, 3.0, 4.0]) * 1e-27
+    perfect = regression_metrics(y, y)
+    zero = regression_metrics(y, np.zeros_like(y))
+    assert perfect["nmse"] == 0.0
+    assert zero["nmse"] > 1.0
+
+
 def test_flexible_catalog_is_core_protocol_compatible() -> None:
     catalog = FlexibleTermCatalog([
         BasisTerm("1", lambda x: np.ones(len(x)), 1, "1"),
