@@ -1,9 +1,9 @@
 """Data-local catalog search equivalent to pooled information-criterion search.
 
 Clients transmit aggregate fit summaries and residual-evaluation certificates;
-raw rows are not pooled.  With identical terms, ridge, and information score,
+raw rows are not pooled. With identical terms, ridge, and information score,
 the selected candidate should numerically reproduce the controlled centralized
-catalog baseline.  This is a strong finite-catalog comparator, not a privacy
+catalog baseline. This is a strong finite-catalog comparator, not a privacy
 guarantee.
 """
 
@@ -13,7 +13,13 @@ from time import perf_counter
 
 import numpy as np
 
-from .baselines import MethodOutput, _information_score, _prune, federated_mse, fit_federated
+from .baselines import (
+    MethodOutput,
+    _information_score,
+    _prune,
+    federated_mse,
+    fit_federated,
+)
 from .basis import CandidateEquation, TermCatalog
 from .client import FederatedFalsifierClient
 
@@ -37,7 +43,9 @@ def federated_information_forward(
     current, communication = fit_federated(clients, active)
     current_mse, evaluation_bytes = federated_mse(current, clients)
     communication += evaluation_bytes
-    support = sum(client.falsify(current).support for client in clients)
+    # Client support is protocol metadata already present in every fit summary;
+    # reading it here creates no extra simulated message.
+    support = sum(client.sample_count for client in clients)
     current_score = _information_score(
         current_mse,
         catalog.complexity(active),
@@ -48,7 +56,6 @@ def federated_information_forward(
     while len(active) < max_terms:
         best_candidate: CandidateEquation | None = None
         best_score = current_score
-        best_communication = 0
         for term in catalog.names():
             if term in active:
                 continue
@@ -60,11 +67,12 @@ def federated_information_forward(
                 catalog.complexity(proposed),
                 support,
             )
+            # Every evaluated candidate generated aggregate protocol traffic,
+            # including candidates that were not selected.
             communication += fit_bytes + eval_bytes
             if score < best_score:
                 best_candidate = candidate
                 best_score = score
-                best_communication = fit_bytes + eval_bytes
         if best_candidate is None or current_score - best_score < min_improvement:
             break
         current = best_candidate
@@ -72,10 +80,6 @@ def federated_information_forward(
         current_score = best_score
         rounds += 1
 
-    # ``best_communication`` is intentionally not subtracted: all evaluated
-    # candidates generated real aggregate messages and therefore count toward
-    # the communication cost even when not selected.
-    _ = best_communication
     return MethodOutput(
         method="federated-information-catalog",
         candidates=(_prune(current),),
