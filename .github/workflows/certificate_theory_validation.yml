@@ -1,0 +1,98 @@
+name: certificate-theory-validation
+
+on:
+  pull_request:
+    paths:
+      - src/fedfalsify/certificate_bounds.py
+      - tests/test_certificate_bounds.py
+      - research/TRANSACTIONS_FINITE_SAMPLE_THEORY.md
+      - .github/workflows/certificate_theory_validation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-bounds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Test analytic bounds
+        run: pytest tests/test_certificate_bounds.py
+      - name: Run theorem-validation grid
+        run: |
+          rm -rf results/certificate_theory
+          fedfalsify-certificate-theory \
+            --clients 3,4,8,16,32 \
+            --effects 1.5,2.0,2.5,3.0,4.0 \
+            --active-fractions 0.0,0.2,0.4,0.55 \
+            --z-threshold 1.96 \
+            --support-fraction 0.60 \
+            --trials 20000 \
+            --seed 13001 \
+            --output results/certificate_theory/grid.csv \
+            --summary results/certificate_theory/summary.json
+      - name: Validate theorem simulation
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          root = Path("results/certificate_theory")
+          with (root / "grid.csv").open(newline="", encoding="utf-8") as handle:
+              rows = list(csv.DictReader(handle))
+          assert len(rows) == 100
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          assert summary["status"] == "validated", summary
+          assert summary["invariant_lower_bound_violations"] == 0
+          assert summary["shortcut_upper_bound_violations"] == 0
+          assert summary["minimum_trials_per_cell"] == 20000
+          PY
+      - name: Seal theory evidence
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import subprocess
+
+          root = Path("results/certificate_theory")
+
+          def digest(path: Path) -> str:
+              value = hashlib.sha256()
+              with path.open("rb") as handle:
+                  for block in iter(lambda: handle.read(1024 * 1024), b""):
+                      value.update(block)
+              return value.hexdigest()
+
+          summary_path = root / "summary.json"
+          summary = json.loads(summary_path.read_text(encoding="utf-8"))
+          summary["manifest"] = {
+              "sealed_at_utc": datetime.now(timezone.utc).isoformat(),
+              "source_git_commit": subprocess.check_output(
+                  ["git", "rev-parse", "HEAD"], text=True
+              ).strip(),
+              "grid_sha256": digest(root / "grid.csv"),
+              "grid_bytes": (root / "grid.csv").stat().st_size,
+              "scientific_role": "finite-sample theorem validation under stated Gaussian assumptions",
+          }
+          summary_path.write_text(
+              json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          PY
+      - name: Upload theory validation
+        uses: actions/upload-artifact@v4
+        with:
+          name: certificate-theory-validation
+          path: results/certificate_theory
+          if-no-files-found: error
+          retention-days: 90
