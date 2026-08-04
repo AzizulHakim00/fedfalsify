@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "archived-development-evidence",
+  "workflow_run_id": 30892814499,
+  "artifact_id": 8885931902,
+  "artifact_name": "crossfit-redesign-v1-parallel-final",
+  "artifact_digest": "sha256:fd824e995f7d10aaeaa83788ca3af86b463c167d55cd01ea0c67028c75f7fc83",
+  "artifact_head_sha": "17a4b8c02bff8517dd5b2bb6a2872d3e5530571c",
+  "runner_merge_commit": "243de24e0bffe1a2c151a910fecab47ae1cd13c6",
+  "created_at_utc": "2026-08-04T08:45:11.744046+00:00",
+  "python": "3.11.15",
+  "execution": "five preregistered benchmark strata on parallel clean runners",
+  "conditions": 450,
+  "rows": 2250,
+  "development_seeds": [13001, 13002, 13003, 13004, 13005],
+  "final_confirmation_seeds_used": false,
+  "external_artifacts_modified": false,
+  "negative_results_retained": true,
+  "files": {
+    "rows.csv": {
+      "bytes": 842287,
+      "sha256": "c947aec8317fe84d55ccebd6db760f95255bd0d983529c2e3a5a7e1ceb26ac95"
+    },
+    "summary.json": {
+      "bytes": 3126,
+      "sha256": "314640ff171cad85814f2863f3d0d16e7d846e5f2ceceabf6a19c38c7d27619e"
+    }
+  },
+  "scientific_gate_passed": false,
+  "failed_criterion": "high_noise_poly_interaction_exact_gain",
+  "rerun_policy": "Frozen. Do not regenerate or tune using seeds 13001--13005."
+}
