@@ -58,8 +58,8 @@ conditions hold:
 3. worst-client validation MSE is no more than 5% worse;
 4. at least 60% of clients are non-degraded within a 2% tolerance;
 5. every newly added term has cross-client residual support on the validation
-   partitions: at least half of observable clients support it and weighted sign
-   agreement is at least 0.5.
+   partitions: absolute residual correlation at least `0.05`, at least half of
+   observable clients supporting it, and weighted sign agreement at least `0.5`.
 
 Among admissible candidates, the lowest validation information score is selected.
 If none is admissible, the cross-fit intersection remains final. After term
@@ -116,12 +116,13 @@ unit.
 The proposed method is considered promising for later independent confirmation
 only if all conditions hold:
 
-- overall exact recovery is not more than 0.02 below legacy;
+- overall exact recovery is not more than `0.02` below legacy;
 - mean global-test NMSE is lower than legacy;
-- spurious acceptance is not more than 0.01 above legacy;
-- exact recovery on the `poly3`/`interaction` high-noise subset improves by at
-  least 0.05 over legacy;
-- fallback does not activate disproportionately on spurious scenarios.
+- spurious acceptance is not more than `0.01` above legacy;
+- exact recovery at noise ratio `0.20` on the `poly3` and `interaction` subset
+  improves by at least `0.05` over legacy;
+- fallback activation on spurious scenarios is no more than `0.10` above its
+  activation rate on complementary scenarios.
 
 Failure of any criterion is retained and blocks final confirmation of the
 redesign. These thresholds are development gates, not claims of statistical
