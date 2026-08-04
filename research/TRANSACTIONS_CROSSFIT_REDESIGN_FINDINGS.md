@@ -61,6 +61,11 @@ Spurious acceptance increased from `0/450` to `3/450`. The absolute difference
 was `0.00667`, within the frozen `+0.01` development tolerance, but it is a real
 failure count and is not rounded away.
 
+The redesign was substantially more expensive: mean runtime was approximately
+`10.8x` legacy and aggregate communication was approximately `21.8x` legacy.
+These are matched software-development measurements, not production-system
+benchmarks.
+
 ## Governed continuation audit
 
 Fallback activated in `116/450` conditions (`25.78%`). Relative to the plain
@@ -146,9 +151,8 @@ changes:
    perturbations selected independently of validation error;
 5. require stability of marginal term contribution across cross-fit directions,
    extrapolation probes, and client domains before replacing polynomial terms;
-6. treat the roughly `10.8x` runtime and `21.8x` communication increases over
-   legacy as an engineering limitation that must be reduced before Transactions
-   readiness.
+6. reduce the roughly `10.8x` runtime and `21.8x` communication increases before
+   Transactions readiness.
 
 No manuscript claim should state that the cross-fitted redesign solved the
 external failure boundary. Its defensible result is narrower: it improved
