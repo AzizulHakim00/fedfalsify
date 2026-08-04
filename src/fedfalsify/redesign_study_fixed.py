@@ -51,6 +51,17 @@ def summarize(rows: Sequence[core.RedesignRow]) -> dict[str, object]:
             "validation_test_correlation": correlation,
         }
 
+    condition_keys = {
+        (
+            row.benchmark,
+            row.scenario,
+            row.noise_ratio,
+            row.samples_per_client,
+            row.num_clients,
+            row.seed,
+        )
+        for row in rows
+    }
     legacy = by_method["legacy-certificate"]
     proposed = by_method["crossfit-governed"]
     high_noise_legacy = [
@@ -67,36 +78,42 @@ def summarize(rows: Sequence[core.RedesignRow]) -> dict[str, object]:
     proposed_complementary = [
         row for row in proposed if row.scenario == "complementary"
     ]
-    if not high_noise_legacy or not high_noise_proposed:
-        raise ValueError("frozen high-noise gate subset is incomplete")
+    gate_evaluated = bool(
+        len(condition_keys) == 450
+        and high_noise_legacy
+        and high_noise_proposed
+        and proposed_spurious
+        and proposed_complementary
+    )
+    criterion_names = (
+        "overall_exact_noninferiority",
+        "mean_test_nmse_improves",
+        "spurious_acceptance_controlled",
+        "high_noise_poly_interaction_exact_gain",
+        "fallback_not_disproportionate_on_spurious",
+    )
+    if gate_evaluated:
+        criteria: dict[str, bool | None] = {
+            "overall_exact_noninferiority": _mean(proposed, "exact_recovery")
+            >= _mean(legacy, "exact_recovery") - 0.02,
+            "mean_test_nmse_improves": _mean(proposed, "test_nmse")
+            < _mean(legacy, "test_nmse"),
+            "spurious_acceptance_controlled": _mean(proposed, "spurious_accepted")
+            <= _mean(legacy, "spurious_accepted") + 0.01,
+            "high_noise_poly_interaction_exact_gain": _mean(
+                high_noise_proposed, "exact_recovery"
+            )
+            >= _mean(high_noise_legacy, "exact_recovery") + 0.05,
+            "fallback_not_disproportionate_on_spurious": _mean(
+                proposed_spurious, "fallback_selected"
+            )
+            <= _mean(proposed_complementary, "fallback_selected") + 0.10,
+        }
+        passed: bool | None = bool(all(value is True for value in criteria.values()))
+    else:
+        criteria = {name: None for name in criterion_names}
+        passed = None
 
-    criteria = {
-        "overall_exact_noninferiority": _mean(proposed, "exact_recovery")
-        >= _mean(legacy, "exact_recovery") - 0.02,
-        "mean_test_nmse_improves": _mean(proposed, "test_nmse")
-        < _mean(legacy, "test_nmse"),
-        "spurious_acceptance_controlled": _mean(proposed, "spurious_accepted")
-        <= _mean(legacy, "spurious_accepted") + 0.01,
-        "high_noise_poly_interaction_exact_gain": _mean(
-            high_noise_proposed, "exact_recovery"
-        )
-        >= _mean(high_noise_legacy, "exact_recovery") + 0.05,
-        "fallback_not_disproportionate_on_spurious": _mean(
-            proposed_spurious, "fallback_selected"
-        )
-        <= _mean(proposed_complementary, "fallback_selected") + 0.10,
-    }
-    condition_keys = {
-        (
-            row.benchmark,
-            row.scenario,
-            row.noise_ratio,
-            row.samples_per_client,
-            row.num_clients,
-            row.seed,
-        )
-        for row in rows
-    }
     return {
         "schema_version": 2,
         "status": "development-redesign",
@@ -104,8 +121,9 @@ def summarize(rows: Sequence[core.RedesignRow]) -> dict[str, object]:
         "conditions": len(condition_keys),
         "methods": methods,
         "development_gate": {
+            "evaluated": gate_evaluated,
             "criteria": criteria,
-            "passed": bool(all(criteria.values())),
+            "passed": passed,
             "high_noise_definition": "noise_ratio == 0.20 and benchmark in {poly3, interaction}",
             "fallback_selectivity_definition": "spurious fallback rate <= complementary fallback rate + 0.10",
             "scientific_boundary": "Passing permits later independent confirmation only; it is not confirmatory evidence.",
