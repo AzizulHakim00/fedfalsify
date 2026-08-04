@@ -1,0 +1,240 @@
+name: transactions-crossfit-redesign-v1-parallel
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/crossfit_redesign_v1_parallel.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: redesign-${{ matrix.benchmark }}
+    strategy:
+      fail-fast: false
+      matrix:
+        benchmark: [base, poly3, nested_sine, trig_product, interaction]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install development dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Validate redesign safeguards
+        run: pytest tests/test_crossfit_redesign.py
+      - name: Run frozen benchmark stratum
+        run: |
+          root="results/crossfit_redesign_chunks/${{ matrix.benchmark }}"
+          rm -rf "$root"
+          fedfalsify-crossfit-redesign \
+            --benchmarks "${{ matrix.benchmark }}" \
+            --output "$root/rows.csv" \
+            --summary "$root/summary.json"
+      - name: Validate benchmark stratum
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          import math
+          from pathlib import Path
+
+          benchmark = "${{ matrix.benchmark }}"
+          root = Path("results/crossfit_redesign_chunks") / benchmark
+          rows = list(csv.DictReader((root / "rows.csv").open(newline="", encoding="utf-8")))
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          methods = {
+              "legacy-certificate", "crossfit-intersection", "crossfit-governed",
+              "score-only-federated", "centralized-forward",
+          }
+          assert len(rows) == 450
+          assert summary["conditions"] == 90
+          assert summary["rows"] == 450
+          assert summary["development_gate"]["evaluated"] is False
+          assert {row["benchmark"] for row in rows} == {benchmark}
+          assert {row["method"] for row in rows} == methods
+          assert len({
+              (row["scenario"], row["noise_ratio"], row["samples_per_client"],
+               row["num_clients"], row["seed"], row["method"])
+              for row in rows
+          }) == 450
+          for row in rows:
+              for field in (
+                  "exact_recovery", "term_precision", "term_recall", "test_nmse",
+                  "train_mse", "spurious_accepted", "exception_recovered",
+                  "fallback_selected", "runtime_seconds", "communication_bytes",
+              ):
+                  assert math.isfinite(float(row[field]))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crossfit-redesign-${{ matrix.benchmark }}
+          path: results/crossfit_redesign_chunks/${{ matrix.benchmark }}
+          if-no-files-found: error
+          retention-days: 90
+
+  aggregate:
+    name: aggregate-crossfit-redesign-v1
+    needs: benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install development dependencies
+        run: python -m pip install -e ".[dev]"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: crossfit-redesign-*
+          path: downloaded-redesign
+      - name: Aggregate frozen matched rows
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+          from fedfalsify.redesign_study import RedesignRow
+          from fedfalsify.redesign_study_fixed import summarize
+
+          downloaded = Path("downloaded-redesign")
+          paths = sorted(downloaded.rglob("rows.csv"))
+          assert len(paths) == 5, paths
+          dictionaries = []
+          for path in paths:
+              with path.open(newline="", encoding="utf-8") as handle:
+                  dictionaries.extend(csv.DictReader(handle))
+          assert len(dictionaries) == 2250
+
+          rows = []
+          for item in dictionaries:
+              rows.append(RedesignRow(
+                  benchmark=item["benchmark"],
+                  scenario=item["scenario"],
+                  noise_ratio=float(item["noise_ratio"]),
+                  samples_per_client=int(item["samples_per_client"]),
+                  num_clients=int(item["num_clients"]),
+                  seed=int(item["seed"]),
+                  method=item["method"],
+                  exact_recovery=float(item["exact_recovery"]),
+                  term_precision=float(item["term_precision"]),
+                  term_recall=float(item["term_recall"]),
+                  test_nmse=float(item["test_nmse"]),
+                  train_mse=float(item["train_mse"]),
+                  spurious_accepted=float(item["spurious_accepted"]),
+                  exception_recovered=float(item["exception_recovered"]),
+                  fallback_selected=float(item["fallback_selected"]),
+                  selected_source=item["selected_source"],
+                  validation_mse=(float(item["validation_mse"]) if item["validation_mse"] else None),
+                  worst_validation_mse=(float(item["worst_validation_mse"]) if item["worst_validation_mse"] else None),
+                  runtime_seconds=float(item["runtime_seconds"]),
+                  communication_bytes=int(float(item["communication_bytes"])),
+                  discovered_terms=item["discovered_terms"],
+                  expression=item["expression"],
+                  stop_reason=item["stop_reason"],
+              ))
+
+          output = Path("results/crossfit_redesign_v1")
+          output.mkdir(parents=True, exist_ok=True)
+          fieldnames = list(rows[0].to_dict())
+          with (output / "rows.csv").open("w", newline="", encoding="utf-8") as handle:
+              writer = csv.DictWriter(handle, fieldnames=fieldnames)
+              writer.writeheader()
+              writer.writerows(row.to_dict() for row in rows)
+          summary = summarize(rows)
+          assert summary["conditions"] == 450
+          assert summary["rows"] == 2250
+          assert summary["development_gate"]["evaluated"] is True
+          (output / "summary.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True, allow_nan=False),
+              encoding="utf-8",
+          )
+          PY
+      - name: Validate aggregate identities
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          import math
+          from pathlib import Path
+
+          root = Path("results/crossfit_redesign_v1")
+          rows = list(csv.DictReader((root / "rows.csv").open(newline="", encoding="utf-8")))
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          assert len(rows) == 2250
+          assert summary["conditions"] == 450
+          assert summary["development_gate"]["evaluated"] is True
+          assert {row["benchmark"] for row in rows} == {
+              "base", "poly3", "nested_sine", "trig_product", "interaction"
+          }
+          assert {int(row["seed"]) for row in rows} == set(range(13001, 13006))
+          assert len({
+              (row["benchmark"], row["scenario"], row["noise_ratio"],
+               row["samples_per_client"], row["num_clients"], row["seed"], row["method"])
+              for row in rows
+          }) == 2250
+          assert all(math.isfinite(float(row["test_nmse"])) for row in rows)
+          PY
+      - name: Seal aggregate evidence
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import platform
+          import subprocess
+
+          root = Path("results/crossfit_redesign_v1")
+          source_paths = [
+              Path("src/fedfalsify/crossfit_redesign.py"),
+              Path("src/fedfalsify/redesign_study.py"),
+              Path("src/fedfalsify/redesign_study_fixed.py"),
+              Path("tests/test_crossfit_redesign.py"),
+              Path("research/TRANSACTIONS_CROSSFIT_REDESIGN_PROTOCOL.md"),
+              Path("pyproject.toml"),
+          ]
+          def digest(path):
+              value = hashlib.sha256()
+              with path.open("rb") as handle:
+                  for block in iter(lambda: handle.read(1024 * 1024), b""):
+                      value.update(block)
+              return value.hexdigest()
+          manifest = {
+              "schema_version": 2,
+              "status": "development-redesign-complete",
+              "execution": "five preregistered benchmark strata on parallel clean runners",
+              "created_at_utc": datetime.now(timezone.utc).isoformat(),
+              "source_git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "python": platform.python_version(),
+              "conditions": 450,
+              "rows": 2250,
+              "development_seeds": list(range(13001, 13006)),
+              "final_confirmation_seeds_used": False,
+              "external_artifacts_modified": False,
+              "negative_results_retained": True,
+              "files": {
+                  path.name: {"bytes": path.stat().st_size, "sha256": digest(path)}
+                  for path in sorted(root.iterdir()) if path.is_file()
+              },
+              "source_files": {
+                  path.as_posix(): {"bytes": path.stat().st_size, "sha256": digest(path)}
+                  for path in source_paths
+              },
+          }
+          (root / "manifest.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crossfit-redesign-v1-parallel-final
+          path: results/crossfit_redesign_v1
+          if-no-files-found: error
+          retention-days: 90
