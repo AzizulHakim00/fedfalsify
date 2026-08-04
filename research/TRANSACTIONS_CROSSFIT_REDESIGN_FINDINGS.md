@@ -135,6 +135,14 @@ The result does not invalidate sample splitting: it shows that sample separation
 plus error-based governed continuation is insufficient for the polynomial
 identifiability boundary.
 
+The following actions are prohibited for this version:
+
+- changing fallback thresholds after inspecting these outcomes;
+- rerunning selected conditions or seeds;
+- executing final confirmation for this redesign;
+- presenting score-only fallback as exact scientific structure;
+- claiming that the high-noise polynomial boundary was solved.
+
 ## Scientific implications for a future redesign
 
 A future protocol must be frozen on fresh development seeds before execution.
