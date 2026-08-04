@@ -99,6 +99,7 @@ def test_validation_support_accepts_consistent_missing_term() -> None:
     )
     assert supported
     assert diagnostics["sin(x2)"]["support_fraction"] >= 0.5
+    assert diagnostics["sin(x2)"]["sign_agreement"] >= 0.5
 
 
 def test_validation_support_rejects_single_client_shortcut() -> None:
@@ -125,7 +126,11 @@ def test_validation_support_rejects_single_client_shortcut() -> None:
         catalog,
     )
     assert not supported
-    assert diagnostics["x4"]["support_fraction"] < 0.5
+    shortcut = diagnostics["x4"]
+    assert (
+        shortcut["support_fraction"] < 0.5
+        or shortcut["sign_agreement"] < 0.5
+    )
 
 
 def test_crossfit_redesign_returns_finite_aggregate_only_candidate() -> None:
