@@ -5,6 +5,7 @@ on:
     paths:
       - src/fedfalsify/crossfit_surrogate.py
       - src/fedfalsify/surrogate_study.py
+      - src/fedfalsify/surrogate_study_fixed.py
       - tests/test_crossfit_surrogate.py
       - research/TRANSACTIONS_SURROGATE_DISCRIMINATION_PROTOCOL.md
       - pyproject.toml
@@ -53,11 +54,14 @@ jobs:
           root = Path(f"results/surrogate_discrimination_v2_{benchmark}")
           rows = list(csv.DictReader((root / "rows.csv").open(newline="", encoding="utf-8")))
           summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
-          assert len(rows) == 450
+          assert len(rows) == 540
           assert summary["conditions"] == 90
+          assert summary["development_gate"]["evaluated"] is False
           assert {row["benchmark"] for row in rows} == {benchmark}
           assert {int(row["seed"]) for row in rows} == set(range(14001, 14006))
           assert all(math.isfinite(float(row["test_nmse"])) for row in rows)
+          methods = {row["method"] for row in rows}
+          assert "crossfit-v2-intersection" in methods
           assert all(row["selected_source"] != "score-only" for row in rows if row["method"] == "crossfit-v2-structural")
           PY
         env:
@@ -91,7 +95,7 @@ jobs:
           from datetime import datetime, timezone
           from pathlib import Path
           from fedfalsify.redesign_study import RedesignRow
-          from fedfalsify.surrogate_study import summarize
+          from fedfalsify.surrogate_study_fixed import summarize
 
           paths = sorted(Path("strata").rglob("rows.csv"))
           assert len(paths) == 5
@@ -111,7 +115,7 @@ jobs:
                           else:
                               converted[field.name] = float(value)
                       rows.append(RedesignRow(**converted))
-          assert len(rows) == 2250
+          assert len(rows) == 2700
           assert len({(r.benchmark,r.scenario,r.noise_ratio,r.samples_per_client,r.seed) for r in rows}) == 450
           output = Path("results/surrogate_discrimination_v2")
           output.mkdir(parents=True)
@@ -120,18 +124,21 @@ jobs:
               writer = csv.DictWriter(handle, fieldnames=[f.name for f in fields(RedesignRow)])
               writer.writeheader(); writer.writerows({f.name:getattr(r,f.name) for f in fields(RedesignRow)} for r in rows)
           summary = summarize(rows)
+          assert summary["development_gate"]["evaluated"] is True
           (output / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
           def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
           manifest = {
-              "schema_version": 1,
+              "schema_version": 2,
               "status": "development-surrogate-discrimination-v2-complete",
               "created_at_utc": datetime.now(timezone.utc).isoformat(),
               "source_git_commit": subprocess.check_output(["git","rev-parse","HEAD"], text=True).strip(),
               "python": platform.python_version(),
               "rows": len(rows),
               "conditions": 450,
+              "methods_per_condition": 6,
               "seeds": list(range(14001,14006)),
               "final_confirmation_seeds_used": False,
+              "paired_intersection_audit": True,
               "files": {
                   "rows.csv": {"sha256": digest(csv_path), "bytes": csv_path.stat().st_size},
                   "summary.json": {"sha256": digest(output / "summary.json"), "bytes": (output / "summary.json").stat().st_size},
