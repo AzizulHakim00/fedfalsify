@@ -43,6 +43,7 @@ fedfalsify-external-beijing = "fedfalsify.external_beijing:main"
 fedfalsify-external-beijing-study = "fedfalsify.external_beijing_study_fixed:main"
 fedfalsify-external-srsd-study = "fedfalsify.external_srsd_study_v4:main"
 fedfalsify-crossfit-redesign = "fedfalsify.redesign_study_fixed:main"
+fedfalsify-surrogate-study = "fedfalsify.surrogate_study:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
