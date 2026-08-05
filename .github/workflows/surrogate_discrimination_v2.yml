@@ -1,155 +1,18 @@
-name: transactions-surrogate-discrimination-v2
+name: transactions-surrogate-discrimination-v2-frozen
 
 on:
-  pull_request:
-    paths:
-      - src/fedfalsify/crossfit_surrogate.py
-      - src/fedfalsify/surrogate_study.py
-      - src/fedfalsify/surrogate_study_fixed.py
-      - tests/test_crossfit_surrogate.py
-      - research/TRANSACTIONS_SURROGATE_DISCRIMINATION_PROTOCOL.md
-      - pyproject.toml
-      - .github/workflows/surrogate_discrimination_v2.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  benchmark:
-    name: v2-${{ matrix.benchmark }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 150
-    strategy:
-      fail-fast: false
-      matrix:
-        benchmark: [base, poly3, nested_sine, trig_product, interaction]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      - name: Install
-        run: python -m pip install -e ".[dev]"
-      - name: Validate implementation
-        run: pytest tests/test_crossfit_redesign.py tests/test_crossfit_surrogate.py
-      - name: Run frozen benchmark stratum
-        run: |
-          rm -rf results/surrogate_discrimination_v2_${{ matrix.benchmark }}
-          fedfalsify-surrogate-study \
-            --benchmarks ${{ matrix.benchmark }} \
-            --scenarios complementary,spurious,exception \
-            --noise 0.03,0.10,0.20 \
-            --samples 120,300 \
-            --seeds 14001,14002,14003,14004,14005 \
-            --output results/surrogate_discrimination_v2_${{ matrix.benchmark }}/rows.csv \
-            --summary results/surrogate_discrimination_v2_${{ matrix.benchmark }}/summary.json
-      - name: Validate stratum
-        run: |
-          python - <<'PY'
-          import csv, json, math, os
-          from pathlib import Path
-          benchmark = os.environ["BENCHMARK"]
-          root = Path(f"results/surrogate_discrimination_v2_{benchmark}")
-          rows = list(csv.DictReader((root / "rows.csv").open(newline="", encoding="utf-8")))
-          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
-          assert len(rows) == 540
-          assert summary["conditions"] == 90
-          assert summary["development_gate"]["evaluated"] is False
-          assert {row["benchmark"] for row in rows} == {benchmark}
-          assert {int(row["seed"]) for row in rows} == set(range(14001, 14006))
-          assert all(math.isfinite(float(row["test_nmse"])) for row in rows)
-          methods = {row["method"] for row in rows}
-          assert "crossfit-v2-intersection" in methods
-          assert all(row["selected_source"] != "score-only" for row in rows if row["method"] == "crossfit-v2-structural")
-          PY
-        env:
-          BENCHMARK: ${{ matrix.benchmark }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: surrogate-v2-${{ matrix.benchmark }}
-          path: results/surrogate_discrimination_v2_${{ matrix.benchmark }}
-          if-no-files-found: error
-          retention-days: 90
-
-  aggregate:
-    name: aggregate-v2
-    needs: benchmark
+  frozen:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: python -m pip install -e ".[dev]"
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: surrogate-v2-*
-          path: strata
-      - name: Aggregate, validate, and seal
+      - name: Completed evidence is immutable
         run: |
-          python - <<'PY'
-          import csv, hashlib, json, platform, subprocess
-          from dataclasses import fields
-          from datetime import datetime, timezone
-          from pathlib import Path
-          from fedfalsify.redesign_study import RedesignRow
-          from fedfalsify.surrogate_study_fixed import summarize
-
-          paths = sorted(Path("strata").rglob("rows.csv"))
-          assert len(paths) == 5
-          rows = []
-          for path in paths:
-              with path.open(newline="", encoding="utf-8") as handle:
-                  for raw in csv.DictReader(handle):
-                      converted = {}
-                      for field in fields(RedesignRow):
-                          value = raw[field.name]
-                          if field.name in {"benchmark", "scenario", "method", "selected_source", "discovered_terms", "expression", "stop_reason"}:
-                              converted[field.name] = value
-                          elif field.name in {"samples_per_client", "num_clients", "seed", "communication_bytes"}:
-                              converted[field.name] = int(value)
-                          elif field.name in {"validation_mse", "worst_validation_mse"}:
-                              converted[field.name] = None if value in {"", "None"} else float(value)
-                          else:
-                              converted[field.name] = float(value)
-                      rows.append(RedesignRow(**converted))
-          assert len(rows) == 2700
-          assert len({(r.benchmark,r.scenario,r.noise_ratio,r.samples_per_client,r.seed) for r in rows}) == 450
-          output = Path("results/surrogate_discrimination_v2")
-          output.mkdir(parents=True)
-          csv_path = output / "rows.csv"
-          with csv_path.open("w", newline="", encoding="utf-8") as handle:
-              writer = csv.DictWriter(handle, fieldnames=[f.name for f in fields(RedesignRow)])
-              writer.writeheader(); writer.writerows({f.name:getattr(r,f.name) for f in fields(RedesignRow)} for r in rows)
-          summary = summarize(rows)
-          assert summary["development_gate"]["evaluated"] is True
-          (output / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
-          def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
-          manifest = {
-              "schema_version": 2,
-              "status": "development-surrogate-discrimination-v2-complete",
-              "created_at_utc": datetime.now(timezone.utc).isoformat(),
-              "source_git_commit": subprocess.check_output(["git","rev-parse","HEAD"], text=True).strip(),
-              "python": platform.python_version(),
-              "rows": len(rows),
-              "conditions": 450,
-              "methods_per_condition": 6,
-              "seeds": list(range(14001,14006)),
-              "final_confirmation_seeds_used": False,
-              "paired_intersection_audit": True,
-              "files": {
-                  "rows.csv": {"sha256": digest(csv_path), "bytes": csv_path.stat().st_size},
-                  "summary.json": {"sha256": digest(output / "summary.json"), "bytes": (output / "summary.json").stat().st_size},
-              },
-          }
-          (output / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
-          print(json.dumps(summary["development_gate"], indent=2, sort_keys=True))
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: surrogate-discrimination-v2-final
-          path: results/surrogate_discrimination_v2
-          if-no-files-found: error
-          retention-days: 90
+          echo "This development workflow is frozen after completed run 31020422813."
+          echo "Artifact: surrogate-discrimination-v2-final (ID 8936544092)."
+          echo "Development seeds 14001--14005 are spent."
+          echo "Do not regenerate or retune this study."
