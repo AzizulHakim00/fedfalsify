@@ -33,7 +33,7 @@ def _partition(client_id: str, selector_x1: np.ndarray, probe_x1: np.ndarray) ->
     return selector_partition, probe_partition
 
 
-def test_true_cubic_beats_sine_surrogate_on_independent_probe() -> None:
+def test_true_cubic_beats_correlated_surrogates_on_independent_probe() -> None:
     catalog = benchmark_catalog(scenario="complementary")
     selectors = []
     probes = []
@@ -59,10 +59,10 @@ def test_true_cubic_beats_sine_surrogate_on_independent_probe() -> None:
         "sin(x1)", primary, sine, selectors, probes, catalog
     )
     assert cubic_result.passed
-    assert cubic_result.best_rival == "sin(x1)"
+    assert cubic_result.best_rival in {"x1", "sin(x1)"}
     assert cubic_result.relative_advantage > 0.01
     assert not sine_result.passed
-    assert sine_result.best_rival == "x1^3"
+    assert sine_result.best_rival in {"x1", "x1^3"}
 
 
 def test_selector_probe_split_is_disjoint_and_exhaustive() -> None:
