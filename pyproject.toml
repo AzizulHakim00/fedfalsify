@@ -10,17 +10,11 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "Azizul Hakim"}]
-dependencies = [
-  "numpy>=1.26,<3",
-]
+dependencies = ["numpy>=1.26,<3"]
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=8,<9",
-]
-sr = [
-  "pysr>=1.5.10,<2",
-]
+dev = ["pytest>=8,<9"]
+sr = ["pysr>=1.5.10,<2"]
 
 [project.scripts]
 fedfalsify-demo = "fedfalsify.demo:main"
@@ -43,7 +37,7 @@ fedfalsify-external-beijing = "fedfalsify.external_beijing:main"
 fedfalsify-external-beijing-study = "fedfalsify.external_beijing_study_fixed:main"
 fedfalsify-external-srsd-study = "fedfalsify.external_srsd_study_v4:main"
 fedfalsify-crossfit-redesign = "fedfalsify.redesign_study_fixed:main"
-fedfalsify-surrogate-study = "fedfalsify.surrogate_study:main"
+fedfalsify-surrogate-study = "fedfalsify.surrogate_study_fixed:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
