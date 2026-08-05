@@ -1,6 +1,6 @@
 # Transactions structure-aware surrogate-discrimination protocol
 
-Status: **frozen before v2 development outcomes are inspected**
+Status: **frozen before admissible v2 development outcomes are inspected**
 
 ## Objective
 
@@ -70,8 +70,13 @@ comparator and can never supply the discovered structure.
 - samples per client: `120`, `300`;
 - clients: `4`;
 - seeds: `14001--14005`;
-- methods: legacy certificate, cross-fit v1 governed, cross-fit v2 structural,
-  score-only predictive comparator, centralized forward upper bound.
+- primary methods: legacy certificate, cross-fit v1 governed, cross-fit v2
+  structural, score-only predictive comparator, centralized forward upper bound;
+- paired diagnostic method: v2 cross-fit intersection, evaluated for every
+  condition solely to measure continuation gains and harms.
+
+The complete artifact therefore contains 450 conditions and 2,700 rows. The
+paired diagnostic does not compete as a separate proposed algorithm.
 
 All conditions and failures are retained. No benchmark, scenario, or seed may be
 removed after execution.
@@ -84,7 +89,8 @@ removed after execution.
 4. spurious-term acceptance;
 5. restricted-exception recovery;
 6. structural-probe acceptance/rejection counts and rival identities;
-7. runtime and communication.
+7. paired exact and NMSE gains/harms relative to the v2 intersection;
+8. runtime and communication.
 
 ## Frozen go/no-go gate
 
@@ -96,12 +102,23 @@ V2 advances to an independent external redesign study only if all conditions hol
 - spurious acceptance is no more than 0.01 above legacy;
 - exception recovery is at least 0.97;
 - no raw score-only candidate is selected as structure;
-- structural continuation has zero observed exact harms relative to the v2
+- structural continuation has zero observed exact harms relative to the paired v2
   intersection on activated conditions;
 - runtime is below 15x and communication below 30x legacy.
 
 Failure of any criterion is a NO-GO. Thresholds may not be changed after results
 are inspected.
+
+## Pre-outcome audit amendment
+
+The first workflow attempt completed computation for one stratum but failed while
+trying to evaluate a global two-benchmark gate inside a single-benchmark job. No
+admissible aggregate result was inspected. Before rerunning, the summary logic was
+changed so per-stratum gates remain unevaluated and the final aggregate alone
+computes the gate. A paired v2-intersection diagnostic row was also added before
+outcome inspection so the zero-harm criterion is measured rather than assumed.
+Neither change alters data generation, seeds, candidate thresholds, methods,
+probe rules, or scientific endpoints.
 
 ## Claim boundary
 
