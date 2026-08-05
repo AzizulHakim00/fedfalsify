@@ -1,0 +1,101 @@
+name: transactions-stability-superset-v3
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run the preregistered smoke or full frozen matrix"
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - full
+
+permissions:
+  contents: read
+
+jobs:
+  study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run unit tests
+        run: python -m pytest tests/test_stability_superset.py
+
+      - name: Execute requested study
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          mkdir -p results/stability_superset_v3
+          if [ "${MODE}" = "full" ]; then
+            fedfalsify-stability-study \
+              --output results/stability_superset_v3/rows.csv \
+              --summary results/stability_superset_v3/summary.json
+          else
+            fedfalsify-stability-study --smoke \
+              --output results/stability_superset_v3/rows.csv \
+              --summary results/stability_superset_v3/summary.json
+          fi
+
+      - name: Audit retained evidence
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          import math
+          import os
+          from pathlib import Path
+
+          root = Path("results/stability_superset_v3")
+          rows = list(csv.DictReader((root / "rows.csv").open(encoding="utf-8")))
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          expected = 3150 if os.environ["MODE"] == "full" else 14
+          if len(rows) != expected:
+              raise RuntimeError(f"expected {expected} retained rows, found {len(rows)}")
+          if int(summary["rows"]) != expected:
+              raise RuntimeError("summary row count does not match CSV")
+          if os.environ["MODE"] == "full":
+              if int(summary["conditions"]) != 450:
+                  raise RuntimeError("full matrix must contain 450 matched conditions")
+              if not summary["development_gate"]["evaluated"]:
+                  raise RuntimeError("full matrix gate was not evaluated")
+          else:
+              if summary["development_gate"]["evaluated"]:
+                  raise RuntimeError("smoke result must not evaluate the frozen gate")
+
+          numeric_fields = (
+              "exact_recovery",
+              "term_precision",
+              "term_recall",
+              "test_nmse",
+              "train_mse",
+              "runtime_seconds",
+              "communication_bytes",
+          )
+          for row in rows:
+              for field in numeric_fields:
+                  value = float(row[field])
+                  if not math.isfinite(value):
+                      raise RuntimeError(f"non-finite {field}: {row}")
+          print(f"Audited {len(rows)} retained rows")
+          PY
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: stability-superset-v3-${{ inputs.mode }}
+          path: results/stability_superset_v3
+          if-no-files-found: error
+          retention-days: 90

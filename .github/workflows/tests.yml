@@ -122,3 +122,25 @@ jobs:
             --output-root results/colab \
             --expected-rows 4
           test -f results/colab/ci-colab-dry-run/VERIFIED.json
+      - name: Stability-superset v3 smoke test
+        run: |
+          fedfalsify-stability-study --smoke \
+            --output results/stability_v3_smoke.csv \
+            --summary results/stability_v3_smoke.json
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          with Path("results/stability_v3_smoke.csv").open(
+              newline="", encoding="utf-8"
+          ) as handle:
+              rows = list(csv.DictReader(handle))
+          summary = json.loads(
+              Path("results/stability_v3_smoke.json").read_text(encoding="utf-8")
+          )
+          assert len(rows) == 14
+          assert {int(row["seed"]) for row in rows} == {15001}
+          assert summary["development_gate"]["evaluated"] is False
+          assert summary["development_gate"]["passed"] is None
+          PY

@@ -56,6 +56,34 @@ At most eight inactive terms may enter the superset. Ties are resolved by fold
 selection count, median absolute residual correlation, lower complexity, then
 lexicographic term name. Selector or probe outcomes cannot alter the superset.
 
+### 3.1 Implementation clarification frozen before execution
+
+The following details resolve implementation ambiguity before any v3 seed is
+executed:
+
+- the five discovery folds are deterministic, disjoint, and exhaustive within
+  each client;
+- a term receives exactly one score per fold direction: the maximum federated
+  support score it attains while still inactive along that fold's sequential
+  repair path;
+- best-repair and top-three counts are assigned from those five fold-level
+  scores, so repeated discovery rounds cannot multiply a term's fold count;
+- residual-correlation and coefficient-sign summaries for a client-fold are
+  taken from the same round that produced that term's maximum fold-level score;
+- the fold-local observability floor is
+  `max(3, ceil(0.10 * held-out-fold rows))`. The legacy fixed 20-row floor is
+  not reused because a five-fold held-out block contains fewer than 20 rows in
+  the frozen 120-sample condition and would make the study structurally
+  incapable of observing supported terms;
+- the frozen stability ranking is selected-fold count, best-repair count,
+  top-three count, median absolute residual correlation, lower complexity, then
+  lexicographic term name;
+- selector and structural-probe outcomes cannot change fold scores, superset
+  membership, or stability ranking.
+
+This clarification changes no v2 selector/probe threshold and was recorded before
+any v3 outcome was inspected.
+
 ## 4. Candidate structures
 
 The server constructs a nested path from the stable superset using aggregate
