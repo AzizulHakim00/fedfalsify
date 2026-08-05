@@ -1,0 +1,187 @@
+name: transactions-stability-superset-v3-evidence
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stability-superset-v3-evidence
+  cancel-in-progress: false
+
+jobs:
+  full-study:
+    if: contains(github.event.head_commit.message, '[run-v3-full]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/fedfalsify-mvi
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen implementation
+        run: python -m pytest tests/test_stability_superset.py
+
+      - name: Execute frozen 3,150-row matrix
+        run: |
+          rm -rf results/stability_superset_v3
+          mkdir -p results/stability_superset_v3
+          fedfalsify-stability-study \
+            --output results/stability_superset_v3/rows.csv \
+            --summary results/stability_superset_v3/summary.json
+
+      - name: Audit and seal evidence
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          import math
+          import os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path("results/stability_superset_v3")
+          rows_path = root / "rows.csv"
+          summary_path = root / "summary.json"
+          rows = list(csv.DictReader(rows_path.open(encoding="utf-8")))
+          summary = json.loads(summary_path.read_text(encoding="utf-8"))
+
+          expected_methods = {
+              "legacy-certificate",
+              "crossfit-v1-governed",
+              "crossfit-v2-structural",
+              "stability-superset-v3",
+              "score-only-federated",
+              "centralized-forward",
+              "stability-v3-intersection",
+          }
+          expected_seeds = {15101, 15102, 15103, 15104, 15105}
+          if len(rows) != 3150:
+              raise RuntimeError(f"expected 3150 rows, found {len(rows)}")
+          methods = {row["method"] for row in rows}
+          if methods != expected_methods:
+              raise RuntimeError(f"method mismatch: {methods}")
+          counts = Counter(row["method"] for row in rows)
+          if set(counts.values()) != {450}:
+              raise RuntimeError(f"unbalanced method rows: {counts}")
+          seeds = {int(row["seed"]) for row in rows}
+          if seeds != expected_seeds or 15001 in seeds:
+              raise RuntimeError(f"evidence seed violation: {seeds}")
+          conditions = {
+              (
+                  row["benchmark"],
+                  row["scenario"],
+                  row["noise_ratio"],
+                  row["samples_per_client"],
+                  row["seed"],
+              )
+              for row in rows
+          }
+          if len(conditions) != 450:
+              raise RuntimeError(f"expected 450 conditions, found {len(conditions)}")
+          if summary["rows"] != 3150 or summary["conditions"] != 450:
+              raise RuntimeError("summary dimensions do not match retained rows")
+          gate = summary["development_gate"]
+          if gate["evaluated"] is not True or not isinstance(gate["passed"], bool):
+              raise RuntimeError("frozen development gate was not evaluated")
+
+          numeric = (
+              "exact_recovery",
+              "term_precision",
+              "term_recall",
+              "test_nmse",
+              "train_mse",
+              "spurious_accepted",
+              "exception_recovered",
+              "runtime_seconds",
+              "communication_bytes",
+          )
+          for row in rows:
+              for field in numeric:
+                  if not math.isfinite(float(row[field])):
+                      raise RuntimeError(f"non-finite {field}: {row}")
+
+          decision = {
+              "schema_version": 1,
+              "status": "GO" if gate["passed"] else "NO-GO",
+              "passed": gate["passed"],
+              "criteria": gate["criteria"],
+              "failed_criteria": [
+                  name for name, passed in gate["criteria"].items() if not passed
+              ],
+              "claim_boundary": gate["scientific_boundary"],
+          }
+          decision_path = root / "decision.json"
+          decision_path.write_text(
+              json.dumps(decision, indent=2, sort_keys=True), encoding="utf-8"
+          )
+
+          def digest(path: Path) -> str:
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          source_paths = [
+              Path("research/TRANSACTIONS_STABILITY_SUPERSET_PROTOCOL.md"),
+              Path("src/fedfalsify/stability_screen.py"),
+              Path("src/fedfalsify/stability_superset.py"),
+              Path("src/fedfalsify/stability_study.py"),
+              Path("src/fedfalsify/stability_report.py"),
+              Path("tests/test_stability_superset.py"),
+          ]
+          manifest = {
+              "schema_version": 1,
+              "status": "sealed",
+              "run_commit": os.environ["RUN_COMMIT"],
+              "workflow_run_id": int(os.environ["RUN_ID"]),
+              "evidence_seeds": sorted(expected_seeds),
+              "engineering_smoke_seed_excluded": 15001,
+              "rows": len(rows),
+              "conditions": len(conditions),
+              "source_sha256": {
+                  str(path): digest(path) for path in source_paths
+              },
+              "output_sha256": {
+                  "rows.csv": digest(rows_path),
+                  "summary.json": digest(summary_path),
+                  "decision.json": digest(decision_path),
+              },
+          }
+          (root / "manifest.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          (root / "COMPLETE").write_text(
+              "sealed\n", encoding="utf-8"
+          )
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Commit sealed evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/stability_superset_v3
+          git commit -m "results: seal stability-superset v3 evidence [skip ci]"
+          git push origin HEAD:feat/fedfalsify-mvi
+
+      - name: Upload sealed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stability-superset-v3-evidence
+          path: results/stability_superset_v3
+          if-no-files-found: error
+          retention-days: 90
