@@ -1,6 +1,6 @@
 # Transactions stability-selected candidate-superset protocol
 
-Status: **frozen before implementation outcomes are inspected**
+Status: **frozen for evidence execution; engineering smoke isolated before any full-matrix run**
 
 ## 1. Scientific motivation
 
@@ -29,7 +29,9 @@ artifacts are immutable. Final-confirmation seeds `11001+` remain untouched.
 
 ## 3. New candidate-generation mechanism
 
-Development seeds: `15001--15005`.
+Engineering smoke seed: `15001` (spent; excluded from evidence).
+
+Untouched development seeds: `15101--15105`.
 
 Each client's discovery portion is divided into five deterministic folds. For
 each fold direction, coefficients are fitted on four folds and residual evidence
@@ -58,8 +60,8 @@ lexicographic term name. Selector or probe outcomes cannot alter the superset.
 
 ### 3.1 Implementation clarification frozen before execution
 
-The following details resolve implementation ambiguity before any v3 seed is
-executed:
+The following details resolve implementation ambiguity before any v3 evidence
+seed is executed:
 
 - the five discovery folds are deterministic, disjoint, and exhaustive within
   each client;
@@ -82,7 +84,19 @@ executed:
   membership, or stability ranking.
 
 This clarification changes no v2 selector/probe threshold and was recorded before
-any v3 outcome was inspected.
+any v3 evidence outcome was inspected.
+
+### 3.2 Seed-isolation amendment before evidence execution
+
+The normal CI run used seed `15001` only to verify imports, deterministic
+partitioning, command execution, row retention, and report generation. No full
+development matrix was executed. Because that seed was nevertheless touched by
+an engineering smoke path, it is permanently excluded from v3 evidence.
+
+The preregistered evidence seeds are therefore `15101--15105`. This amendment was
+made before any run on those five seeds and does not change an algorithm,
+threshold, endpoint, comparison method, or go/no-go criterion. Smoke outputs may
+not be pooled with, substituted for, or cited as development evidence.
 
 ## 4. Candidate structures
 
@@ -107,12 +121,13 @@ Score-only search remains a predictive comparator only.
 - noise ratios: `0.03`, `0.10`, `0.20`;
 - samples per client: `120`, `300`;
 - client counts: `4`;
-- seeds: `15001--15005`;
+- engineering smoke seed: `15001` (not evidence);
+- untouched development seeds: `15101--15105`;
 - methods: legacy certificate, v1 governed, v2 structural, stability-superset v3,
   score-only predictive comparator, centralized upper bound, and paired v3
   intersection diagnostic.
 
-All rows and failures are retained.
+All evidence rows and failures are retained.
 
 ## 6. Primary endpoints
 

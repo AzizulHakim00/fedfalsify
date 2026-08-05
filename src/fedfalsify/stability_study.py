@@ -15,7 +15,8 @@ from .benchmarks import BENCHMARKS, benchmark_catalog, generate_benchmark
 from .stability_report import summarize
 from .stability_superset import StabilitySupersetOutput, stability_superset_method
 
-DEVELOPMENT_SEEDS = tuple(range(15001, 15006))
+SMOKE_SEED = 15001
+DEVELOPMENT_SEEDS = tuple(range(15101, 15106))
 METHODS = (
     "legacy-certificate",
     "crossfit-v1-governed",
@@ -37,16 +38,17 @@ class StabilityStudyRow(common.RedesignRow):
     observability_floor: int | None = None
 
 
-def _validate_seeds(seeds: Sequence[int]) -> None:
-    if any(seed < 15001 or seed > 15999 for seed in seeds):
-        raise ValueError("stability-superset seeds must be in 15001--15999")
-    spent = (
-        set(range(9001, 9021))
-        | set(range(10501, 10506))
-        | set(range(11001, 15001))
-    )
-    if any(seed in spent for seed in seeds):
-        raise ValueError("spent or final-confirmation seeds are prohibited")
+def _validate_seeds(
+    seeds: Sequence[int], *, allow_engineering_smoke: bool
+) -> None:
+    allowed = set(DEVELOPMENT_SEEDS)
+    if allow_engineering_smoke:
+        allowed.add(SMOKE_SEED)
+    if any(seed not in allowed for seed in seeds):
+        raise ValueError(
+            "use untouched development seeds 15101--15105; "
+            "15001 is reserved for engineering smoke only"
+        )
 
 
 def _row(
@@ -196,8 +198,11 @@ def run_study(
     seeds: Sequence[int] = DEVELOPMENT_SEEDS,
     methods: Sequence[str] = METHODS,
     max_terms: int = 6,
+    allow_engineering_smoke: bool = False,
 ) -> list[StabilityStudyRow]:
-    _validate_seeds(seeds)
+    _validate_seeds(
+        seeds, allow_engineering_smoke=allow_engineering_smoke
+    )
     unknown = set(methods) - set(METHODS)
     if unknown:
         raise ValueError(f"unknown methods: {sorted(unknown)}")
@@ -276,9 +281,10 @@ def main() -> None:
             "scenarios": ("complementary",),
             "noise_ratios": (0.20,),
             "samples_per_client": (120,),
-            "seeds": (15001,),
+            "seeds": (SMOKE_SEED,),
             "methods": METHODS,
             "max_terms": args.max_terms,
+            "allow_engineering_smoke": True,
         }
         if args.smoke
         else {
@@ -293,6 +299,7 @@ def main() -> None:
             "seeds": tuple(int(item) for item in _strings(args.seeds)),
             "methods": _strings(args.methods),
             "max_terms": args.max_terms,
+            "allow_engineering_smoke": False,
         }
     )
     rows = run_study(**settings)

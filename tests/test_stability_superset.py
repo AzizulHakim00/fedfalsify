@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from fedfalsify.benchmarks import benchmark_catalog, generate_benchmark
 from fedfalsify.crossfit_redesign import partition_clients
+from fedfalsify.stability_study import DEVELOPMENT_SEEDS, SMOKE_SEED, _validate_seeds
 from fedfalsify.stability_superset import (
     _fold_observability_floor,
     _passes_stability_rule,
@@ -17,6 +19,15 @@ def _sorted_rows(x: np.ndarray, y: np.ndarray) -> list[tuple[float, ...]]:
         tuple(float(value) for value in row) + (float(target),)
         for row, target in zip(x, y)
     )
+
+
+def test_engineering_smoke_seed_is_excluded_from_evidence() -> None:
+    assert SMOKE_SEED not in set(DEVELOPMENT_SEEDS)
+    assert DEVELOPMENT_SEEDS == tuple(range(15101, 15106))
+    _validate_seeds(DEVELOPMENT_SEEDS, allow_engineering_smoke=False)
+    with pytest.raises(ValueError):
+        _validate_seeds((SMOKE_SEED,), allow_engineering_smoke=False)
+    _validate_seeds((SMOKE_SEED,), allow_engineering_smoke=True)
 
 
 def test_five_fold_split_is_deterministic_disjoint_and_exhaustive() -> None:
