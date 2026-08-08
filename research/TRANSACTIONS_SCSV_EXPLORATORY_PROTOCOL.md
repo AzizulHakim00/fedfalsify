@@ -48,7 +48,7 @@ Enumerate every deterministic subset of nonconstant bank terms with final model 
 
 No truth-dependent family restriction is allowed.
 
-The finite bank size <=10 makes this at most 848 nonempty structural subsets with 1--5 nonconstant terms plus the intercept under the current cap, depending on bank size.
+The finite bank size <=10 makes this at most **638** admissible structures (intercept plus 0--5 of 10 nonconstant bank terms) under the current cap, depending on bank size.
 
 ## 5. Fit stage
 
