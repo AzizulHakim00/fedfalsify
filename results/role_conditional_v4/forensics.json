@@ -1,0 +1,304 @@
+{
+  "analysis_status": "POST_HOC_DIAGNOSTIC_ONLY",
+  "conditions_per_method": {
+    "centralized-forward": 450,
+    "crossfit-v2-structural": 450,
+    "legacy-certificate": 450,
+    "role-v4-anchor": 450,
+    "role-v4-full": 450,
+    "role-v4-no-backward": 450,
+    "role-v4-no-path-persistence": 450,
+    "role-v4-no-role-conditioning": 450,
+    "score-only-federated": 450,
+    "stability-superset-v3": 450
+  },
+  "decision_mechanism_counts": {
+    "backward": {
+      "deleted": 195,
+      "retained": 722,
+      "tested": 917
+    },
+    "forward": {
+      "accepted": 112,
+      "attempted": 758,
+      "probe_passed": 112,
+      "selector_passed": 308
+    },
+    "probe_rejection_reasons": {
+      "correlated rival matched or beat probe improvement": 123,
+      "proposed term did not beat rival on enough clients": 27,
+      "proposed term did not reduce aggregate probe SSE": 41,
+      "selector coefficient signs were unstable across clients": 5
+    },
+    "selector_rejection_reasons": {
+      "client non-degradation safeguard failed": 8,
+      "complexity-adjusted validation score did not improve": 65,
+      "duplicate term set": 56,
+      "insufficient validation-MSE gain": 304,
+      "new-term cross-client support failed: {\"I(x3>1)*x3^2\": {\"observable_clients\": 0.0, \"sign_agreement\": 0.0, \"support_fraction\": 0.0}}": 3,
+      "new-term cross-client support failed: {\"sin(x1)\": {\"observable_clients\": 4.0, \"sign_agreement\": 0.0, \"support_fraction\": 1.0}}": 3,
+      "new-term cross-client support failed: {\"sin(x1)\": {\"observable_clients\": 4.0, \"sign_agreement\": 0.3333333333333333, \"support_fraction\": 0.75}}": 1,
+      "new-term cross-client support failed: {\"x1^2\": {\"observable_clients\": 4.0, \"sign_agreement\": 0.3333333333333333, \"support_fraction\": 0.75}}": 1,
+      "new-term cross-client support failed: {\"x1^3\": {\"observable_clients\": 4.0, \"sign_agreement\": 0.0, \"support_fraction\": 1.0}}": 1,
+      "new-term cross-client support failed: {\"x1^3\": {\"observable_clients\": 4.0, \"sign_agreement\": 0.3333333333333333, \"support_fraction\": 0.75}}": 3,
+      "new-term cross-client support failed: {\"x2\": {\"observable_clients\": 4.0, \"sign_agreement\": 1.0, \"support_fraction\": 0.25}}": 1,
+      "new-term cross-client support failed: {\"x3\": {\"observable_clients\": 4.0, \"sign_agreement\": 0.0, \"support_fraction\": 0.0}}": 1,
+      "new-term cross-client support failed: {\"x3\": {\"observable_clients\": 4.0, \"sign_agreement\": 1.0, \"support_fraction\": 0.25}}": 2,
+      "worst-client validation safeguard failed": 1
+    }
+  },
+  "evidence_rows": 4500,
+  "interpretation_boundary": "These statistics reuse the spent v4 development matrix and are post-hoc mechanism diagnostics. They must not be represented as preregistered confirmatory evidence or used to retune v4.",
+  "methods": {
+    "centralized-forward": {
+      "exact_recovery": 0.9844444444444445,
+      "exception_recovered": 1.0,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9963333333333333,
+      "term_recall": 1.0,
+      "test_nmse": 7.43870199569331e-05
+    },
+    "crossfit-v2-structural": {
+      "exact_recovery": 0.66,
+      "exception_recovered": 0.9444444444444444,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9077407407407407,
+      "term_recall": 0.8575925925925926,
+      "test_nmse": 0.014905439731423727
+    },
+    "legacy-certificate": {
+      "exact_recovery": 0.7155555555555555,
+      "exception_recovered": 1.0,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8861481481481481,
+      "term_recall": 0.8759259259259259,
+      "test_nmse": 0.0053980654004437195
+    },
+    "role-v4-anchor": {
+      "exact_recovery": 0.52,
+      "exception_recovered": 0.8444444444444444,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9070370370370371,
+      "term_recall": 0.7216666666666667,
+      "test_nmse": 0.08871595056966841
+    },
+    "role-v4-full": {
+      "exact_recovery": 0.5022222222222222,
+      "exception_recovered": 0.8044444444444444,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8777777777777778,
+      "term_recall": 0.6838888888888889,
+      "test_nmse": 0.1941604005587823
+    },
+    "role-v4-no-backward": {
+      "exact_recovery": 0.6111111111111112,
+      "exception_recovered": 0.8666666666666667,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9262962962962963,
+      "term_recall": 0.8016666666666666,
+      "test_nmse": 0.04234807746176738
+    },
+    "role-v4-no-path-persistence": {
+      "exact_recovery": 0.4911111111111111,
+      "exception_recovered": 0.7888888888888889,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.857037037037037,
+      "term_recall": 0.6461111111111111,
+      "test_nmse": 0.20755353120483624
+    },
+    "role-v4-no-role-conditioning": {
+      "exact_recovery": 0.4022222222222222,
+      "exception_recovered": 0.6666666666666666,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8677777777777778,
+      "term_recall": 0.6246296296296296,
+      "test_nmse": 0.26603213394902836
+    },
+    "score-only-federated": {
+      "exact_recovery": 0.12444444444444444,
+      "exception_recovered": 1.0,
+      "spurious_accepted": 0.3844444444444444,
+      "term_precision": 0.5954074074074074,
+      "term_recall": 0.9887037037037038,
+      "test_nmse": 0.0002578111997906945
+    },
+    "stability-superset-v3": {
+      "exact_recovery": 0.5644444444444444,
+      "exception_recovered": 0.8444444444444444,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9116666666666666,
+      "term_recall": 0.7770370370370371,
+      "test_nmse": 0.04882634763693761
+    }
+  },
+  "paired_exact_comparisons": [
+    {
+      "a": "role-v4-no-backward",
+      "a_only_exact": 49,
+      "b": "role-v4-full",
+      "b_only_exact": 0,
+      "exact_rate_delta": 0.10888888888888892,
+      "mcnemar_exact_p_posthoc": 3.552713678800501e-15,
+      "ties": 401
+    },
+    {
+      "a": "role-v4-no-backward",
+      "a_only_exact": 7,
+      "b": "legacy-certificate",
+      "b_only_exact": 54,
+      "exact_rate_delta": -0.10444444444444434,
+      "mcnemar_exact_p_posthoc": 4.32210722073334e-10,
+      "ties": 389
+    },
+    {
+      "a": "role-v4-no-backward",
+      "a_only_exact": 10,
+      "b": "crossfit-v2-structural",
+      "b_only_exact": 32,
+      "exact_rate_delta": -0.04888888888888887,
+      "mcnemar_exact_p_posthoc": 0.0009406740282429382,
+      "ties": 408
+    },
+    {
+      "a": "role-v4-no-backward",
+      "a_only_exact": 22,
+      "b": "stability-superset-v3",
+      "b_only_exact": 1,
+      "exact_rate_delta": 0.046666666666666745,
+      "mcnemar_exact_p_posthoc": 5.7220458984375e-06,
+      "ties": 427
+    },
+    {
+      "a": "role-v4-full",
+      "a_only_exact": 45,
+      "b": "role-v4-no-role-conditioning",
+      "b_only_exact": 0,
+      "exact_rate_delta": 0.10000000000000003,
+      "mcnemar_exact_p_posthoc": 5.684341886080802e-14,
+      "ties": 405
+    },
+    {
+      "a": "role-v4-full",
+      "a_only_exact": 5,
+      "b": "role-v4-no-path-persistence",
+      "b_only_exact": 0,
+      "exact_rate_delta": 0.011111111111111127,
+      "mcnemar_exact_p_posthoc": 0.0625,
+      "ties": 445
+    }
+  ],
+  "seeds": [
+    16101,
+    16102,
+    16103,
+    16104,
+    16105
+  ],
+  "v4_full_failure_decomposition": {
+    "conditions_with_nuisance": 38,
+    "failed_conditions_by_benchmark": {
+      "base": 75,
+      "interaction": 41,
+      "nested_sine": 11,
+      "poly3": 88,
+      "trig_product": 9
+    },
+    "failed_conditions_by_noise": {
+      "0.03": 64,
+      "0.1": 76,
+      "0.2": 84
+    },
+    "failed_conditions_by_scenario": {
+      "complementary": 55,
+      "exception": 105,
+      "spurious": 64
+    },
+    "missing_truth_by_term_and_stage": {
+      "I(x3>1)*x3^2": {
+        "backward_removed_anchor_truth": 27,
+        "backward_removed_forward_truth": 1,
+        "candidate_bank_miss": 51,
+        "selector_rejected_truth": 4,
+        "structural_probe_rejected_truth": 5
+      },
+      "sin(x1)": {
+        "backward_removed_anchor_truth": 6
+      },
+      "sin(x2)": {
+        "backward_removed_anchor_truth": 12,
+        "candidate_bank_miss": 34,
+        "structural_probe_rejected_truth": 2
+      },
+      "x1": {
+        "backward_removed_anchor_truth": 74,
+        "selector_rejected_truth": 4,
+        "structural_probe_rejected_truth": 18
+      },
+      "x1^2": {
+        "backward_removed_anchor_truth": 5,
+        "candidate_bank_miss": 41,
+        "selector_rejected_truth": 4,
+        "structural_probe_rejected_truth": 30
+      },
+      "x1^3": {
+        "backward_removed_anchor_truth": 2,
+        "backward_removed_forward_truth": 1,
+        "selector_rejected_truth": 34,
+        "structural_probe_rejected_truth": 20
+      },
+      "x3^2": {
+        "backward_removed_anchor_truth": 30,
+        "backward_removed_forward_truth": 2,
+        "candidate_bank_miss": 11,
+        "structural_probe_rejected_truth": 39
+      }
+    },
+    "missing_truth_stage_counts": {
+      "backward_removed_anchor_truth": 156,
+      "backward_removed_forward_truth": 4,
+      "candidate_bank_miss": 137,
+      "selector_rejected_truth": 46,
+      "structural_probe_rejected_truth": 114
+    },
+    "missing_truth_terms": 457,
+    "nuisance_terms_total": 39,
+    "truth_term_opportunities": 1140
+  },
+  "v4_no_backward_by_benchmark": {
+    "base": {
+      "conditions": 90,
+      "legacy_exact": 0.5,
+      "legacy_nmse": 0.013564091733342143,
+      "v4_no_backward_exact": 0.26666666666666666,
+      "v4_no_backward_nmse": 0.09050641147571015
+    },
+    "interaction": {
+      "conditions": 90,
+      "legacy_exact": 0.8666666666666667,
+      "legacy_nmse": 0.0019164487384607527,
+      "v4_no_backward_exact": 0.7222222222222222,
+      "v4_no_backward_nmse": 0.022973826833186172
+    },
+    "nested_sine": {
+      "conditions": 90,
+      "legacy_exact": 0.9444444444444444,
+      "legacy_nmse": 0.005641272837739159,
+      "v4_no_backward_exact": 1.0,
+      "v4_no_backward_nmse": 8.514263245551605e-05
+    },
+    "poly3": {
+      "conditions": 90,
+      "legacy_exact": 0.26666666666666666,
+      "legacy_nmse": 0.005809768638099569,
+      "v4_no_backward_exact": 0.06666666666666667,
+      "v4_no_backward_nmse": 0.09811626131290808
+    },
+    "trig_product": {
+      "conditions": 90,
+      "legacy_exact": 1.0,
+      "legacy_nmse": 5.87450545769753e-05,
+      "v4_no_backward_exact": 1.0,
+      "v4_no_backward_nmse": 5.87450545769753e-05
+    }
+  }
+}
