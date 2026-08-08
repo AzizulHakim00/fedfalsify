@@ -144,3 +144,25 @@ jobs:
           assert summary["development_gate"]["evaluated"] is False
           assert summary["development_gate"]["passed"] is None
           PY
+      - name: Role-conditioned v4 engineering smoke test
+        run: |
+          fedfalsify-role-v4-study --smoke \
+            --output results/role_v4_smoke.csv \
+            --summary results/role_v4_smoke.json
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          with Path("results/role_v4_smoke.csv").open(
+              newline="", encoding="utf-8"
+          ) as handle:
+              rows = list(csv.DictReader(handle))
+          summary = json.loads(
+              Path("results/role_v4_smoke.json").read_text(encoding="utf-8")
+          )
+          assert len(rows) == 40
+          assert {int(row["seed"]) for row in rows} == {16001}
+          assert summary["development_gate"]["evaluated"] is False
+          assert summary["development_gate"]["passed"] is None
+          PY
