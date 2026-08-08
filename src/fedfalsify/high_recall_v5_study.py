@@ -39,9 +39,18 @@ V5_METHODS = {
 
 @dataclass(frozen=True)
 class V5StudyRow(common.RedesignRow):
+    # Retain v4/stability comparator diagnostics rather than dropping them.
+    candidate_pool_target_recall: float | None = None
+    candidate_pool_contains_all_truth: float | None = None
+    critical_term_recalled: float | None = None
+    exception_candidate_recalled: float | None = None
+    candidate_pool_size: int | None = None
+    candidate_pool_nuisance_count: int | None = None
+    forward_accepted_terms: int | None = None
+    backward_deleted_terms: int | None = None
+    # V5-specific proposal/transition diagnostics.
     candidate_bank_target_recall: float | None = None
     candidate_bank_contains_all_truth: float | None = None
-    exception_candidate_recalled: float | None = None
     candidate_bank_size: int | None = None
     candidate_bank_nuisance_count: int | None = None
     single_terms_attempted: int | None = None
