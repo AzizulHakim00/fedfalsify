@@ -1,0 +1,56 @@
+{
+  "conditions": 450,
+  "engineering_smoke_seed_excluded": 17001,
+  "evidence_seeds": [
+    17101,
+    17102,
+    17103,
+    17104,
+    17105
+  ],
+  "methods": [
+    "centralized-forward",
+    "crossfit-v2-structural",
+    "hr-v5-full",
+    "hr-v5-no-bundle-rescue",
+    "hr-v5-no-role-conditioning",
+    "hr-v5-no-score-proposer",
+    "legacy-certificate",
+    "role-v4-no-backward",
+    "score-only-federated",
+    "stability-superset-v3"
+  ],
+  "output_sha256": {
+    "decision.json": "85fde72ce17fe9803c3cc9c2bb9edca897d3367a73ec205bf372a983c91ff48a",
+    "rows.csv": "2bc9b4afd0191d15e4ed44162a8c011e82cdeedf07a125051db448d8b74a0064",
+    "summary.json": "16df9c0487bfcf0d5a00d3f743431cae49673e7733e3aaf4661012ad305937c1"
+  },
+  "rows": 4500,
+  "run_commit": "6d4278c947d71f6e28a64f71a2c4b2e1101b7d01",
+  "run_mode": "primary-v5-development-evidence",
+  "schema_version": 1,
+  "source_sha256": {
+    ".github/workflows/high_recall_v5_evidence.yml": "69040c51b40d16327040439d89d1230b5112a4fe871924b2e7e443800de10b9f",
+    ".github/workflows/high_recall_v5_smoke.yml": "0ef0844a697deff3db13caa093c87d25d001eb80a1a37933f92be0dcb6be8120",
+    "pyproject.toml": "2608ca8bad60c95ac9c61385f0097914fdc1943acfd362f175b1660a8feee95c",
+    "research/TRANSACTIONS_HIGH_RECALL_V5_EVIDENCE_AUTHORIZATION.md": "40847daef4083260eb4593d966d0065070ef3f1d48f6940e2d89c2c89797950a",
+    "research/TRANSACTIONS_HIGH_RECALL_VERIFIED_FORWARD_V5_PROTOCOL.md": "f83c8752c0c09cf75f0aeeb838261ded7fea52ae590eaaaa624bbb71eec6e8af",
+    "src/fedfalsify/baselines.py": "5264e051e452995963100ad50d28a631e80ece4c0caee0f39358f7d4a14bc3c7",
+    "src/fedfalsify/basis.py": "bf89b44af1b7e8cde440587a09ea2661d344a9602b39922ac68e7d34677d2dd8",
+    "src/fedfalsify/benchmarks.py": "0a3fed0364baadfaefba3bcd3bc7aa23ee0a4e2d668d4fa529038695f1fc1866",
+    "src/fedfalsify/certificate.py": "234525a2d3809fa0ca5dce13013cf813f2cee3df789d634c97c2868abdd3f5be",
+    "src/fedfalsify/client.py": "eec37a1e5ca44eb3d925662e3bf09df25df16f0690eecc4f53e31a3b1f2175bc",
+    "src/fedfalsify/crossfit_redesign.py": "9d5e773b6e9cb99aea28202ecfdefc06af9288ae4cb70d9fb06defff8a34e489",
+    "src/fedfalsify/crossfit_surrogate.py": "17b5bbe88aedc3d1d474748a6fbce6e28d89eeae743019c60b48dc2debf039c2",
+    "src/fedfalsify/high_recall_v5.py": "7b00f13110d41391fedcdaaa44ab553874b497eef4ade48e310276d0bd208570",
+    "src/fedfalsify/high_recall_v5_study.py": "c2257dde5ead4ced65bed0599f07d1291dbbc3dacf17518855200114b6f11917",
+    "src/fedfalsify/role_conditional.py": "5f90b9875bf4f3049daa19a1808b0dee679a17daaecb153c99ad1af09cefac01",
+    "src/fedfalsify/role_conditional_study.py": "5a60f4ed91010f6a90c1b87cb3edea1e9b57fed056c5f4186ef26088bd2ba171",
+    "src/fedfalsify/server.py": "3c12c2bdf6a511cc1b90adadd694dfe3fb184888d35582aa667c5d6c6bb77b74",
+    "src/fedfalsify/stability_screen.py": "18f0c5cd56ffb619aa343f96bf3c7d916f27e627be2aee68833d3800c975232e",
+    "src/fedfalsify/stability_superset.py": "b3ce7ffabf88767aad09e147a5c2171fdf4cae79a2b78c48de5b6c62f7ff11de",
+    "tests/test_high_recall_v5.py": "00ee7a5b9f249e88f9d0139addd478d1905c10cad3a5252ea0a9d2dec2bf7d09"
+  },
+  "status": "sealed",
+  "workflow_run_id": 31271593515
+}
