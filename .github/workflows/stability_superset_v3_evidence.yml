@@ -14,7 +14,9 @@ concurrency:
 
 jobs:
   full-study:
-    if: contains(github.event.head_commit.message, '[run-v3-full]')
+    if: >-
+      contains(github.event.head_commit.message, '[run-v3-full]') ||
+      contains(github.event.head_commit.message, '[recover-v3-evidence]')
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -46,6 +48,7 @@ jobs:
         env:
           RUN_COMMIT: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
+          HEAD_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           python - <<'PY'
           import csv
@@ -143,9 +146,13 @@ jobs:
               Path("src/fedfalsify/stability_report.py"),
               Path("tests/test_stability_superset.py"),
           ]
+          recovery = "[recover-v3-evidence]" in os.environ.get("HEAD_MESSAGE", "")
           manifest = {
               "schema_version": 1,
               "status": "sealed",
+              "run_mode": "evidence-recovery" if recovery else "primary-evidence",
+              "recovery_of_workflow_run_id": 31037754111 if recovery else None,
+              "recovery_is_not_additional_statistical_evidence": recovery,
               "run_commit": os.environ["RUN_COMMIT"],
               "workflow_run_id": int(os.environ["RUN_ID"]),
               "evidence_seeds": sorted(expected_seeds),
@@ -164,20 +171,22 @@ jobs:
           (root / "manifest.json").write_text(
               json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
           )
-          (root / "COMPLETE").write_text(
-              "sealed\n", encoding="utf-8"
+          (root / "COMPLETE").write_text("sealed\n", encoding="utf-8")
+          (root / "RECOVERY_NOTE.md").write_text(
+              "# Evidence recovery provenance\n\n"
+              "This execution reproduces the same frozen v3 matrix and spent evidence "
+              "seeds 15101--15105 because workflow run 31037754111 completed the matrix "
+              "and audit but failed to preserve outputs: `results/*` was ignored by Git. "
+              "The recovery is not a fresh experiment, does not increase the effective "
+              "sample size, and must not be pooled as independent evidence. No algorithm, "
+              "threshold, endpoint, benchmark, or seed changed.\n",
+              encoding="utf-8",
           )
           print(json.dumps(decision, indent=2, sort_keys=True))
           PY
 
-      - name: Commit sealed evidence
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add results/stability_superset_v3
-          git commit -m "results: seal stability-superset v3 evidence [skip ci]"
-          git push origin HEAD:feat/fedfalsify-mvi
-
+      # Preserve the sealed outputs before any Git operation. This prevents a
+      # repository/push problem from destroying the only retained evidence copy.
       - name: Upload sealed artifact
         uses: actions/upload-artifact@v4
         with:
@@ -185,3 +194,12 @@ jobs:
           path: results/stability_superset_v3
           if-no-files-found: error
           retention-days: 90
+
+      - name: Commit sealed evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/stability_superset_v3
+          git status --short
+          git commit -m "results: preserve recovered stability-superset v3 evidence [skip ci]"
+          git push origin HEAD:feat/fedfalsify-mvi
