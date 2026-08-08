@@ -39,6 +39,7 @@ fedfalsify-external-srsd-study = "fedfalsify.external_srsd_study_v4:main"
 fedfalsify-crossfit-redesign = "fedfalsify.redesign_study_fixed:main"
 fedfalsify-surrogate-study = "fedfalsify.surrogate_study_fixed:main"
 fedfalsify-stability-study = "fedfalsify.stability_study:main"
+fedfalsify-role-v4-study = "fedfalsify.role_conditional_study:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
