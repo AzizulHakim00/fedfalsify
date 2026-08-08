@@ -151,8 +151,21 @@ jobs:
               return hashlib.sha256(path.read_bytes()).hexdigest()
 
           source_paths = [
+              Path(".github/workflows/role_conditional_v4_evidence.yml"),
               Path("research/TRANSACTIONS_ROLE_CONDITIONAL_V4_PROTOCOL.md"),
               Path("research/TRANSACTIONS_ROLE_CONDITIONAL_V4_IMPLEMENTATION_CLARIFICATION.md"),
+              Path("src/fedfalsify/basis.py"),
+              Path("src/fedfalsify/benchmarks.py"),
+              Path("src/fedfalsify/certificate.py"),
+              Path("src/fedfalsify/client.py"),
+              Path("src/fedfalsify/server.py"),
+              Path("src/fedfalsify/baselines.py"),
+              Path("src/fedfalsify/redesign_study.py"),
+              Path("src/fedfalsify/surrogate_study.py"),
+              Path("src/fedfalsify/crossfit_redesign.py"),
+              Path("src/fedfalsify/crossfit_surrogate.py"),
+              Path("src/fedfalsify/stability_screen.py"),
+              Path("src/fedfalsify/stability_superset.py"),
               Path("src/fedfalsify/role_conditional.py"),
               Path("src/fedfalsify/role_conditional_study.py"),
               Path("src/fedfalsify/role_conditional_report.py"),
