@@ -1,0 +1,54 @@
+name: SCSV-Cert v6 engineering smoke
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+    paths:
+      - 'src/fedfalsify/scsv_v6.py'
+      - 'src/fedfalsify/scsv_v6_study.py'
+      - 'tests/test_scsv_v6.py'
+      - 'research/TRANSACTIONS_SCSV_CERT_V6_PROTOCOL.md'
+      - '.github/workflows/scsv_v6_smoke.yml'
+  pull_request:
+    paths:
+      - 'src/fedfalsify/scsv_v6.py'
+      - 'src/fedfalsify/scsv_v6_study.py'
+      - 'tests/test_scsv_v6.py'
+      - 'research/TRANSACTIONS_SCSV_CERT_V6_PROTOCOL.md'
+      - '.github/workflows/scsv_v6_smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install package
+        run: pip install -e . pytest
+      - name: Run SCSV-Cert v6 invariant tests
+        run: pytest -q tests/test_scsv_v6.py
+      - name: Run v6 engineering smoke only
+        run: >-
+          python -m fedfalsify.scsv_v6_study --smoke
+          --output results/scsv_v6_smoke/rows.csv
+          --summary results/scsv_v6_smoke/summary.json
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          rows = list(csv.DictReader(Path('results/scsv_v6_smoke/rows.csv').open()))
+          summary = json.loads(Path('results/scsv_v6_smoke/summary.json').read_text())
+          assert len(rows) == 28, len(rows)
+          assert {int(row['seed']) for row in rows} == {19001}
+          assert not ({19101,19102,19103,19104,19105} & {int(row['seed']) for row in rows})
+          assert summary['seeds'] == [19001]
+          assert summary['development_gate']['evaluated'] is False
+          assert summary['development_gate']['passed'] is None
+          print('SCSV-Cert v6 smoke isolation PASS')
+          PY

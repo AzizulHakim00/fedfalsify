@@ -1,0 +1,143 @@
+name: transactions-scsv-v6-evidence
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+
+permissions:
+  contents: write
+
+jobs:
+  full-study:
+    if: contains(github.event.head_commit.message, '[run-scsv-v6]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify exact source pin
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install package
+        run: pip install -e . pytest
+      - name: Verify frozen v6 implementation
+        run: pytest -q tests/test_scsv_v6.py
+      - name: Execute frozen 3,150-row v6 matrix
+        run: >-
+          python -m fedfalsify.scsv_v6_study
+          --output results/scsv_v6/rows.csv
+          --summary results/scsv_v6/summary.json
+      - name: Audit and seal v6 evidence
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path('.')
+          result = root / 'results/scsv_v6'
+          rows_path = result / 'rows.csv'
+          summary_path = result / 'summary.json'
+          rows = list(csv.DictReader(rows_path.open(encoding='utf-8')))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          expected_methods = {
+              'legacy-certificate',
+              'crossfit-v2-structural',
+              'hr-v5-full',
+              'scsv-v6-full',
+              'scsv-v6-no-score-proposer',
+              'centralized-forward',
+              'score-only-federated',
+          }
+          assert len(rows) == 3150, len(rows)
+          assert summary['rows'] == 3150
+          assert summary['conditions'] == 450
+          assert summary['seeds'] == [19101,19102,19103,19104,19105]
+          assert summary['development_gate']['evaluated'] is True
+          counts = Counter(row['method'] for row in rows)
+          assert set(counts) == expected_methods, counts
+          assert all(counts[m] == 450 for m in expected_methods), counts
+          assert {int(row['seed']) for row in rows} == {19101,19102,19103,19104,19105}
+          keys = [
+              (row['benchmark'], row['scenario'], row['noise_ratio'], row['samples_per_client'], row['seed'], row['method'])
+              for row in rows
+          ]
+          assert len(keys) == len(set(keys))
+          for row in rows:
+              for field in ('exact_recovery','term_precision','term_recall','test_nmse','runtime_seconds','communication_bytes'):
+                  value = float(row[field])
+                  assert math.isfinite(value), (field, value)
+
+          criteria = summary['development_gate']['criteria']
+          passed = bool(summary['development_gate']['passed'])
+          decision = {
+              'schema_version': 1,
+              'status': 'GO' if passed else 'NO-GO',
+              'passed': passed,
+              'criteria': criteria,
+              'failed_criteria': [name for name, ok in criteria.items() if not ok],
+              'claim_boundary': summary['development_gate']['scientific_boundary'],
+          }
+          decision_path = result / 'decision.json'
+          decision_path.write_text(json.dumps(decision, indent=2, sort_keys=True), encoding='utf-8')
+
+          def sha(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          source_paths = [
+              'research/TRANSACTIONS_SCSV_CERT_V6_PROTOCOL.md',
+              'src/fedfalsify/scsv_v6.py',
+              'src/fedfalsify/scsv_v6_study.py',
+              'src/fedfalsify/scsv_diagnostic.py',
+              'src/fedfalsify/high_recall_v5.py',
+              'src/fedfalsify/high_recall_v5_study.py',
+              'src/fedfalsify/role_conditional.py',
+              'src/fedfalsify/crossfit_redesign.py',
+              'src/fedfalsify/crossfit_surrogate.py',
+              'tests/test_scsv_v6.py',
+              '.github/workflows/scsv_v6_evidence.yml',
+          ]
+          manifest = {
+              'schema_version': 1,
+              'run_mode': 'fresh-scsv-v6-development',
+              'run_commit': os.environ['RUN_COMMIT'],
+              'workflow_run_id': int(os.environ['WORKFLOW_RUN_ID']),
+              'fresh_development_seeds': [19101,19102,19103,19104,19105],
+              'rows': 3150,
+              'conditions': 450,
+              'source_sha256': {p: sha(root / p) for p in source_paths},
+              'output_sha256': {
+                  'rows.csv': sha(rows_path),
+                  'summary.json': sha(summary_path),
+                  'decision.json': sha(decision_path),
+              },
+          }
+          (result / 'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
+          (result / 'COMPLETE').write_text('sealed\n', encoding='utf-8')
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+      - name: Upload sealed v6 artifact before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-v6-evidence
+          path: results/scsv_v6/
+          retention-days: 14
+      - name: Commit sealed v6 evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f results/scsv_v6
+          if git diff --cached --quiet; then
+            echo 'No result changes to commit.'
+          else
+            git commit -m 'results: seal SCSV-Cert v6 development evidence [skip-scsv-v6] [skip ci]'
+            git push origin HEAD:feat/fedfalsify-mvi
+          fi
