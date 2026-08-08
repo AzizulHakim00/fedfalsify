@@ -4,6 +4,8 @@ Status: **frozen exploratory mechanism diagnostic; not v6 evidence**.
 
 This diagnostic is motivated by the sealed HR-VFS v5 NO-GO and its post-hoc forensic report. It is deliberately run only on already-spent v5 development seeds and a dedicated engineering smoke seed. No fresh v6 development seed is authorized by this document.
 
+Implementation source is committed separately and must be verified by engineering smoke before the guarded spent-seed diagnostic may run.
+
 ## 1. Question
 
 The v5 bank contained every true term in all 450 development conditions, but 251 truth-term events were lost downstream, primarily in isolated selector/probe comparisons. The diagnostic asks:
