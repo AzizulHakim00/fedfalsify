@@ -32,7 +32,8 @@ For a fixed ordered bank `B = (1, b1, ..., bp)`, each client computes separately
 - support `n`;
 - Gram matrix `G = X_B^T X_B`;
 - target cross-product `c = X_B^T y`;
-- target energy `q = y^T y`.
+- target energy `q = y^T y`;
+- per-bank-term nonzero observed-support counts.
 
 Only these aggregate packets are transmitted. No raw observation row is transmitted.
 
@@ -91,7 +92,7 @@ For a restricted exception term:
 
 - evaluate necessity on eligible gated probe clients only;
 - require positive eligible aggregate necessity gain;
-- require global outside-domain non-degradation on selector/probe summaries;
+- require aggregate outside-domain non-degradation on selector and probe summaries;
 - do not count identically-zero outside-domain basis values as failed local wins.
 
 ## 8. Surrogate-swap falsification
@@ -104,24 +105,35 @@ The retained term passes swap falsification only when the selected set has lower
 
 This tests whether the selected structural term is conditionally superior to a close finite-bank substitute without requiring raw-correlation pair formation.
 
-## 9. Diagnostic output
+## 9. Probe rejection and fixed fallback
+
+The independent probe is a one-shot validation of the single selector-chosen structure. It is not allowed to search through second-best selector subsets.
+
+- If every retained term passes necessity and swap falsification, the selector-chosen structure becomes the `probe-validated-set`.
+- If any required check fails, the operational diagnostic falls back to the **strict five-direction intersection anchor** fixed during candidate-bank construction.
+- The fallback is predetermined before probe inspection and is not chosen by comparing alternative probe scores.
+
+After the structure is fixed, coefficients may be refit on all locally available rows for final prediction evaluation, matching the existing prototype's post-selection refit convention.
+
+## 10. Diagnostic output
 
 Record per condition:
 
 - selected bank;
-- selected set;
-- exact recovery, precision, recall, NMSE;
+- selector-selected set;
+- probe-validated/fallback set;
+- exact recovery, precision, recall, NMSE for both structures;
 - selector information score;
 - probe necessity pass/fail per term;
 - one-swap pass/fail per term;
-- whether the full selected set passes all probe checks;
-- communication bytes for all sufficient-statistic packets;
+- whether the selector set passes all probe checks;
+- communication bytes for all sufficient-statistic packets and final refit;
 - runtime;
 - exception diagnostics.
 
-For diagnosis, also retain an `unverified-selector-set` result and a `probe-validated-set` result. The former measures selector capacity; the latter measures structural verification.
+For diagnosis, retain both `scsv-selector` and `scsv-validated` outputs. The former measures selector capacity; the latter is the operational set-conditional diagnostic.
 
-## 10. Exploratory seeds and matrix
+## 11. Exploratory seeds and matrix
 
 ### Engineering smoke
 
@@ -143,7 +155,7 @@ Run all 450 v5 benchmark conditions so the failure map is directly paired with t
 - 2 sample sizes;
 - 5 spent seeds.
 
-## 11. Exploratory signal criteria
+## 12. Exploratory signal criteria
 
 These are **diagnostic signal criteria**, not GO/NO-GO evidence gates.
 
@@ -154,11 +166,11 @@ A mechanism-level signal exists only if all are observed on spent conditions:
 3. `poly3` exact recovery improves by at least 0.10 over v5;
 4. no material degradation on `nested_sine` or `trig_product` (>0.02 absolute loss);
 5. surrogate/nuisance precision is at least v5 precision;
-6. median communication is lower than v5 because the bank statistics are transmitted once;
-7. the exception path can be implemented with an explicit eligible-client rule and passes dedicated invariant tests.
+6. median communication is lower than v5 because fixed-bank statistics are transmitted once rather than per candidate test;
+7. the exception path uses an explicit eligible-client rule and passes dedicated invariant tests.
 
 Failure means SCSV is not promoted to v6. Passing permits a separately frozen v6 protocol with new untouched seeds and a new evidence workflow.
 
-## 12. Scientific boundary
+## 13. Scientific boundary
 
 This diagnostic may guide mechanism design because it uses spent development information. It cannot support a confirmatory claim, external-validation claim, or paper headline result. Fresh v6 evidence is prohibited until a later protocol freezes the final mechanism, ablations, fresh seeds, metrics and GO/NO-GO gates.
