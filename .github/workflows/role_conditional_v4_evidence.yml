@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: role-conditional-v4-evidence
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   full-study:
@@ -204,7 +204,7 @@ jobs:
           name: role-conditional-v4-evidence
           path: results/role_conditional_v4
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 7
 
       - name: Commit sealed v4 evidence
         run: |
