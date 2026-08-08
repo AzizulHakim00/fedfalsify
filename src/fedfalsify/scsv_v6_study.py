@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 import json
 from pathlib import Path
 from statistics import mean, median
@@ -64,7 +64,9 @@ def _row(
     payload = base.to_dict()
     payload["noise_ratio"] = float(requested_noise)
     payload.update(extras or {})
-    return V6StudyRow(**payload)
+    allowed = {item.name for item in fields(V6StudyRow)}
+    filtered = {key: value for key, value in payload.items() if key in allowed}
+    return V6StudyRow(**filtered)
 
 
 def _v6_extras(generated, output: SCSVV6Output) -> dict[str, object]:
