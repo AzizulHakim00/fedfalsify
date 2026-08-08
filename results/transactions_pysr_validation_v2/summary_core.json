@@ -1,0 +1,107 @@
+{
+  "artifact": {
+    "digest": "sha256:def0e4aba3534d38d67318d8250e967331fa4d1c989a5bc24115f128ee6a0399",
+    "id": 8873692394,
+    "name": "transactions-pysr-validation-v2-final",
+    "run_id": 30858917065,
+    "source_git_commit": "d660b57a37f522ec979ff0f6fca3bf8d440f8a50"
+  },
+  "matrix": {
+    "benchmarks": [
+      "base",
+      "poly3",
+      "nested_sine",
+      "trig_product",
+      "interaction"
+    ],
+    "matched_pairs": 200,
+    "noise_ratios": [0.03, 0.1],
+    "rows": 400,
+    "scenarios": [
+      "complementary",
+      "spurious"
+    ],
+    "seeds": [10501, 10502, 10503, 10504, 10505]
+  },
+  "primary_quality_regime": {
+    "fedfalsify": {
+      "all_domain_semantic_recovery_1e3": 0.92,
+      "all_domain_semantic_recovery_1e3_wilson_95": [
+        0.8500189229905127,
+        0.9589065385156194
+      ],
+      "all_domain_semantic_recovery_1e2": 0.96,
+      "mean_expression_complexity": 6.08,
+      "mean_runtime_seconds": 0.18718548767000073,
+      "mean_strong_extrapolation_nmse": 0.0011508666837894755,
+      "strict_exact_recovery": 0.91
+    },
+    "official_pysr": {
+      "all_domain_semantic_recovery_1e3": 0.71,
+      "all_domain_semantic_recovery_1e3_wilson_95": [
+        0.6146110882442888,
+        0.7898516425087772
+      ],
+      "all_domain_semantic_recovery_1e2": 0.74,
+      "completed_rows": 100,
+      "failed_or_incomplete_rows": 0,
+      "mean_expression_complexity": 15.54,
+      "mean_runtime_seconds": 1.7542662608299966,
+      "mean_strong_extrapolation_nmse": 0.09924550094845161,
+      "raw_data_pooled": true
+    },
+    "paired": {
+      "fedfalsify_only_semantic_successes_1e3": 29,
+      "holm_adjusted_mcnemar_p_1e3": 0.0007528970600105822,
+      "official_pysr_only_semantic_successes_1e3": 8,
+      "pysr_minus_fedfalsify_runtime_seconds": {
+        "estimate": 1.5670807731599958,
+        "percentile_bootstrap_95": [
+          1.4474319807069953,
+          1.6871985151109925
+        ]
+      },
+      "pysr_minus_fedfalsify_strong_extrapolation_nmse": {
+        "estimate": 0.09809463426466214,
+        "percentile_bootstrap_95": [
+          0.032704443001113165,
+          0.2084987439828031
+        ]
+      }
+    }
+  },
+  "quality_semantic_recovery_1e3_by_benchmark": {
+    "base": {
+      "fedfalsify": 1.0,
+      "official_pysr": 0.55
+    },
+    "interaction": {
+      "fedfalsify": 1.0,
+      "official_pysr": 0.6
+    },
+    "nested_sine": {
+      "fedfalsify": 0.95,
+      "official_pysr": 0.45
+    },
+    "poly3": {
+      "fedfalsify": 0.65,
+      "official_pysr": 1.0
+    },
+    "trig_product": {
+      "fedfalsify": 1.0,
+      "official_pysr": 0.95
+    }
+  },
+  "compact_regime": {
+    "fedfalsify_semantic_recovery_1e3": 0.92,
+    "official_pysr_completed_rows": 96,
+    "official_pysr_failed_or_incomplete_rows": 4,
+    "official_pysr_semantic_recovery_1e3": 0.22
+  },
+  "scientific_decision": {
+    "final_confirmation_seeds_touched": false,
+    "q1_transactions_submission": "NO-GO",
+    "reason": "Official-baseline validation is strong, but external scientific validation, a second maintained external SR implementation, theory-aligned sample splitting, scalability and independent final confirmation remain incomplete."
+  },
+  "schema_version": 1
+}

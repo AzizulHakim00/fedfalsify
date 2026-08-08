@@ -1,0 +1,17 @@
+name: transactions-external-validation-v1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-study-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain frozen workflow
+        run: |
+          echo "The combined v1 workflow is frozen after the successful Beijing artifact."
+          echo "The corrected SRSD study is executed by external_srsd_validation_v2.yml."
+          echo "Historical commands and sealing logic remain available in commit 0003458b1351782fd2150bf282ed068d20d937b4 and workflow run 30860646170."

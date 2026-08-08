@@ -1,0 +1,21 @@
+{
+  "schema_version": 3,
+  "status": "development-surrogate-discrimination-v2",
+  "conditions": 450,
+  "rows": 2700,
+  "benchmarks": ["base", "interaction", "nested_sine", "poly3", "trig_product"],
+  "methods": {
+    "centralized-forward": {"exact_recovery": 0.9555555556, "test_nmse": 0.0000773531, "spurious_accepted": 0.0066666667, "exception_recovered": 1.0},
+    "crossfit-v1-governed": {"exact_recovery": 0.7222222222, "test_nmse": 0.0038263271, "spurious_accepted": 0.0155555556, "exception_recovered": 0.9822222222},
+    "legacy-certificate": {"exact_recovery": 0.7133333333, "test_nmse": 0.0055824269, "spurious_accepted": 0.0, "exception_recovered": 1.0},
+    "crossfit-v2-structural": {"exact_recovery": 0.68, "test_nmse": 0.0102847186, "spurious_accepted": 0.0, "exception_recovered": 0.9777777778},
+    "crossfit-v2-intersection": {"exact_recovery": 0.6288888889, "test_nmse": 0.0209002987, "spurious_accepted": 0.0, "exception_recovered": 0.9777777778},
+    "score-only-federated": {"exact_recovery": 0.1244444444, "test_nmse": 0.0002825401, "spurious_accepted": 0.2466666667, "exception_recovered": 1.0}
+  },
+  "continuation_audit": {"activations": 65, "exact_gains": 23, "exact_harms": 0, "nmse_improvements": 65, "nmse_harms": 0},
+  "high_noise_poly3_interaction": {"legacy_exact": 0.3333333333, "v1_exact": 0.3666666667, "v2_exact": 0.3333333333, "centralized_exact": 0.9833333333},
+  "runtime_ratio_vs_legacy": 1.9822222768,
+  "communication_ratio_vs_legacy": 2.1832959104,
+  "development_gate_passed": false,
+  "decision": "NO-GO for external evaluation or final confirmation"
+}

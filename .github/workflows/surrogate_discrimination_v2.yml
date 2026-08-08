@@ -1,0 +1,18 @@
+name: transactions-surrogate-discrimination-v2-frozen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Completed evidence is immutable
+        run: |
+          echo "This development workflow is frozen after completed run 31020422813."
+          echo "Artifact: surrogate-discrimination-v2-final (ID 8936544092)."
+          echo "Development seeds 14001--14005 are spent."
+          echo "Do not regenerate or retune this study."

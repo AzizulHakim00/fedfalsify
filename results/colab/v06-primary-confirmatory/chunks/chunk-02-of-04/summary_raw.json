@@ -1,0 +1,135 @@
+{
+  "methods": {
+    "centralized-residual-counterexample-gp": {
+      "communication_bytes": 0,
+      "exact_recovery": 0.26666666666666666,
+      "exact_wilson_95": [
+        0.20237161354935268,
+        0.3426145004890831
+      ],
+      "exception_recovered": 0.78,
+      "runs": 150,
+      "runtime_seconds": 0.9972251093733258,
+      "spurious_accepted": 0.08,
+      "term_precision": 0.45166666666666666,
+      "term_recall": 0.46,
+      "test_nmse": 0.04186538767062848
+    },
+    "centralized-tree-gp": {
+      "communication_bytes": 0,
+      "exact_recovery": 0.2866666666666667,
+      "exact_wilson_95": [
+        0.22033812687205268,
+        0.36364917739166003
+      ],
+      "exception_recovered": 0.78,
+      "runs": 150,
+      "runtime_seconds": 0.971286252553338,
+      "spurious_accepted": 0.08666666666666667,
+      "term_precision": 0.4888888888888889,
+      "term_recall": 0.49777777777777776,
+      "test_nmse": 0.034191472192930776
+    },
+    "federated-tree-gp-style": {
+      "communication_bytes": 581481.8133333334,
+      "exact_recovery": 0.2866666666666667,
+      "exact_wilson_95": [
+        0.22033812687205268,
+        0.36364917739166003
+      ],
+      "exception_recovered": 0.78,
+      "runs": 150,
+      "runtime_seconds": 1.244314881186662,
+      "spurious_accepted": 0.08666666666666667,
+      "term_precision": 0.4888888888888889,
+      "term_recall": 0.49777777777777776,
+      "test_nmse": 0.034191472192931116
+    },
+    "fedfalsify-v05": {
+      "communication_bytes": 337343.86666666664,
+      "exact_recovery": 0.9266666666666666,
+      "exact_wilson_95": [
+        0.8734642066329596,
+        0.9585611848396149
+      ],
+      "exception_recovered": 1.0,
+      "runs": 150,
+      "runtime_seconds": 0.42253013001333783,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9711111111111111,
+      "term_recall": 0.9755555555555555,
+      "test_nmse": 0.00024385277041908746
+    }
+  },
+  "paired": {
+    "centralized-residual-counterexample-gp": {
+      "mcnemar": {
+        "comparator_only_success": 0,
+        "discordant_pairs": 99,
+        "exact_p_value": 3.1554436208840472e-30,
+        "reference_only_success": 99
+      },
+      "nmse_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.0416215349002094,
+        "lower": 0.026371627839640692,
+        "resamples": 4000,
+        "upper": 0.058965764665280994
+      },
+      "pairs": 150,
+      "runtime_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.5746949793599879,
+        "lower": 0.5139372393139897,
+        "resamples": 4000,
+        "upper": 0.6324406099421456
+      }
+    },
+    "centralized-tree-gp": {
+      "mcnemar": {
+        "comparator_only_success": 0,
+        "discordant_pairs": 96,
+        "exact_p_value": 2.524354896707238e-29,
+        "reference_only_success": 96
+      },
+      "nmse_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.033947619422511684,
+        "lower": 0.02197031122974732,
+        "resamples": 4000,
+        "upper": 0.047459520114410576
+      },
+      "pairs": 150,
+      "runtime_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.5487561225400002,
+        "lower": 0.4910429363101578,
+        "resamples": 4000,
+        "upper": 0.6070094405779991
+      }
+    },
+    "federated-tree-gp-style": {
+      "mcnemar": {
+        "comparator_only_success": 0,
+        "discordant_pairs": 96,
+        "exact_p_value": 2.524354896707238e-29,
+        "reference_only_success": 96
+      },
+      "nmse_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.03394761942251203,
+        "lower": 0.0219703112297477,
+        "resamples": 4000,
+        "upper": 0.047459520114410896
+      },
+      "pairs": 150,
+      "runtime_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.8217847511733241,
+        "lower": 0.7617172118734763,
+        "resamples": 4000,
+        "upper": 0.8826463671843178
+      }
+    }
+  }
+}

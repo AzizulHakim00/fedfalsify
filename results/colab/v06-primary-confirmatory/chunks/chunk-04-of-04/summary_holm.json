@@ -1,0 +1,144 @@
+{
+  "methods": {
+    "centralized-residual-counterexample-gp": {
+      "communication_bytes": 0,
+      "exact_recovery": 0.24,
+      "exact_wilson_95": [
+        0.17869313331595332,
+        0.31429139375544646
+      ],
+      "exception_recovered": 0.8066666666666666,
+      "runs": 150,
+      "runtime_seconds": 0.9891781987933185,
+      "spurious_accepted": 0.1,
+      "term_precision": 0.43555555555555553,
+      "term_recall": 0.46499999999999997,
+      "test_nmse": 0.037683036435107675
+    },
+    "centralized-tree-gp": {
+      "communication_bytes": 0,
+      "exact_recovery": 0.22666666666666666,
+      "exact_wilson_95": [
+        0.1669817942684841,
+        0.3000019393193978
+      ],
+      "exception_recovered": 0.7933333333333333,
+      "runs": 150,
+      "runtime_seconds": 0.9657181411266902,
+      "spurious_accepted": 0.08666666666666667,
+      "term_precision": 0.43277777777777776,
+      "term_recall": 0.45444444444444443,
+      "test_nmse": 0.031750107458252706
+    },
+    "federated-tree-gp-style": {
+      "communication_bytes": 586327.8933333333,
+      "exact_recovery": 0.22666666666666666,
+      "exact_wilson_95": [
+        0.1669817942684841,
+        0.3000019393193978
+      ],
+      "exception_recovered": 0.7933333333333333,
+      "runs": 150,
+      "runtime_seconds": 1.2384860399133322,
+      "spurious_accepted": 0.08666666666666667,
+      "term_precision": 0.43277777777777776,
+      "term_recall": 0.45444444444444443,
+      "test_nmse": 0.031750107458252894
+    },
+    "fedfalsify-v05": {
+      "communication_bytes": 360440.06666666665,
+      "exact_recovery": 0.92,
+      "exact_wilson_95": [
+        0.8653786362494686,
+        0.953646358481347
+      ],
+      "exception_recovered": 1.0,
+      "runs": 150,
+      "runtime_seconds": 0.4289836522933365,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9705555555555555,
+      "term_recall": 0.9783333333333333,
+      "test_nmse": 0.00018859835507094202
+    }
+  },
+  "multiple_testing": {
+    "alpha": 0.05,
+    "comparisons": 3,
+    "family": "primary exact-recovery comparisons against the reference method",
+    "method": "Holm step-down"
+  },
+  "paired": {
+    "centralized-residual-counterexample-gp": {
+      "mcnemar": {
+        "comparator_only_success": 0,
+        "discordant_pairs": 102,
+        "exact_p_value": 3.944304526105059e-31,
+        "holm_adjusted_p_value": 3.944304526105059e-31,
+        "reference_only_success": 102
+      },
+      "nmse_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.03749443808003673,
+        "lower": 0.02445175870376113,
+        "resamples": 4000,
+        "upper": 0.05133970262595297
+      },
+      "pairs": 150,
+      "runtime_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.560194546499982,
+        "lower": 0.5018619224134607,
+        "resamples": 4000,
+        "upper": 0.6181450208181721
+      }
+    },
+    "centralized-tree-gp": {
+      "mcnemar": {
+        "comparator_only_success": 0,
+        "discordant_pairs": 104,
+        "exact_p_value": 9.860761315262648e-32,
+        "holm_adjusted_p_value": 2.9582283945787943e-31,
+        "reference_only_success": 104
+      },
+      "nmse_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.03156150910318176,
+        "lower": 0.020340908787753718,
+        "resamples": 4000,
+        "upper": 0.04371697457441113
+      },
+      "pairs": 150,
+      "runtime_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.5367344888333537,
+        "lower": 0.4748694356190155,
+        "resamples": 4000,
+        "upper": 0.592921684302871
+      }
+    },
+    "federated-tree-gp-style": {
+      "mcnemar": {
+        "comparator_only_success": 0,
+        "discordant_pairs": 104,
+        "exact_p_value": 9.860761315262648e-32,
+        "holm_adjusted_p_value": 2.9582283945787943e-31,
+        "reference_only_success": 104
+      },
+      "nmse_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.03156150910318195,
+        "lower": 0.020340908787753686,
+        "resamples": 4000,
+        "upper": 0.0437169745744115
+      },
+      "pairs": 150,
+      "runtime_comparator_minus_reference": {
+        "confidence": 0.95,
+        "estimate": 0.8095023876199957,
+        "lower": 0.748661113543033,
+        "resamples": 4000,
+        "upper": 0.8668585591079916
+      }
+    }
+  }
+}

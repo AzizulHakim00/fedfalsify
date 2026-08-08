@@ -1,0 +1,17 @@
+name: transactions-external-srsd-validation-v4
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-evidence-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain frozen final artifact
+        run: |
+          echo "The final unit-invariant SRSD v4 evidence is complete and immutable."
+          echo "Workflow 30862392893; artifact 8874930076."
+          echo "Digest sha256:5ff59b002458a9cd439c105757bebf579d836a361b4aac80f43e3956a7af4c8b."

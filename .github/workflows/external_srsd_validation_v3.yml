@@ -1,0 +1,17 @@
+name: transactions-external-srsd-validation-v3
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-diagnostic-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain v3 diagnostic status
+        run: |
+          echo "SRSD v3 fixed target-scale and truth-alias defects but retained unit-sensitive finite basis columns."
+          echo "Historical artifact: workflow 30861771502, artifact 8874702449."
+          echo "The final unit-invariant study is external_srsd_validation_v4.yml."

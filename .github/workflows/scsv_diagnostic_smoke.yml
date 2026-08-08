@@ -1,0 +1,60 @@
+name: SCSV exploratory engineering smoke
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+    paths:
+      - "src/fedfalsify/scsv_diagnostic.py"
+      - "src/fedfalsify/scsv_diagnostic_study.py"
+      - "tests/test_scsv_diagnostic.py"
+      - "research/TRANSACTIONS_SCSV_EXPLORATORY_PROTOCOL.md"
+      - ".github/workflows/scsv_diagnostic_smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run SCSV invariant tests
+        run: pytest -q tests/test_scsv_diagnostic.py
+
+      - name: Run SCSV engineering smoke only
+        run: |
+          rm -rf /tmp/scsv_smoke
+          mkdir -p /tmp/scsv_smoke
+          python -m fedfalsify.scsv_diagnostic_study --smoke \
+            --output /tmp/scsv_smoke/rows.csv \
+            --summary /tmp/scsv_smoke/summary.json
+
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          rows = list(csv.DictReader(Path('/tmp/scsv_smoke/rows.csv').open()))
+          summary = json.loads(Path('/tmp/scsv_smoke/summary.json').read_text())
+          assert len(rows) == 8, len(rows)
+          assert {int(row['seed']) for row in rows} == {18001}
+          assert {row['method'] for row in rows} == {'scsv-selector', 'scsv-validated'}
+          assert summary['diagnostic_signal']['evaluated'] is False
+          assert summary['diagnostic_signal']['passed'] is None
+          assert summary['seeds'] == [18001]
+          print('SCSV engineering smoke isolated from spent diagnostic and fresh v6 evidence')
+          PY

@@ -1,0 +1,58 @@
+{
+  "chunk_count": 4,
+  "chunk_git_commits": [
+    "2975549bab622043955e235571161e55f0d22a47",
+    "2ebd4510f21c7ee1efa309abab4235338b9f625c",
+    "36384e6649295c10fee11b00ed3c7e681f580a8e",
+    "387e83a04ced187779d890c2a7bfa4a9849adde8"
+  ],
+  "command": "merge",
+  "completed_at_utc": "2026-08-03T20:33:11.624626+00:00",
+  "config": {
+    "bootstrap_resamples": 10000,
+    "expected_chunks": 4,
+    "expected_rows": 2400
+  },
+  "created_at_utc": "2026-08-03T20:33:11.619938+00:00",
+  "fedfalsify_version": "0.6.0",
+  "files": {
+    "v06_confirmatory.csv": {
+      "bytes": 762184,
+      "sha256": "dc5ab34b1f50e97ba5bb04dd2a89c1893db772239943abe01b4e0c7a3802575d"
+    },
+    "v06_confirmatory_holm.json": {
+      "bytes": 4427,
+      "sha256": "6fbdd899e3a4437e6aee9597adc578135f8d28c31c119fdb6bd03565edd422b0"
+    },
+    "v06_confirmatory_raw.json": {
+      "bytes": 4072,
+      "sha256": "74fde1c90f3fe70075ca3bf4caba6bfe4ac82a336190d4b62016fd6abf2895a1"
+    }
+  },
+  "git_commit": "6312afad21577019ba8ef5debd5b33b66a700e34",
+  "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "premerge_audit_sha256": "34122d4b4791a1ecaa1cc55d00a699b1c09616e7d51ddcb9d2864e91da1e30c1",
+  "protocol_config_fingerprint_sha256": "60969b89b8855ef03718c000ab411918c0d20074532348c221e0725979e42ef1",
+  "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "row_count": 2400,
+  "run_id": "v06-primary-confirmatory",
+  "schema_version": 1,
+  "scientifically_verified_at_utc": "2026-08-03T20:33:12.328405+00:00",
+  "source_fingerprint_sha256": "a797f15ba419ba575e138601b3faba10f65cea188becacd9a76c7127cf42da45",
+  "status": "completed",
+  "verified_files": {
+    "v06_confirmatory.csv": {
+      "bytes": 762184,
+      "sha256": "dc5ab34b1f50e97ba5bb04dd2a89c1893db772239943abe01b4e0c7a3802575d"
+    },
+    "v06_confirmatory_holm.json": {
+      "bytes": 4427,
+      "sha256": "6fbdd899e3a4437e6aee9597adc578135f8d28c31c119fdb6bd03565edd422b0"
+    },
+    "v06_confirmatory_raw.json": {
+      "bytes": 4072,
+      "sha256": "74fde1c90f3fe70075ca3bf4caba6bfe4ac82a336190d4b62016fd6abf2895a1"
+    }
+  },
+  "verified_row_count": 2400
+}

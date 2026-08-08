@@ -1,0 +1,18 @@
+name: transactions-external-srsd-validation-v2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-diagnostic-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain v2 diagnostic status
+        run: |
+          echo "SRSD v2 is retained as diagnostic evidence only."
+          echo "Audit found absolute-scale normalization and duplicate truth-alias defects."
+          echo "Historical artifact: workflow 30861162857, artifact 8874469580."
+          echo "The admissible repaired study is external_srsd_validation_v3.yml."

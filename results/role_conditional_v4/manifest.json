@@ -1,0 +1,44 @@
+{
+  "conditions": 450,
+  "engineering_smoke_seed_excluded": 16001,
+  "evidence_seeds": [
+    16101,
+    16102,
+    16103,
+    16104,
+    16105
+  ],
+  "output_sha256": {
+    "decision.json": "a6aa2c9cc1f5580d0d806735a27182108721b125bc607833c041435fb0ebf52b",
+    "rows.csv": "cbbb8b492305ac1c03a116b792494608e077860eb67014d9145987eafe7e23ac",
+    "summary.json": "123cbf0c7150d89c6e644af76c530d25b1188cf2cd13a96fb515fba24832fbd8"
+  },
+  "rows": 4500,
+  "run_commit": "cdc6f9facaf40cfbb2ad4d1db14a473fd93f4756",
+  "run_mode": "primary-v4-development-evidence",
+  "schema_version": 1,
+  "source_sha256": {
+    ".github/workflows/role_conditional_v4_evidence.yml": "34a4237dd2155860107a00ff7a49dffae25838df4e385f564be5c55392a069c5",
+    "pyproject.toml": "2608ca8bad60c95ac9c61385f0097914fdc1943acfd362f175b1660a8feee95c",
+    "research/TRANSACTIONS_ROLE_CONDITIONAL_V4_IMPLEMENTATION_CLARIFICATION.md": "dd1e1a1803e3dff0c4d64b241ef74f0b8efd0073bf2eacca07f5b38cd84a3700",
+    "research/TRANSACTIONS_ROLE_CONDITIONAL_V4_PROTOCOL.md": "1eb3a3e4f77023d437b369e079e586930bc57982006490f8a90ce4126a7702b2",
+    "src/fedfalsify/baselines.py": "5264e051e452995963100ad50d28a631e80ece4c0caee0f39358f7d4a14bc3c7",
+    "src/fedfalsify/basis.py": "bf89b44af1b7e8cde440587a09ea2661d344a9602b39922ac68e7d34677d2dd8",
+    "src/fedfalsify/benchmarks.py": "0a3fed0364baadfaefba3bcd3bc7aa23ee0a4e2d668d4fa529038695f1fc1866",
+    "src/fedfalsify/certificate.py": "234525a2d3809fa0ca5dce13013cf813f2cee3df789d634c97c2868abdd3f5be",
+    "src/fedfalsify/client.py": "eec37a1e5ca44eb3d925662e3bf09df25df16f0690eecc4f53e31a3b1f2175bc",
+    "src/fedfalsify/crossfit_redesign.py": "9d5e773b6e9cb99aea28202ecfdefc06af9288ae4cb70d9fb06defff8a34e489",
+    "src/fedfalsify/crossfit_surrogate.py": "17b5bbe88aedc3d1d474748a6fbce6e28d89eeae743019c60b48dc2debf039c2",
+    "src/fedfalsify/redesign_study.py": "6363b884fdcd3c0e7b649ab429d0d94dde3cbe28817182a412edd839aa33fba2",
+    "src/fedfalsify/role_conditional.py": "5f90b9875bf4f3049daa19a1808b0dee679a17daaecb153c99ad1af09cefac01",
+    "src/fedfalsify/role_conditional_report.py": "03c09589c471d288bb089a283b892280b055bfa8ca2357a8a3242be75199ff08",
+    "src/fedfalsify/role_conditional_study.py": "5a60f4ed91010f6a90c1b87cb3edea1e9b57fed056c5f4186ef26088bd2ba171",
+    "src/fedfalsify/server.py": "3c12c2bdf6a511cc1b90adadd694dfe3fb184888d35582aa667c5d6c6bb77b74",
+    "src/fedfalsify/stability_screen.py": "18f0c5cd56ffb619aa343f96bf3c7d916f27e627be2aee68833d3800c975232e",
+    "src/fedfalsify/stability_superset.py": "b3ce7ffabf88767aad09e147a5c2171fdf4cae79a2b78c48de5b6c62f7ff11de",
+    "src/fedfalsify/surrogate_study.py": "636d7f35e57850c9312522d6ce07e1ec11a06e195020be332faeaa0041d0c07c",
+    "tests/test_role_conditional_v4.py": "f11af223dffe0b31c67e09a398a741eb8a7e7e68747db599fd882edec304aa05"
+  },
+  "status": "sealed",
+  "workflow_run_id": 31263096136
+}

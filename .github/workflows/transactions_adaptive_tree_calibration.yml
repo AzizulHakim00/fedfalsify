@@ -1,0 +1,16 @@
+name: transactions-adaptive-tree-calibration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archived-study:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archived evidence notice
+        run: |
+          echo "The corrected adaptive calibration is complete and archived."
+          echo "Manual reruns must preserve the frozen seed and configuration."

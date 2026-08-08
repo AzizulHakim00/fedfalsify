@@ -1,0 +1,32 @@
+{
+  "claim_boundary": "Passing permits a separately frozen independent validation/scalability stage only; failure freezes v5 as NO-GO.",
+  "criteria": {
+    "A_overall_exact_noninferiority": false,
+    "B_high_noise_poly3_gain": false,
+    "C_high_noise_interaction_gain": false,
+    "D_base_exact_noninferiority": false,
+    "E_high_noise_poly3_bank_recall": true,
+    "F_high_noise_poly3_complete_bank": true,
+    "G_exception_candidate_recall": true,
+    "H_conditional_exception_recovery": false,
+    "I_spurious_acceptance_controlled": true,
+    "J_zero_single_forward_exact_harms": true,
+    "K_zero_pair_rescue_exact_harms": true,
+    "L_nmse_noninferiority": false,
+    "M_candidate_bank_compact": true,
+    "N_runtime_below_15x": false,
+    "O_communication_below_30x": true
+  },
+  "failed_criteria": [
+    "A_overall_exact_noninferiority",
+    "B_high_noise_poly3_gain",
+    "C_high_noise_interaction_gain",
+    "D_base_exact_noninferiority",
+    "H_conditional_exception_recovery",
+    "L_nmse_noninferiority",
+    "N_runtime_below_15x"
+  ],
+  "passed": false,
+  "schema_version": 1,
+  "status": "NO-GO"
+}

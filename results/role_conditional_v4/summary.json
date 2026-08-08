@@ -1,0 +1,178 @@
+{
+  "backward_audit": {
+    "exact_gains": 0,
+    "exact_harms": 49
+  },
+  "benchmarks": [
+    "base",
+    "interaction",
+    "nested_sine",
+    "poly3",
+    "trig_product"
+  ],
+  "candidate_generation": {
+    "exception_candidate_recall": 0.66,
+    "high_noise_poly3_complete_coverage": 0.16666666666666666,
+    "high_noise_poly3_target_recall": 0.7166666666666667,
+    "mean_nuisance_terms": 1.1888888888888889,
+    "mean_target_recall": 0.9103703703703704,
+    "median_candidate_pool_size": 3.0
+  },
+  "communication_ratio_vs_legacy": 5.7239389241744405,
+  "conditional_exception_recovery": 0.41333333333333333,
+  "conditions": 450,
+  "development_gate": {
+    "criteria": {
+      "communication_below_30x": true,
+      "conditional_exception_recovery": false,
+      "exception_candidate_recall": false,
+      "high_noise_gain_over_legacy": false,
+      "high_noise_poly3_complete_coverage": false,
+      "high_noise_poly3_target_recall": false,
+      "median_candidate_pool_size": true,
+      "overall_exact_noninferiority": false,
+      "predictive_safety": false,
+      "runtime_below_15x": true,
+      "spurious_acceptance_controlled": true,
+      "zero_backward_exact_harms": false,
+      "zero_forward_exact_harms": true
+    },
+    "evaluated": true,
+    "passed": false,
+    "scientific_boundary": "Passing permits independent external validation and scalability only."
+  },
+  "forward_audit": {
+    "activations": 101,
+    "exact_gains": 41,
+    "exact_harms": 0,
+    "nmse_harms": 4,
+    "nmse_improvements": 97
+  },
+  "methods": {
+    "centralized-forward": {
+      "communication_bytes": 0.0,
+      "exact_recovery": 0.9844444444444445,
+      "exception_recovered": 1.0,
+      "forward_selected": 0.0,
+      "runs": 450,
+      "runtime_seconds": 0.01053574816444148,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9963333333333333,
+      "term_recall": 1.0,
+      "test_nmse": 7.43870199569331e-05
+    },
+    "crossfit-v2-structural": {
+      "communication_bytes": 262109.75333333333,
+      "exact_recovery": 0.66,
+      "exception_recovered": 0.9444444444444444,
+      "forward_selected": 0.14444444444444443,
+      "runs": 450,
+      "runtime_seconds": 0.19731230450444123,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9077407407407407,
+      "term_recall": 0.8575925925925926,
+      "test_nmse": 0.014905439731423727
+    },
+    "legacy-certificate": {
+      "communication_bytes": 120042.84,
+      "exact_recovery": 0.7155555555555555,
+      "exception_recovered": 1.0,
+      "forward_selected": 0.0,
+      "runs": 450,
+      "runtime_seconds": 0.1000787592888926,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8861481481481481,
+      "term_recall": 0.8759259259259259,
+      "test_nmse": 0.0053980654004437195
+    },
+    "role-v4-anchor": {
+      "communication_bytes": 601741.4088888889,
+      "exact_recovery": 0.52,
+      "exception_recovered": 0.8444444444444444,
+      "forward_selected": 0.0,
+      "runs": 450,
+      "runtime_seconds": 0.7107183423244579,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9070370370370371,
+      "term_recall": 0.7216666666666667,
+      "test_nmse": 0.08871595056966841
+    },
+    "role-v4-full": {
+      "communication_bytes": 687117.8844444444,
+      "exact_recovery": 0.5022222222222222,
+      "exception_recovered": 0.8044444444444444,
+      "forward_selected": 0.22444444444444445,
+      "runs": 450,
+      "runtime_seconds": 0.7424488181200124,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8777777777777778,
+      "term_recall": 0.6838888888888889,
+      "test_nmse": 0.1941604005587823
+    },
+    "role-v4-no-backward": {
+      "communication_bytes": 626331.8177777778,
+      "exact_recovery": 0.6111111111111112,
+      "exception_recovered": 0.8666666666666667,
+      "forward_selected": 0.22444444444444445,
+      "runs": 450,
+      "runtime_seconds": 0.7198837045888955,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9262962962962963,
+      "term_recall": 0.8016666666666666,
+      "test_nmse": 0.04234807746176738
+    },
+    "role-v4-no-path-persistence": {
+      "communication_bytes": 672855.3177777778,
+      "exact_recovery": 0.4911111111111111,
+      "exception_recovered": 0.7888888888888889,
+      "forward_selected": 0.12666666666666668,
+      "runs": 450,
+      "runtime_seconds": 0.7375553650777756,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.857037037037037,
+      "term_recall": 0.6461111111111111,
+      "test_nmse": 0.20755353120483624
+    },
+    "role-v4-no-role-conditioning": {
+      "communication_bytes": 685081.2088888889,
+      "exact_recovery": 0.4022222222222222,
+      "exception_recovered": 0.6666666666666666,
+      "forward_selected": 0.2088888888888889,
+      "runs": 450,
+      "runtime_seconds": 0.7424443337200025,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8677777777777778,
+      "term_recall": 0.6246296296296296,
+      "test_nmse": 0.26603213394902836
+    },
+    "score-only-federated": {
+      "communication_bytes": 2350804.7155555557,
+      "exact_recovery": 0.12444444444444444,
+      "exception_recovered": 1.0,
+      "forward_selected": 0.0,
+      "runs": 450,
+      "runtime_seconds": 0.9046102977800058,
+      "spurious_accepted": 0.3844444444444444,
+      "term_precision": 0.5954074074074074,
+      "term_recall": 0.9887037037037038,
+      "test_nmse": 0.0002578111997906945
+    },
+    "stability-superset-v3": {
+      "communication_bytes": 619029.1,
+      "exact_recovery": 0.5644444444444444,
+      "exception_recovered": 0.8444444444444444,
+      "forward_selected": 0.13777777777777778,
+      "runs": 450,
+      "runtime_seconds": 0.6497960232311061,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9116666666666666,
+      "term_recall": 0.7770370370370371,
+      "test_nmse": 0.04882634763693761
+    }
+  },
+  "rows": 4500,
+  "runtime_ratio_vs_legacy": 7.418645308909364,
+  "schema_version": 1,
+  "status": "development-role-conditional-v4",
+  "test_nmse_ratio_vs_legacy": 35.968515783973714
+}

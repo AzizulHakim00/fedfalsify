@@ -1,0 +1,38 @@
+{
+  "chunk_count": 4,
+  "chunk_manifests": {
+    "chunk-01-of-04": "a750f2afb1a36f5b26c54a81e20c141df440b24c7b96fbc0387e261be8601afb",
+    "chunk-02-of-04": "6f58514a1ee9dea7dfbd0485608ed69ef3209dcc607d9597c6f199e97f300edc",
+    "chunk-03-of-04": "a2bb6a882e4e950a80c5129df1561d001675699b537198e017570df528149869",
+    "chunk-04-of-04": "1baf1f1de48fb7e03619044bd4490519baee6a6634b76ef9ecc19220353d44ef"
+  },
+  "protocol_config_fingerprint_sha256": "60969b89b8855ef03718c000ab411918c0d20074532348c221e0725979e42ef1",
+  "row_count": 2400,
+  "run_id": "v06-primary-confirmatory",
+  "schema_version": 1,
+  "selected_seeds": [
+    9001,
+    9002,
+    9003,
+    9004,
+    9005,
+    9006,
+    9007,
+    9008,
+    9009,
+    9010,
+    9011,
+    9012,
+    9013,
+    9014,
+    9015,
+    9016,
+    9017,
+    9018,
+    9019,
+    9020
+  ],
+  "source_fingerprint_sha256": "a797f15ba419ba575e138601b3faba10f65cea188becacd9a76c7127cf42da45",
+  "status": "verified",
+  "verified_at_utc": "2026-08-03T20:32:41.229390+00:00"
+}

@@ -1,0 +1,41 @@
+{
+  "status": "software-smoke-only",
+  "workflow": {
+    "name": "official-pysr-smoke",
+    "run_id": 30763089477,
+    "job_id": 91537012187,
+    "artifact_id": 8838112707,
+    "artifact_sha256": "40bb9ac1a100aee99a95145781de639e8ca79fd6312bd7e1078129cc7127b32a"
+  },
+  "environment": {
+    "operating_system": "Ubuntu 24.04 GitHub-hosted runner",
+    "python": "3.11.15",
+    "julia": "1.11.9",
+    "pysr": "1.5.10",
+    "symbolic_regression_jl": "1.11.3"
+  },
+  "configuration": {
+    "benchmark": "base",
+    "scenario": "complementary",
+    "seed": 8001,
+    "clients": 4,
+    "samples_per_client": 60,
+    "noise_ratio": 0.03,
+    "niterations": 5,
+    "populations": 2,
+    "population_size": 20,
+    "maxsize": 14,
+    "binary_operators": ["+", "*"],
+    "unary_operators": ["sin", "cos", "square"],
+    "parallelism": "serial",
+    "model_selection": "best"
+  },
+  "result": {
+    "equation": "2.0648782*x1",
+    "global_test_nmse": 0.181411,
+    "model_search_runtime_seconds": 10.816,
+    "exact_structure_recovery": false,
+    "missing_terms": ["sin(x2)", "x3^2"]
+  },
+  "interpretation": "The official PySR adapter, Julia environment, model fit, prediction, CSV export, and artifact archiving executed successfully. The five-iteration smoke budget is intentionally too small for a performance conclusion and must not be compared with the development FedFalsify matrix as publication evidence."
+}
