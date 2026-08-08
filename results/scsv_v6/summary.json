@@ -1,0 +1,130 @@
+{
+  "conditions": 450,
+  "development_gate": {
+    "criteria": {
+      "A_overall_exact_gt_legacy_005": true,
+      "B_overall_exact_gt_v5_010": true,
+      "C_high_noise_poly3_gt_v5_010": true,
+      "D_high_noise_interaction_noninferior_legacy": true,
+      "E_base_noninferior_legacy": true,
+      "F_nested_sine_preserved_v5": true,
+      "G_trig_product_preserved_v5": true,
+      "H_precision_ge_096": true,
+      "I_recall_ge_095": true,
+      "J_spurious_acceptance_controlled": true,
+      "K_exception_recovery_ge_095": true,
+      "L_bank_target_recall_ge_098": true,
+      "M_complete_bank_ge_095": true,
+      "N_nmse_not_worse_than_legacy": true,
+      "O_probe_certification_ge_075": true,
+      "P_communication_not_worse_than_v5": true,
+      "Q_runtime_le_150pct_v5": true
+    },
+    "evaluated": true,
+    "passed": true,
+    "scientific_boundary": "Passing permits only a separately frozen independent scalability/external-validation stage; failure freezes v6 as NO-GO."
+  },
+  "methods": {
+    "centralized-forward": {
+      "communication_bytes_median": 0.0,
+      "exact_recovery": 0.9844444444444445,
+      "exception_recovered_all_conditions": 1.0,
+      "runs": 450,
+      "runtime_seconds_median": 0.008288642500133392,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9963703703703704,
+      "term_recall": 0.9987037037037036,
+      "test_nmse": 9.069711538434669e-05
+    },
+    "crossfit-v2-structural": {
+      "communication_bytes_median": 241795.5,
+      "exact_recovery": 0.6844444444444444,
+      "exception_recovered_all_conditions": 0.94,
+      "runs": 450,
+      "runtime_seconds_median": 0.1376928550000116,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8997037037037037,
+      "term_recall": 0.8505555555555555,
+      "test_nmse": 0.0203609297749911
+    },
+    "hr-v5-full": {
+      "communication_bytes_median": 3118143.0,
+      "exact_recovery": 0.6622222222222223,
+      "exception_recovered_all_conditions": 0.9244444444444444,
+      "runs": 450,
+      "runtime_seconds_median": 1.1814181735000489,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.9164444444444444,
+      "term_recall": 0.8392592592592593,
+      "test_nmse": 0.025300803037662536
+    },
+    "legacy-certificate": {
+      "communication_bytes_median": 119454.5,
+      "exact_recovery": 0.7155555555555555,
+      "exception_recovered_all_conditions": 1.0,
+      "runs": 450,
+      "runtime_seconds_median": 0.07340865300000132,
+      "spurious_accepted": 0.0,
+      "term_precision": 0.8863333333333333,
+      "term_recall": 0.8788888888888888,
+      "test_nmse": 0.005017764002154493
+    },
+    "score-only-federated": {
+      "communication_bytes_median": 2409505.5,
+      "exact_recovery": 0.13333333333333333,
+      "exception_recovered_all_conditions": 1.0,
+      "runs": 450,
+      "runtime_seconds_median": 0.6957753374999527,
+      "spurious_accepted": 0.1711111111111111,
+      "term_precision": 0.594925925925926,
+      "term_recall": 0.9866666666666667,
+      "test_nmse": 0.00028521333049046625
+    },
+    "scsv-v6-full": {
+      "candidate_bank_contains_all_truth": 0.9977777777777778,
+      "candidate_bank_size_median": 6.0,
+      "candidate_bank_target_recall": 0.9994444444444445,
+      "candidate_sets_median": 63.0,
+      "communication_bytes_median": 3024585.0,
+      "exact_recovery": 0.9533333333333334,
+      "exception_recovered_all_conditions": 0.9977777777777778,
+      "necessity_failures": 2,
+      "probe_certification_fraction": 0.8377777777777777,
+      "runs": 450,
+      "runtime_seconds_median": 1.1639140720000114,
+      "spurious_accepted": 0.0,
+      "swap_failures": 76,
+      "term_precision": 0.9853703703703703,
+      "term_recall": 0.985,
+      "test_nmse": 0.00025606471840129236
+    },
+    "scsv-v6-no-score-proposer": {
+      "candidate_bank_contains_all_truth": 0.72,
+      "candidate_bank_size_median": 3.0,
+      "candidate_bank_target_recall": 0.9014814814814814,
+      "candidate_sets_median": 8.0,
+      "communication_bytes_median": 601632.5,
+      "exact_recovery": 0.7133333333333334,
+      "exception_recovered_all_conditions": 0.8911111111111111,
+      "necessity_failures": 7,
+      "probe_certification_fraction": 0.8222222222222222,
+      "runs": 450,
+      "runtime_seconds_median": 0.4878269865000675,
+      "spurious_accepted": 0.0,
+      "swap_failures": 86,
+      "term_precision": 0.925962962962963,
+      "term_recall": 0.8824074074074074,
+      "test_nmse": 0.011940125952480193
+    }
+  },
+  "rows": 3150,
+  "schema_version": 1,
+  "seeds": [
+    19101,
+    19102,
+    19103,
+    19104,
+    19105
+  ],
+  "status": "scsv-v6-development"
+}
