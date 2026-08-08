@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/fedfalsify-mvi
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -56,6 +56,7 @@ jobs:
           import json
           import math
           import os
+          import subprocess
           from collections import Counter
           from pathlib import Path
 
@@ -64,6 +65,15 @@ jobs:
           summary_path = root / "summary.json"
           rows = list(csv.DictReader(rows_path.open(encoding="utf-8")))
           summary = json.loads(summary_path.read_text(encoding="utf-8"))
+
+          checkout_commit = subprocess.check_output(
+              ["git", "rev-parse", "HEAD"], text=True
+          ).strip()
+          if checkout_commit != os.environ["RUN_COMMIT"]:
+              raise RuntimeError(
+                  f"checkout provenance mismatch: {checkout_commit} != "
+                  f"{os.environ['RUN_COMMIT']}"
+              )
 
           expected_methods = {
               "legacy-certificate",
@@ -154,6 +164,7 @@ jobs:
               "recovery_of_workflow_run_id": 31037754111 if recovery else None,
               "recovery_is_not_additional_statistical_evidence": recovery,
               "run_commit": os.environ["RUN_COMMIT"],
+              "checkout_commit": checkout_commit,
               "workflow_run_id": int(os.environ["RUN_ID"]),
               "evidence_seeds": sorted(expected_seeds),
               "engineering_smoke_seed_excluded": 15001,
@@ -185,8 +196,6 @@ jobs:
           print(json.dumps(decision, indent=2, sort_keys=True))
           PY
 
-      # Preserve the sealed outputs before any Git operation. This prevents a
-      # repository/push problem from destroying the only retained evidence copy.
       - name: Upload sealed artifact
         uses: actions/upload-artifact@v4
         with:
