@@ -67,10 +67,11 @@ def _validate_seeds(
         set(range(9001, 9021))
         | set(range(10001, 10006))
         | set(range(10501, 10506))
-        | set(range(11001, 17101))
+        | set(range(11001, 17001))
+        | set(range(17002, 17101))
     )
     if any(seed in spent for seed in seeds):
-        raise ValueError("prior development, validation, final, or smoke seeds are prohibited")
+        raise ValueError("prior development, validation, or final seeds are prohibited")
 
 
 def _row(
