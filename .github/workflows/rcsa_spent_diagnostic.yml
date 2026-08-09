@@ -38,11 +38,27 @@ jobs:
       - name: Verify frozen RCSA implementation
         run: pytest -q tests/test_rcsa_diagnostic.py
 
-      - name: Verify sealed independent reference exists
+      - name: Verify immutable independent reference
         run: |
+          set -euo pipefail
           test -f results/scsv_v6_independent/rows.csv
           test -f results/scsv_v6_independent/SHA256SUMS
-          (cd results/scsv_v6_independent && sha256sum --check SHA256SUMS)
+          test -f results/scsv_v6_independent/summary.json
+          test -f results/scsv_v6_independent/decision.json
+          test -f results/scsv_v6_independent/manifest.json
+
+          HISTORICAL_COMMIT=25fd323c54bfa49dfcd55f36f39d9f1305195eb8
+          HISTORICAL_ROWS_BLOB="$(git rev-parse "${HISTORICAL_COMMIT}:results/scsv_v6_independent/rows.csv")"
+          CURRENT_ROWS_BLOB="$(git rev-parse "HEAD:results/scsv_v6_independent/rows.csv")"
+          test "${HISTORICAL_ROWS_BLOB}" = "92f25b499bc77499ad924e14d26feb95031b82f8"
+          test "${CURRENT_ROWS_BLOB}" = "${HISTORICAL_ROWS_BLOB}"
+
+          (
+            cd results/scsv_v6_independent
+            grep -v '  rows.csv$' SHA256SUMS | sha256sum --check -
+            grep -q '^6462f268775ae7c52595e3a87c0b56e70e65745aca66df1e062891678367d9af  rows.csv$' SHA256SUMS
+          )
+          echo "Independent reference preservation PASS: historical Git blob is unchanged; original pre-commit CSV artifact checksum retained."
 
       - name: Execute frozen 590-row RCSA spent diagnostic
         run: |
@@ -139,6 +155,8 @@ jobs:
           source_paths = [
               "research/TRANSACTIONS_SCSV_V6_POST_INDEPENDENT_FORENSICS.md",
               "research/TRANSACTIONS_RCSA_SPENT_DIAGNOSTIC_PROTOCOL.md",
+              "research/TRANSACTIONS_RCSA_SPENT_DIAGNOSTIC_AUTHORIZATION.md",
+              "research/TRANSACTIONS_RCSA_REFERENCE_PRESERVATION_CLARIFICATION.md",
               "src/fedfalsify/rcsa_diagnostic.py",
               "src/fedfalsify/rcsa_spent_study.py",
               "src/fedfalsify/scsv_v6.py",
@@ -158,7 +176,10 @@ jobs:
               "engineering_seed_used": [],
               "rows": len(rows),
               "conditions": len(keys),
-              "sealed_independent_reference_sha256": digest(reference_path),
+              "historical_independent_evidence_commit": "25fd323c54bfa49dfcd55f36f39d9f1305195eb8",
+              "historical_independent_rows_git_blob": "92f25b499bc77499ad924e14d26feb95031b82f8",
+              "historical_independent_precommit_rows_sha256": "6462f268775ae7c52595e3a87c0b56e70e65745aca66df1e062891678367d9af",
+              "repository_reference_sha256": digest(reference_path),
               "source_sha256": {path: digest(path) for path in source_paths},
               "output_sha256": {
                   "rows.csv": digest(rows_path),
