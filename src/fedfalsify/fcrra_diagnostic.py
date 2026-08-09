@@ -112,6 +112,8 @@ def _residual_exception_coefficient(
 
     if not eligible:
         raise ValueError("FCRRA residual coefficient requires eligible discovery clients")
+    if exception_term in set(anchor.active_terms):
+        raise ValueError("FCRRA residual coefficient requires a missing exception term")
     mapping = {term: index for index, term in enumerate(all_terms)}
     e_index = mapping[exception_term]
     anchor_index = np.asarray([mapping[term] for term in anchor.active_terms], dtype=int)
@@ -138,6 +140,8 @@ def _augment_frozen_anchor(
 ) -> CandidateEquation:
     """Add one restricted coefficient while preserving every shared coefficient."""
 
+    if exception_term in set(anchor.active_terms):
+        raise ValueError("FCRRA cannot augment an already-selected exception")
     terms = _ordered_terms(
         catalog,
         (set(anchor.active_terms) - {"1"}) | {exception_term},
@@ -263,7 +267,6 @@ def fcrra_diagnostic_method(
             if len(augmented.active_terms) > max_terms:
                 raise RuntimeError("FCRRA augmentation exceeded frozen size cap")
 
-            # Shared coefficients must be exactly inherited from the discovery anchor.
             anchor_map = dict(zip(anchor_discovery.active_terms, anchor_discovery.coefficients))
             augmented_map = dict(zip(augmented.active_terms, augmented.coefficients))
             for term, value in anchor_map.items():
