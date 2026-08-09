@@ -1,0 +1,39 @@
+{
+  "conditions": 590,
+  "engineering_seed_used": [],
+  "fresh_successor_seeds_used": [],
+  "historical_independent_evidence_commit": "25fd323c54bfa49dfcd55f36f39d9f1305195eb8",
+  "historical_independent_precommit_rows_sha256": "6462f268775ae7c52595e3a87c0b56e70e65745aca66df1e062891678367d9af",
+  "historical_independent_rows_git_blob": "92f25b499bc77499ad924e14d26feb95031b82f8",
+  "output_sha256": {
+    "decision.json": "56903f65d3f0fa245bf000fbfb729150c8189d078be1bc68ee95a7afa12f0c0a",
+    "rows.csv": "9fe2d66bf51e666a3878474ad591cb226608b5de7da4f72a5f718ead7ce62d3b",
+    "summary.json": "12c21ff8245887f75a5d90e9f41f4de38cbe09cf3e1ecd3c0472ffe43125a119"
+  },
+  "repository_reference_sha256": "cf67685699e4d2f309b4d74234ec0255f049e505fa3420b8b2a031d93adb7f8d",
+  "rows": 590,
+  "run_commit": "80466ba54bcc1dccc0697615b8aa3b6c9ee56a8e",
+  "run_mode": "post-independent-spent-seed-fcrra-diagnostic",
+  "schema_version": 1,
+  "source_sha256": {
+    ".github/workflows/fcrra_spent_diagnostic.yml": "9fafafcc281dc28a254b212b5f8edef4dc117e0fbdfe61f3a34efa666fff4106",
+    "research/TRANSACTIONS_FCRRA_SPENT_DIAGNOSTIC_AUTHORIZATION.md": "055e14f4ee13eae1712c0707b448bf109045bc29ca218543e09067ea17921fcb",
+    "research/TRANSACTIONS_FCRRA_SPENT_DIAGNOSTIC_PROTOCOL.md": "098f3410243ce145770b4e375e486f71bcde5329aeb1423a35fc5f2a7eba5bcd",
+    "research/TRANSACTIONS_RCSA_POST_DIAGNOSTIC_FORENSICS.md": "00854dbec1617b48bab2b378adbeafd742bf9c0c7335a41dd76d2f18539be9ef",
+    "src/fedfalsify/fcrra_diagnostic.py": "e168661199021afe1fcca6d6f5611930981f1c64d27c8880f972bc04bc40576f",
+    "src/fedfalsify/fcrra_spent_study.py": "222529c696c86de19606f408c56bb026b1380ea06a89dae7d09c899632657967",
+    "src/fedfalsify/scsv_diagnostic.py": "8faa1e039be619d399ad72bcce34c93c916be02f3dc3236026b9f31fe15bfcd0",
+    "src/fedfalsify/scsv_v6.py": "f56a38da25a60752b5580e449a7213e88ef6d7a6006759272274331e5ff174fb",
+    "src/fedfalsify/scsv_v6_independent.py": "3e2037bfe7a87cd1f8beb7bbf49b5ae9a7a46df69bb0bb5f3932daa32144f1ac",
+    "src/fedfalsify/scsv_v6_independent_study.py": "b3922601e9950e1363d3f3617eab084fbe315cdbf3c0d4bbdc7ae11e3039bbd9",
+    "tests/test_fcrra_diagnostic.py": "145a1228724d339868b15d7a512313011cc66388d85fe507dfcfafb77525c0aa"
+  },
+  "spent_seeds": [
+    20101,
+    20102,
+    20103,
+    20104,
+    20105
+  ],
+  "workflow_run_id": 31327514970
+}

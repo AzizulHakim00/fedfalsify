@@ -1,0 +1,50 @@
+{
+  "conditions": 590,
+  "mechanism_signal": {
+    "augmentation_accepts": 0,
+    "augmentation_attempts": 13,
+    "criteria": {
+      "A_candidate_bank_identity": true,
+      "B_non_exception_structures_identical": true,
+      "C_existing_exception_structures_unchanged": true,
+      "D_outside_role_predictions_identical": true,
+      "E_panel_s_4_exception_ge_090": false,
+      "F_panel_s_8_exception_ge_090": true,
+      "G_panel_s_16_exception_ge_09333": true,
+      "H_panel_s32_exception_remains_one": true,
+      "I_overall_exact_noninferior_001": true,
+      "J_zero_exact_harms": true,
+      "K_no_spurious_worsening_non_exception": true,
+      "L_rescue_at_least_7_of_13": false,
+      "M_rescue_hard_cubic_4client_imbalanced": false
+    },
+    "evaluated": true,
+    "exact_harms": 0,
+    "fcrra_exact_recovery": 0.9152542372881356,
+    "frozen_exception_misses": 13,
+    "frozen_v6_exact_recovery": 0.9152542372881356,
+    "hard_cubic_4client_imbalanced_rescues": 0,
+    "outside_identity_max_prediction": 5.329070518200751e-15,
+    "outside_identity_max_sse": 2.2737367544323206e-13,
+    "panel_s32_exception_recovery": 1.0,
+    "panel_s_exception_recovery": {
+      "16": 0.9333333333333333,
+      "4": 0.8,
+      "8": 0.9
+    },
+    "passed": false,
+    "rescued_exception_misses": 0,
+    "spurious_worse_non_exception": 0
+  },
+  "rows": 590,
+  "schema_version": 1,
+  "scientific_boundary": "Post-independent spent-seed mechanism diagnostic only; never independent confirmation or external authorization.",
+  "seeds": [
+    20101,
+    20102,
+    20103,
+    20104,
+    20105
+  ],
+  "status": "fcrra-spent-seed-diagnostic"
+}
