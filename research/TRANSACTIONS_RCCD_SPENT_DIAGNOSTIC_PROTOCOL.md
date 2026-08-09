@@ -130,9 +130,9 @@ For post-decision test evaluation, coefficients may be refit on the complete tra
 
 Engineering-only smoke seed:
 
-- `22001`
+- `23001`
 
-Repository search before protocol freeze found no prior occurrence of `22001`.
+The initial protocol draft proposed `22001`, but implementation inspection before any RCCD execution showed that `22001` had already been used as the FCRRA engineering smoke seed. The RCCD engineering seed was therefore corrected to `23001` before any RCCD smoke or formal diagnostic run. No scientific RCCD result was consumed before this correction.
 
 Formal RCCD diagnostic data:
 
@@ -224,7 +224,7 @@ No criterion may be relaxed after formal RCCD rows are generated.
 
 ## 14. Engineering smoke requirements
 
-Before formal spent execution, seed `22001` only must verify:
+Before formal spent execution, seed `23001` only must verify:
 
 - the wrapper calls frozen `scsv_cert_method`;
 - non-exception structures are unchanged;
@@ -238,7 +238,7 @@ Before formal spent execution, seed `22001` only must verify:
 - the information penalty is exactly one extra parameter;
 - outside-role safety is evaluated against the frozen v6 discovery anchor;
 - no core term is deleted or replaced;
-- smoke output uses only `22001`;
+- smoke output uses only `23001`;
 - A--P mechanism-signal criteria are not evaluated in smoke mode.
 
 Only engineering defects may be repaired after this freeze. Scientific rules, criteria, and the spent matrix may not change after formal RCCD output is consumed.
