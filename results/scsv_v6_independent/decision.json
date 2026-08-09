@@ -1,0 +1,29 @@
+{
+  "claim_boundary": "GO authorizes only the separately preserved external SRSD layer; NO-GO is retained without tuning on seeds 20101--20105.",
+  "criteria": {
+    "A_panel_g_exact_gt_legacy_005": true,
+    "B_panel_g_exact_gt_v5_010": true,
+    "C_panel_g_within_005_centralized": true,
+    "D_panel_g_precision_ge_095": true,
+    "E_panel_g_recall_ge_095": true,
+    "F_panel_g_nmse_not_worse_legacy": true,
+    "G_panel_g_spurious_controlled": true,
+    "H_panel_g_exception_ge_090": true,
+    "I_panel_g_bank_recall_ge_098": true,
+    "J_panel_g_complete_bank_ge_095": true,
+    "K_panel_s_each_client_count_gt_legacy_003": true,
+    "L_panel_s_16_no_collapse": true,
+    "M_panel_s_imbalance_robust": true,
+    "N_panel_s_exception_each_count_ge_090": false,
+    "O_panel_s_comm_per_client_scaling": true,
+    "P_panel_s_runtime_scaling": true,
+    "Q_panel_s32_structural_and_exception": true,
+    "R_probe_certification_ge_070": true
+  },
+  "failed_criteria": [
+    "N_panel_s_exception_each_count_ge_090"
+  ],
+  "passed": false,
+  "schema_version": 1,
+  "status": "INDEPENDENT-NO-GO"
+}
