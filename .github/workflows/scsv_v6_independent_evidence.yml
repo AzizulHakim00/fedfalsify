@@ -1,0 +1,178 @@
+name: transactions-scsv-v6-independent-evidence
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+
+permissions:
+  contents: write
+
+jobs:
+  independent-study:
+    if: contains(github.event.head_commit.message, '[run-scsv-v6-independent]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install package
+        run: pip install -e . pytest
+      - name: Verify frozen independent implementation
+        run: pytest -q tests/test_scsv_v6.py tests/test_scsv_v6_independent.py
+      - name: Execute frozen 3,540-row independent matrix
+        run: >-
+          python -m fedfalsify.scsv_v6_independent_study
+          --output results/scsv_v6_independent/rows.csv
+          --summary results/scsv_v6_independent/summary.json
+      - name: Audit and seal independent evidence
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          WORKFLOW_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path('.')
+          result = root / 'results/scsv_v6_independent'
+          rows_path = result / 'rows.csv'
+          summary_path = result / 'summary.json'
+          rows = list(csv.DictReader(rows_path.open(encoding='utf-8')))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          expected_methods = {
+              'legacy-certificate',
+              'hr-v5-full',
+              'scsv-v6-full',
+              'scsv-v6-no-score-proposer',
+              'centralized-forward',
+              'score-only-federated',
+          }
+          expected_seeds = {20101,20102,20103,20104,20105}
+          assert len(rows) == 3540, len(rows)
+          assert summary['rows'] == 3540
+          assert summary['conditions'] == 590
+          assert summary['seeds'] == sorted(expected_seeds)
+          assert summary['independent_gate']['evaluated'] is True
+          counts = Counter(row['method'] for row in rows)
+          assert set(counts) == expected_methods, counts
+          assert all(counts[m] == 590 for m in expected_methods), counts
+          assert {int(row['seed']) for row in rows} == expected_seeds
+          assert {row['panel'] for row in rows} == {'G','S','S32'}
+
+          panel_conditions = {}
+          for panel in ('G','S','S32'):
+              keys = {
+                  (
+                      row['benchmark'], row['scenario'], row['noise_ratio'],
+                      row['nominal_samples_per_client'], row['num_clients'],
+                      row['balance_profile'], row['seed']
+                  )
+                  for row in rows if row['panel'] == panel
+              }
+              panel_conditions[panel] = len(keys)
+          assert panel_conditions == {'G': 300, 'S': 270, 'S32': 20}, panel_conditions
+
+          keys = [
+              (
+                  row['panel'], row['benchmark'], row['scenario'], row['noise_ratio'],
+                  row['nominal_samples_per_client'], row['num_clients'],
+                  row['balance_profile'], row['seed'], row['method']
+              )
+              for row in rows
+          ]
+          assert len(keys) == len(set(keys))
+          for row in rows:
+              assert int(row['num_clients']) in {4,8,16,32}
+              sizes = [int(value) for value in row['client_sizes'].split(';') if value]
+              assert len(sizes) == int(row['num_clients'])
+              assert min(sizes) >= 50
+              for field in (
+                  'exact_recovery','term_precision','term_recall','test_nmse',
+                  'runtime_seconds','communication_bytes','communication_per_client'
+              ):
+                  value = float(row[field])
+                  assert math.isfinite(value), (field, value)
+
+          criteria = summary['independent_gate']['criteria']
+          passed = bool(summary['independent_gate']['passed'])
+          decision = {
+              'schema_version': 1,
+              'status': 'INDEPENDENT-GO' if passed else 'INDEPENDENT-NO-GO',
+              'passed': passed,
+              'criteria': criteria,
+              'failed_criteria': [name for name, ok in criteria.items() if not ok],
+              'claim_boundary': summary['independent_gate']['scientific_boundary'],
+          }
+          decision_path = result / 'decision.json'
+          decision_path.write_text(json.dumps(decision, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+
+          def sha(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          source_paths = [
+              'research/TRANSACTIONS_SCSV_V6_INDEPENDENT_VALIDATION_PROTOCOL.md',
+              'research/TRANSACTIONS_SCSV_CERT_V6_PROTOCOL.md',
+              'src/fedfalsify/scsv_v6.py',
+              'src/fedfalsify/scsv_v6_study.py',
+              'src/fedfalsify/scsv_v6_independent.py',
+              'src/fedfalsify/scsv_v6_independent_study.py',
+              'src/fedfalsify/scsv_diagnostic.py',
+              'src/fedfalsify/high_recall_v5.py',
+              'src/fedfalsify/high_recall_v5_study.py',
+              'src/fedfalsify/role_conditional.py',
+              'src/fedfalsify/crossfit_redesign.py',
+              'tests/test_scsv_v6.py',
+              'tests/test_scsv_v6_independent.py',
+              '.github/workflows/scsv_v6_independent_evidence.yml',
+          ]
+          manifest = {
+              'schema_version': 1,
+              'run_mode': 'fresh-scsv-v6-independent-validation',
+              'run_commit': os.environ['RUN_COMMIT'],
+              'workflow_run_id': int(os.environ['WORKFLOW_RUN_ID']),
+              'independent_seeds': sorted(expected_seeds),
+              'rows': 3540,
+              'conditions': 590,
+              'panel_conditions': panel_conditions,
+              'source_sha256': {p: sha(root / p) for p in source_paths},
+              'output_sha256': {
+                  'rows.csv': sha(rows_path),
+                  'summary.json': sha(summary_path),
+                  'decision.json': sha(decision_path),
+              },
+          }
+          manifest_path = result / 'manifest.json'
+          manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          output_files = [rows_path, summary_path, decision_path, manifest_path]
+          (result / 'SHA256SUMS').write_text(
+              ''.join(f"{sha(path)}  {path.name}\n" for path in output_files),
+              encoding='utf-8',
+          )
+          (result / 'COMPLETE').write_text('sealed\n', encoding='utf-8')
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+      - name: Upload sealed independent artifact before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-v6-independent-evidence
+          path: results/scsv_v6_independent/
+          retention-days: 14
+      - name: Commit sealed independent evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f results/scsv_v6_independent
+          if git diff --cached --quiet; then
+            echo 'No result changes to commit.'
+          else
+            git commit -m 'results: seal SCSV-Cert v6 independent evidence [skip-independent] [skip ci]'
+            git push origin HEAD:feat/fedfalsify-mvi
+          fi
