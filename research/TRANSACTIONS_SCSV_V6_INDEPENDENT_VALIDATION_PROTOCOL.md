@@ -32,30 +32,32 @@ No independent-validation result may be used to modify these rules.
 
 ## 3. Independent truth families
 
-All truth terms are already supported by the frozen `BenchmarkTermCatalog`, but their combinations are new relative to the five v6 development benchmark families. The exact five independent families are:
+All truth terms are already supported by the frozen `BenchmarkTermCatalog`, but their combinations are new relative to the five v6 development benchmark families. `x4` is deliberately absent from every independent truth family and remains a nuisance-only feature so that the inherited `spurious` construction has an unambiguous shortcut variable.
+
+The exact five independent families are:
 
 1. `cubic_cross`
-   - `0.8*x1^3 + 1.2*x1*x2 + 0.5*x4`
+   - `0.8*x1^3 + 1.2*x1*x2 + 0.5*x3^2`
 2. `fourier_quadratic`
-   - `1.0*cos(x1) + 0.9*sin(x3) + 0.7*x4^2`
+   - `1.0*cos(x1) + 0.9*sin(x3) + 0.7*x2^2`
 3. `nested_mixed`
    - `1.0*sin(x1+x1^2) + 0.6*x2 + 0.8*x3^2`
 4. `multi_quadratic`
-   - `0.6*x1^2 + 0.5*x2^2 + 0.8*x3^2 + 0.4*x4^2`
+   - `0.6*x1^2 + 0.5*x2^2 + 0.8*x3^2`
 5. `trig_cross`
-   - `1.2*sin(x1)*cos(x2) + 0.7*cos(x3) + 0.5*x4`
+   - `1.2*sin(x1)*cos(x2) + 0.7*cos(x3) + 0.5*x1`
 
 For the `exception` scenario, the already-declared restricted term `0.75*I(x3>1)*x3^2` is appended exactly as in the frozen development generator.
 
-These families test new structural combinations and truth roles without changing the operator vocabulary. New operators are intentionally excluded so that failure can be attributed to generalization of the frozen mechanism rather than simultaneous grammar expansion.
+These families test new structural combinations and new truth roles (notably `x2^2`, `cos(x1)`, `cos(x3)`) without changing the operator vocabulary. New operators are intentionally excluded so that failure can be attributed to generalization of the frozen mechanism rather than simultaneous grammar expansion.
 
 ## 4. Client-generation semantics
 
 The same domain-shift geometry used by the preregistered benchmark generator is retained:
 
 - client-specific phase shifts for `x1`, `x2` and `x3`;
-- `x4` standard normal;
-- `spurious`: the first client receives the same local shortcut construction on `x4`;
+- `x4` standard normal and nuisance-only in every truth family;
+- `spurious`: the first client receives the same local shortcut construction on `x4`, after the noiseless target is computed; because `x4` is absent from every truth family, this does not alter the ground-truth response;
 - `exception`: only the final client is inside the declared `x3 > 1` gated region, while all other clients remain outside.
 
 For `balanced` conditions every client receives the same requested number of rows.
@@ -225,6 +227,7 @@ Multiplicity-adjusted secondary hypothesis tests are reported as secondary; they
 Before any `20101--20105` condition is executed, CI on `20001` only must verify:
 
 - all five independent truth families use only frozen catalog terms;
+- all five truth families exclude `x4` and therefore preserve it as nuisance-only;
 - truth families are distinct from the five development truth sets;
 - balanced and imbalanced generators are deterministic;
 - imbalanced clients retain at least 50 observations;
