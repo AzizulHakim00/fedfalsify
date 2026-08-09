@@ -34,8 +34,12 @@ def test_client_size_profiles_are_deterministic_and_v6_feasible() -> None:
     second = independent_client_sizes(100, 16, profile="imbalanced", seed=20001)
     assert balanced == (100,) * 16
     assert first == second
-    assert min(first) >= 70
+    assert min(first) >= 71
     assert len(set(first)) > 1
+    # 71 is the exact inherited-v6 feasibility floor: 21 validation rows and
+    # 50 discovery rows, which become five folds of 10 rows each.
+    assert round(0.30 * min(first)) >= 20
+    assert min(first) - round(0.30 * min(first)) >= 50
 
 
 def test_generator_is_deterministic_and_supports_scaling_counts() -> None:
@@ -59,7 +63,7 @@ def test_generator_is_deterministic_and_supports_scaling_counts() -> None:
             balance_profile="imbalanced",
         )
         assert len(first.clients) == clients
-        assert min(len(item.y) for item in first.clients) >= 70
+        assert min(len(item.y) for item in first.clients) >= 71
         for a, b in zip(first.clients, second.clients):
             assert np.array_equal(a.x, b.x)
             assert np.array_equal(a.y, b.y)

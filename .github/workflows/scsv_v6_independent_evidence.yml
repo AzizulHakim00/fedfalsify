@@ -93,7 +93,7 @@ jobs:
               assert int(row['num_clients']) in {4,8,16,32}
               sizes = [int(value) for value in row['client_sizes'].split(';') if value]
               assert len(sizes) == int(row['num_clients'])
-              assert min(sizes) >= 50
+              assert min(sizes) >= 71
               for field in (
                   'exact_recovery','term_precision','term_recall','test_nmse',
                   'runtime_seconds','communication_bytes','communication_per_client'
@@ -119,6 +119,7 @@ jobs:
 
           source_paths = [
               'research/TRANSACTIONS_SCSV_V6_INDEPENDENT_VALIDATION_PROTOCOL.md',
+              'research/TRANSACTIONS_SCSV_V6_INDEPENDENT_ENGINEERING_CLARIFICATION.md',
               'research/TRANSACTIONS_SCSV_CERT_V6_PROTOCOL.md',
               'src/fedfalsify/scsv_v6.py',
               'src/fedfalsify/scsv_v6_study.py',

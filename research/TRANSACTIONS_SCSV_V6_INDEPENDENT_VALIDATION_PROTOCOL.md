@@ -62,7 +62,7 @@ The same domain-shift geometry used by the preregistered benchmark generator is 
 
 For `balanced` conditions every client receives the same requested number of rows.
 
-For `imbalanced` conditions, client row counts are a deterministic geometric profile from `0.50x` to `1.50x` the nominal rows/client, rounded to integers and clipped at a minimum of `50`. The profile is monotone in client index and then deterministically rotated by `seed % num_clients` so the largest client is not always associated with the same domain phase. No target value is used to define client size.
+For `imbalanced` conditions, client row counts are a deterministic geometric profile from `0.50x` to `1.50x` the nominal rows/client, rounded to integers and clipped at the **minimal inherited-v6 feasibility floor of 71 observations/client**. The profile is monotone in client index and then deterministically rotated by `seed % num_clients` so the largest client is not always associated with the same domain phase. No target value is used to define client size. The engineering derivation of the 71-row floor is preserved in `TRANSACTIONS_SCSV_V6_INDEPENDENT_ENGINEERING_CLARIFICATION.md` and was completed before any independent-validation seed was executed.
 
 Noise is generated from the pooled noiseless target scale exactly as in the frozen benchmark generator.
 
@@ -230,7 +230,7 @@ Before any `20101--20105` condition is executed, CI on `20001` only must verify:
 - all five truth families exclude `x4` and therefore preserve it as nuisance-only;
 - truth families are distinct from the five development truth sets;
 - balanced and imbalanced generators are deterministic;
-- imbalanced clients retain at least 50 observations;
+- imbalanced clients retain at least **71 observations**, the minimal value satisfying both inherited v6 held-out and five-fold discovery constraints;
 - 4/8/16/32-client generation is valid;
 - the v6 function object/source is inherited rather than copied or modified in the independent module;
 - one representative v6 condition completes;
@@ -248,7 +248,7 @@ The independent workflow must:
 3. run smoke/invariant tests before evidence;
 4. execute exactly 3,540 rows;
 5. audit row count, condition count, seeds, methods, finite values and duplicates;
-6. record source SHA and per-file SHA-256 hashes;
+6. record source SHA and per-file SHA-256 hashes, including the engineering clarification;
 7. upload the sealed artifact **before** attempting the repository evidence commit;
 8. commit the sealed evidence without modifying historical v1-v6 or older external artifacts.
 
