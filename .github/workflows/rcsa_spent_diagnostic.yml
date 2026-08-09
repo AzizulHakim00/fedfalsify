@@ -1,0 +1,204 @@
+name: RCSA spent-seed mechanism diagnostic
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rcsa-spent-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    if: contains(github.event.head_commit.message, '[run-rcsa-spent]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen RCSA implementation
+        run: pytest -q tests/test_rcsa_diagnostic.py
+
+      - name: Verify sealed independent reference exists
+        run: |
+          test -f results/scsv_v6_independent/rows.csv
+          test -f results/scsv_v6_independent/SHA256SUMS
+          (cd results/scsv_v6_independent && sha256sum --check SHA256SUMS)
+
+      - name: Execute frozen 590-row RCSA spent diagnostic
+        run: |
+          rm -rf results/rcsa_spent_diagnostic
+          mkdir -p results/rcsa_spent_diagnostic
+          python -m fedfalsify.rcsa_spent_study \
+            --output results/rcsa_spent_diagnostic/rows.csv \
+            --summary results/rcsa_spent_diagnostic/summary.json
+
+      - name: Audit and seal spent diagnostic
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, os
+          from pathlib import Path
+
+          root = Path("results/rcsa_spent_diagnostic")
+          rows_path = root / "rows.csv"
+          summary_path = root / "summary.json"
+          reference_path = Path("results/scsv_v6_independent/rows.csv")
+          rows = list(csv.DictReader(rows_path.open(encoding="utf-8")))
+          summary = json.loads(summary_path.read_text(encoding="utf-8"))
+
+          assert len(rows) == 590, len(rows)
+          assert {row["method"] for row in rows} == {"rcsa-spent-diagnostic"}
+          seeds = {int(row["seed"]) for row in rows}
+          assert seeds == {20101, 20102, 20103, 20104, 20105}, seeds
+          assert 21001 not in seeds
+          keys = {
+              (
+                  row["panel"], row["benchmark"], row["scenario"],
+                  f'{float(row["noise_ratio"]):.12g}',
+                  int(row["nominal_samples_per_client"]),
+                  int(row["num_clients"]), row["balance_profile"], int(row["seed"])
+              )
+              for row in rows
+          }
+          assert len(keys) == 590, len(keys)
+          assert summary["status"] == "rcsa-spent-seed-diagnostic"
+          signal = summary["mechanism_signal"]
+          assert signal["evaluated"] is True
+          assert set(signal["criteria"]) == {
+              "A_candidate_bank_identity",
+              "B_non_exception_structures_identical",
+              "C_existing_exception_structures_unchanged",
+              "D_panel_s_4_exception_ge_090",
+              "E_panel_s_8_exception_ge_frozen",
+              "F_panel_s_16_exception_ge_frozen",
+              "G_panel_s32_exception_remains_one",
+              "H_overall_exact_noninferior_001",
+              "I_zero_exact_harms",
+              "J_no_spurious_worsening_non_exception",
+              "K_rescue_at_least_7_of_13",
+          }
+
+          for row in rows:
+              for field in (
+                  "exact_recovery", "term_precision", "term_recall", "test_nmse",
+                  "runtime_seconds", "communication_bytes", "exception_recovered",
+                  "exception_in_bank", "exception_in_anchor", "rcsa_attempted",
+                  "augmentation_accepted",
+              ):
+                  assert math.isfinite(float(row[field])), (field, row)
+              anchor = {term for term in row["frozen_v6_anchor_structure"].split(";") if term}
+              final = {term for term in row["rcsa_final_structure"].split(";") if term}
+              assert anchor <= final
+              assert len(final) <= 6
+
+          decision = {
+              "schema_version": 1,
+              "status": (
+                  "RCSA-MECHANISM-SIGNAL"
+                  if signal["passed"]
+                  else "RCSA-MECHANISM-SIGNAL-NO-GO"
+              ),
+              "passed": bool(signal["passed"]),
+              "criteria": signal["criteria"],
+              "scientific_boundary": (
+                  "Post-independent spent-seed diagnostic only. A PASS can "
+                  "authorize only design of a separately versioned successor "
+                  "with genuinely fresh seeds; it does not convert v6 to "
+                  "independent GO and does not authorize retrospective SRSD confirmation."
+              ),
+          }
+          (root / "decision.json").write_text(
+              json.dumps(decision, indent=2, sort_keys=True), encoding="utf-8"
+          )
+
+          def digest(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          source_paths = [
+              "research/TRANSACTIONS_SCSV_V6_POST_INDEPENDENT_FORENSICS.md",
+              "research/TRANSACTIONS_RCSA_SPENT_DIAGNOSTIC_PROTOCOL.md",
+              "src/fedfalsify/rcsa_diagnostic.py",
+              "src/fedfalsify/rcsa_spent_study.py",
+              "src/fedfalsify/scsv_v6.py",
+              "src/fedfalsify/scsv_diagnostic.py",
+              "src/fedfalsify/scsv_v6_independent.py",
+              "src/fedfalsify/scsv_v6_independent_study.py",
+              "tests/test_rcsa_diagnostic.py",
+              ".github/workflows/rcsa_spent_diagnostic.yml",
+          ]
+          manifest = {
+              "schema_version": 1,
+              "run_mode": "post-independent-spent-seed-rcsa-diagnostic",
+              "run_commit": os.environ["RUN_COMMIT"],
+              "workflow_run_id": int(os.environ["RUN_ID"]),
+              "spent_seeds": sorted(seeds),
+              "fresh_successor_seeds_used": [],
+              "engineering_seed_used": [],
+              "rows": len(rows),
+              "conditions": len(keys),
+              "sealed_independent_reference_sha256": digest(reference_path),
+              "source_sha256": {path: digest(path) for path in source_paths},
+              "output_sha256": {
+                  "rows.csv": digest(rows_path),
+                  "summary.json": digest(summary_path),
+                  "decision.json": digest(root / "decision.json"),
+              },
+          }
+          (root / "manifest.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          (root / "COMPLETE").write_text(
+              "RCSA spent-seed diagnostic sealed\n", encoding="utf-8"
+          )
+
+          outputs = [
+              root / "rows.csv",
+              root / "summary.json",
+              root / "decision.json",
+              root / "manifest.json",
+          ]
+          with (root / "SHA256SUMS").open("w", encoding="utf-8") as handle:
+              for path in outputs:
+                  handle.write(f"{digest(path)}  {path.name}\n")
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed RCSA artifact before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: rcsa-spent-diagnostic
+          path: results/rcsa_spent_diagnostic
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit sealed RCSA diagnostic
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/rcsa_spent_diagnostic
+          git commit -m "results: seal RCSA spent-seed diagnostic [skip ci]"
+          git fetch origin feat/fedfalsify-mvi
+          git rebase origin/feat/fedfalsify-mvi
+          git push origin HEAD:feat/fedfalsify-mvi

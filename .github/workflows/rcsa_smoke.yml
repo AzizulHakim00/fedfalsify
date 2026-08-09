@@ -1,0 +1,81 @@
+name: RCSA spent-diagnostic engineering smoke
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rcsa-spent-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: contains(github.event.head_commit.message, '[run-rcsa-smoke]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run frozen RCSA invariant tests
+        run: pytest -q tests/test_rcsa_diagnostic.py
+
+      - name: Run engineering smoke only
+        run: |
+          rm -rf results/rcsa_smoke
+          mkdir -p results/rcsa_smoke
+          python -m fedfalsify.rcsa_spent_study \
+            --smoke \
+            --output results/rcsa_smoke/rows.csv \
+            --summary results/rcsa_smoke/summary.json
+
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+
+          root = Path("results/rcsa_smoke")
+          rows = list(csv.DictReader((root / "rows.csv").open(encoding="utf-8")))
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+
+          assert len(rows) == 3, len(rows)
+          assert {row["method"] for row in rows} == {"rcsa-spent-diagnostic"}
+          assert {int(row["seed"]) for row in rows} == {21001}
+          assert not ({20101, 20102, 20103, 20104, 20105}
+                      & {int(row["seed"]) for row in rows})
+          assert summary["status"] == "rcsa-engineering-smoke"
+          assert summary["mechanism_signal"]["evaluated"] is False
+          assert summary["mechanism_signal"]["passed"] is None
+          for row in rows:
+              anchor = {term for term in row["frozen_v6_anchor_structure"].split(";") if term}
+              final = {term for term in row["rcsa_final_structure"].split(";") if term}
+              assert anchor <= final
+          print("RCSA smoke isolation PASS")
+          PY
+
+      - name: Upload engineering smoke artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rcsa-engineering-smoke
+          path: results/rcsa_smoke
+          if-no-files-found: error
+          retention-days: 7
