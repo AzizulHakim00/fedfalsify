@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from fedfalsify.basis import CandidateEquation
 from fedfalsify.benchmarks import benchmark_catalog
 from fedfalsify.crossfit_redesign import partition_clients
 from fedfalsify.crossfit_surrogate import split_selector_probe
@@ -44,6 +45,19 @@ def _target_mse(generated) -> float:
     return max(generated.noise_std**2 * 2.5, 1e-8)
 
 
+def _without_exception(candidate: CandidateEquation) -> CandidateEquation:
+    kept = [
+        (term, coefficient)
+        for term, coefficient in zip(candidate.active_terms, candidate.coefficients)
+        if term != EXCEPTION
+    ]
+    return CandidateEquation(
+        tuple(term for term, _ in kept),
+        tuple(float(coefficient) for _, coefficient in kept),
+        "test-missing-exception-anchor",
+    )
+
+
 def test_fcrra_seed_boundary_is_spent_or_engineering_only() -> None:
     assert SMOKE_SEED == 22001
     assert SPENT_DIAGNOSTIC_SEEDS == (20101, 20102, 20103, 20104, 20105)
@@ -69,7 +83,7 @@ def test_residual_gamma_matches_direct_eligible_discovery_residual() -> None:
         min_repair_score=0.05,
         use_score_proposer=True,
     )
-    discovery_anchor = _anchor_discovery_candidate(anchor)
+    discovery_anchor = _without_exception(_anchor_discovery_candidate(anchor))
     partitions = partition_clients(
         generated.clients, seed=SMOKE_SEED, validation_fraction=0.30
     )
@@ -112,7 +126,7 @@ def test_frozen_core_augmentation_preserves_shared_coefficients_and_outside_pred
         min_repair_score=0.05,
         use_score_proposer=True,
     )
-    discovery_anchor = _anchor_discovery_candidate(anchor)
+    discovery_anchor = _without_exception(_anchor_discovery_candidate(anchor))
     partitions = partition_clients(
         generated.clients, seed=SMOKE_SEED, validation_fraction=0.30
     )
@@ -145,6 +159,24 @@ def test_frozen_core_augmentation_preserves_shared_coefficients_and_outside_pred
     )
     assert sse_diff <= 1e-10
     assert prediction_diff <= 1e-10
+
+
+def test_fcrra_rejects_helper_reaugmentation_of_selected_exception() -> None:
+    generated = _generated("exception", profile="imbalanced")
+    catalog = benchmark_catalog(scenario="exception")
+    anchor = scsv_cert_method(
+        generated.clients,
+        catalog,
+        seed=SMOKE_SEED,
+        max_terms=6,
+        target_mse=_target_mse(generated),
+        min_repair_score=0.05,
+        use_score_proposer=True,
+    )
+    discovery_anchor = _anchor_discovery_candidate(anchor)
+    if EXCEPTION in discovery_anchor.active_terms:
+        with pytest.raises(ValueError):
+            _augment_frozen_anchor(discovery_anchor, catalog, EXCEPTION, 0.1)
 
 
 def test_fcrra_non_exception_is_exact_frozen_v6_identity() -> None:
