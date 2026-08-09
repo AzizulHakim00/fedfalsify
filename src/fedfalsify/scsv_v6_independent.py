@@ -61,16 +61,19 @@ def independent_client_sizes(
 
     if num_clients < 3:
         raise ValueError("independent validation requires at least three clients")
-    if nominal_samples_per_client < 50:
-        raise ValueError("nominal samples/client must be at least 50")
+    if nominal_samples_per_client < 70:
+        raise ValueError("nominal samples/client must be at least 70")
     if profile == "balanced":
         return (int(nominal_samples_per_client),) * num_clients
     if profile != "imbalanced":
         raise ValueError(f"unknown balance profile: {profile}")
 
+    # The frozen v6 selector/probe implementation requires at least 20 rows in
+    # the 30% held-out partition.  A 70-row client yields at least 21 held-out
+    # rows, so the independent adapter clips only for structural feasibility.
     multipliers = np.geomspace(0.50, 1.50, num_clients)
     sizes = np.asarray(
-        [max(50, int(round(nominal_samples_per_client * value))) for value in multipliers],
+        [max(70, int(round(nominal_samples_per_client * value))) for value in multipliers],
         dtype=int,
     )
     sizes = np.roll(sizes, int(seed) % num_clients)

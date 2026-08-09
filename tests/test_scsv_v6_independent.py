@@ -28,13 +28,13 @@ def test_independent_truth_families_use_frozen_catalog_and_reserve_x4() -> None:
     assert len(set(independent_truths)) == len(INDEPENDENT_BENCHMARKS)
 
 
-def test_client_size_profiles_are_deterministic_and_bounded() -> None:
+def test_client_size_profiles_are_deterministic_and_v6_feasible() -> None:
     balanced = independent_client_sizes(100, 16, profile="balanced", seed=20001)
     first = independent_client_sizes(100, 16, profile="imbalanced", seed=20001)
     second = independent_client_sizes(100, 16, profile="imbalanced", seed=20001)
     assert balanced == (100,) * 16
     assert first == second
-    assert min(first) >= 50
+    assert min(first) >= 70
     assert len(set(first)) > 1
 
 
@@ -59,7 +59,7 @@ def test_generator_is_deterministic_and_supports_scaling_counts() -> None:
             balance_profile="imbalanced",
         )
         assert len(first.clients) == clients
-        assert min(len(item.y) for item in first.clients) >= 50
+        assert min(len(item.y) for item in first.clients) >= 70
         for a, b in zip(first.clients, second.clients):
             assert np.array_equal(a.x, b.x)
             assert np.array_equal(a.y, b.y)
