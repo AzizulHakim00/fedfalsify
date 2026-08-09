@@ -1,0 +1,251 @@
+name: RCCD spent-seed mechanism diagnostic
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rccd-spent-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    if: contains(github.event.head_commit.message, '[run-rccd-spent]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen RCCD implementation
+        run: |
+          test "$(sha256sum src/fedfalsify/scsv_v6.py | cut -d' ' -f1)" = "f56a38da25a60752b5580e449a7213e88ef6d7a6006759272274331e5ff174fb"
+          pytest -q tests/test_rccd_diagnostic.py
+
+      - name: Verify immutable independent reference
+        run: |
+          set -euo pipefail
+          test -f results/scsv_v6_independent/rows.csv
+          test -f results/scsv_v6_independent/SHA256SUMS
+          test -f results/scsv_v6_independent/summary.json
+          test -f results/scsv_v6_independent/decision.json
+          test -f results/scsv_v6_independent/manifest.json
+
+          HISTORICAL_COMMIT=25fd323c54bfa49dfcd55f36f39d9f1305195eb8
+          HISTORICAL_ROWS_BLOB="$(git rev-parse "${HISTORICAL_COMMIT}:results/scsv_v6_independent/rows.csv")"
+          CURRENT_ROWS_BLOB="$(git rev-parse "HEAD:results/scsv_v6_independent/rows.csv")"
+          test "${HISTORICAL_ROWS_BLOB}" = "92f25b499bc77499ad924e14d26feb95031b82f8"
+          test "${CURRENT_ROWS_BLOB}" = "${HISTORICAL_ROWS_BLOB}"
+          (
+            cd results/scsv_v6_independent
+            grep -v '  rows.csv$' SHA256SUMS | sha256sum --check -
+            grep -q '^6462f268775ae7c52595e3a87c0b56e70e65745aca66df1e062891678367d9af  rows.csv$' SHA256SUMS
+          )
+          echo "Independent reference preservation PASS"
+
+      - name: Execute frozen 590-row RCCD spent diagnostic
+        run: |
+          rm -rf results/rccd_spent_diagnostic
+          mkdir -p results/rccd_spent_diagnostic
+          python -m fedfalsify.rccd_spent_study \
+            --output results/rccd_spent_diagnostic/rows.csv \
+            --summary results/rccd_spent_diagnostic/summary.json
+
+      - name: Audit and seal spent diagnostic
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, os
+          from pathlib import Path
+
+          root = Path("results/rccd_spent_diagnostic")
+          rows_path = root / "rows.csv"
+          summary_path = root / "summary.json"
+          reference_path = Path("results/scsv_v6_independent/rows.csv")
+          rows = list(csv.DictReader(rows_path.open(encoding="utf-8")))
+          summary = json.loads(summary_path.read_text(encoding="utf-8"))
+
+          assert len(rows) == 590, len(rows)
+          assert {row["method"] for row in rows} == {"rccd-spent-diagnostic"}
+          seeds = {int(row["seed"]) for row in rows}
+          assert seeds == {20101, 20102, 20103, 20104, 20105}, seeds
+          assert 23001 not in seeds
+          assert 22001 not in seeds
+          keys = {
+              (
+                  row["panel"], row["benchmark"], row["scenario"],
+                  f'{float(row["noise_ratio"]):.12g}',
+                  int(row["nominal_samples_per_client"]),
+                  int(row["num_clients"]), row["balance_profile"], int(row["seed"])
+              )
+              for row in rows
+          }
+          assert len(keys) == 590, len(keys)
+          assert summary["status"] == "rccd-spent-seed-diagnostic"
+          signal = summary["mechanism_signal"]
+          assert signal["evaluated"] is True
+          assert set(signal["criteria"]) == {
+              "A_anchor_and_bank_identity",
+              "B_non_exception_structures_identical",
+              "C_existing_exception_structures_unchanged",
+              "D_source_linked_attempts_only",
+              "E_accepted_selector_conditional_pass",
+              "F_accepted_probe_conditional_pass",
+              "G_accepted_outside_role_safe",
+              "H_panel_s_4_exception_ge_090",
+              "I_panel_s_8_exception_ge_090",
+              "J_panel_s_16_exception_ge_09333",
+              "K_panel_s32_exception_remains_one",
+              "L_overall_exact_noninferior_001",
+              "M_zero_exact_harms",
+              "N_no_spurious_worsening_non_exception",
+              "O_rescue_at_least_7_of_13",
+              "P_rescue_hard_cubic_4client_imbalanced",
+          }
+
+          for row in rows:
+              for field in (
+                  "exact_recovery", "term_precision", "term_recall", "test_nmse",
+                  "runtime_seconds", "communication_bytes", "exception_recovered",
+                  "exception_in_bank", "exception_in_anchor", "source_in_anchor",
+                  "rccd_attempted", "rccd_accepted",
+              ):
+                  assert math.isfinite(float(row[field])), (field, row)
+              anchor = {term for term in row["frozen_v6_anchor_structure"].split(";") if term}
+              final = {term for term in row["rccd_final_structure"].split(";") if term}
+              assert anchor <= final
+              assert len(final) <= 6
+              if float(row["rccd_attempted"]):
+                  assert float(row["exception_in_bank"]) == 1.0
+                  assert float(row["exception_in_anchor"]) == 0.0
+                  assert float(row["source_in_anchor"]) == 1.0
+                  assert row["source_term"]
+                  for field in (
+                      "exception_coefficient", "selector_full_sse", "selector_zero_sse",
+                      "selector_delta", "probe_full_sse", "probe_zero_sse", "probe_delta",
+                      "selector_outside_anchor_sse", "selector_outside_full_sse",
+                      "probe_outside_anchor_sse", "probe_outside_full_sse",
+                  ):
+                      assert math.isfinite(float(row[field])), (field, row)
+              if float(row["rccd_accepted"]):
+                  assert float(row["selector_passed"]) == 1.0
+                  assert float(row["probe_passed"]) == 1.0
+                  assert float(row["selector_delta"]) < 0.0
+                  assert float(row["probe_delta"]) < 0.0
+                  assert float(row["selector_outside_safe"]) == 1.0
+                  assert float(row["probe_outside_safe"]) == 1.0
+                  assert row["exception_term"] in final
+
+          decision = {
+              "schema_version": 1,
+              "status": (
+                  "RCCD-MECHANISM-SIGNAL"
+                  if signal["passed"]
+                  else "RCCD-MECHANISM-SIGNAL-NO-GO"
+              ),
+              "passed": bool(signal["passed"]),
+              "criteria": signal["criteria"],
+              "scientific_boundary": (
+                  "Post-independent spent-seed diagnostic only. A PASS authorizes "
+                  "only design of a separately versioned successor with genuinely "
+                  "fresh seeds; it does not convert v6 to independent GO and does "
+                  "not authorize retrospective SRSD confirmation."
+              ),
+          }
+          (root / "decision.json").write_text(
+              json.dumps(decision, indent=2, sort_keys=True), encoding="utf-8"
+          )
+
+          def digest(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          source_paths = [
+              "research/TRANSACTIONS_FCRRA_POST_DIAGNOSTIC_FORENSICS.md",
+              "research/TRANSACTIONS_RCCD_SPENT_DIAGNOSTIC_PROTOCOL.md",
+              "research/TRANSACTIONS_RCCD_SPENT_DIAGNOSTIC_AUTHORIZATION.md",
+              "src/fedfalsify/rccd_diagnostic.py",
+              "src/fedfalsify/rccd_spent_study.py",
+              "src/fedfalsify/scsv_v6.py",
+              "src/fedfalsify/scsv_diagnostic.py",
+              "src/fedfalsify/scsv_v6_independent.py",
+              "src/fedfalsify/scsv_v6_independent_study.py",
+              "tests/test_rccd_diagnostic.py",
+              ".github/workflows/rccd_spent_diagnostic.yml",
+          ]
+          manifest = {
+              "schema_version": 1,
+              "run_mode": "post-independent-spent-seed-rccd-diagnostic",
+              "run_commit": os.environ["RUN_COMMIT"],
+              "workflow_run_id": int(os.environ["RUN_ID"]),
+              "spent_seeds": sorted(seeds),
+              "fresh_successor_seeds_used": [],
+              "engineering_seed_used": [],
+              "rows": len(rows),
+              "conditions": len(keys),
+              "historical_independent_evidence_commit": "25fd323c54bfa49dfcd55f36f39d9f1305195eb8",
+              "historical_independent_rows_git_blob": "92f25b499bc77499ad924e14d26feb95031b82f8",
+              "historical_independent_precommit_rows_sha256": "6462f268775ae7c52595e3a87c0b56e70e65745aca66df1e062891678367d9af",
+              "repository_reference_sha256": digest(reference_path),
+              "source_sha256": {path: digest(path) for path in source_paths},
+              "output_sha256": {
+                  "rows.csv": digest(rows_path),
+                  "summary.json": digest(summary_path),
+                  "decision.json": digest(root / "decision.json"),
+              },
+          }
+          (root / "manifest.json").write_text(
+              json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          (root / "COMPLETE").write_text(
+              "RCCD spent-seed diagnostic sealed\n", encoding="utf-8"
+          )
+
+          outputs = [
+              root / "rows.csv",
+              root / "summary.json",
+              root / "decision.json",
+              root / "manifest.json",
+          ]
+          with (root / "SHA256SUMS").open("w", encoding="utf-8") as handle:
+              for path in outputs:
+                  handle.write(f"{digest(path)}  {path.name}\n")
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed RCCD artifact before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: rccd-spent-diagnostic
+          path: results/rccd_spent_diagnostic
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit sealed RCCD diagnostic
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/rccd_spent_diagnostic
+          git commit -m "results: seal RCCD spent-seed diagnostic [skip ci]"
+          git fetch origin feat/fedfalsify-mvi
+          git rebase origin/feat/fedfalsify-mvi
+          git push origin HEAD:feat/fedfalsify-mvi
