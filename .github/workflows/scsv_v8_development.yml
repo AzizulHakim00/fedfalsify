@@ -1,0 +1,207 @@
+name: SCSV-SPCC v8 fresh development evidence
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scsv-spcc-v8-development
+  cancel-in-progress: false
+
+jobs:
+  evidence:
+    if: contains(github.event.head_commit.message, '[run-v8-development]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen v8 implementation and historical boundary
+        run: |
+          set -euo pipefail
+          V7_SEAL=c295727cc781fb64ff038b4640e655f5eaee56c0
+          FORENSICS=c0d1f3a963823f55daf2a5da9f00ff7b8e9c919e
+          test "$(git rev-parse "${V7_SEAL}:results/scsv_v7/decision.json")" = "$(git rev-parse "HEAD:results/scsv_v7/decision.json")"
+          test "$(git rev-parse "${V7_SEAL}:results/scsv_v7/rows.csv")" = "$(git rev-parse "HEAD:results/scsv_v7/rows.csv")"
+          test "$(git rev-parse "${FORENSICS}:research/TRANSACTIONS_SCSV_RCD_V7_POST_DEVELOPMENT_FORENSICS.md")" = "$(git rev-parse "HEAD:research/TRANSACTIONS_SCSV_RCD_V7_POST_DEVELOPMENT_FORENSICS.md")"
+          grep -q '"status": "DEVELOPMENT-NO-GO"' results/scsv_v7/decision.json
+          grep -q '"status": "INDEPENDENT-NO-GO"' results/scsv_v6_independent/decision.json
+          pytest -q tests/test_scsv_v8.py
+
+      - name: Execute frozen 540-condition fresh v8 development matrix
+        run: |
+          rm -rf results/scsv_v8
+          mkdir -p results/scsv_v8
+          python -m fedfalsify.scsv_v8_study \
+            --output results/scsv_v8/rows.csv \
+            --summary results/scsv_v8/summary.json
+
+      - name: Audit and seal v8 development evidence
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, os
+          from pathlib import Path
+
+          root = Path("results/scsv_v8")
+          rows_path = root / "rows.csv"
+          summary_path = root / "summary.json"
+          rows = list(csv.DictReader(rows_path.open(encoding="utf-8")))
+          summary = json.loads(summary_path.read_text(encoding="utf-8"))
+
+          methods = {
+              "scsv-spcc-v8-full",
+              "scsv-spcc-v8-strict-probe",
+              "scsv-rcd-v7-style",
+              "scsv-v6-anchor",
+              "centralized-forward",
+          }
+          assert len(rows) == 540 * len(methods), len(rows)
+          assert {row["method"] for row in rows} == methods
+          assert {int(row["seed"]) for row in rows} == {25101, 25102, 25103, 25104, 25105}
+          assert 25001 not in {int(row["seed"]) for row in rows}
+
+          full = [row for row in rows if row["method"] == "scsv-spcc-v8-full"]
+          assert len(full) == 540
+          keys = {
+              (
+                  row["family"], f'{float(row["noise_ratio"]):.12g}',
+                  int(row["samples_per_client"]), int(row["num_clients"]),
+                  row["balance_profile"], row["role_profile"], int(row["seed"])
+              )
+              for row in full
+          }
+          assert len(keys) == 540, len(keys)
+          assert summary["status"] == "scsv-spcc-v8-development"
+          assert summary["conditions"] == 540
+          gate = summary["development_gate"]
+          assert gate["evaluated"] is True
+          assert set(gate["criteria"]) == {
+              "A_integrity_540_fresh_conditions",
+              "B_anchor_monotonicity",
+              "C_null_spurious_deviation_le_002",
+              "D_zero_exact_harms",
+              "E_overall_exact_noninferior_001",
+              "F_deviation_subset_exact_gain_ge_005",
+              "G_deviation_precision_ge_099",
+              "H_deviation_recall_ge_093",
+              "I_each_family_recovery_ge_090",
+              "J_four_client_recovery_ge_088",
+              "K_eight_client_recovery_ge_092",
+              "L_sixteen_client_recovery_ge_092",
+              "M_high_noise_recovery_ge_088",
+              "N_imbalance_gap_le_006",
+              "O_dual_both_ge_090_and_no_spurious_in_exact",
+              "P_role_contrast_integrity",
+              "Q_certificate_integrity",
+              "R_mechanism_superiority_vs_v7style",
+              "S_communication_le_150pct_v6",
+              "T_runtime_le_200pct_v6",
+          }
+
+          for row in rows:
+              for field in (
+                  "exact_recovery", "term_precision", "term_recall", "test_nmse",
+                  "train_mse", "deviation_precision", "deviation_recall",
+                  "all_true_deviations_recovered", "spurious_deviation_accepted",
+                  "runtime_seconds", "communication_bytes",
+              ):
+                  assert math.isfinite(float(row[field])), (field, row)
+          for row in full:
+              anchor = {term for term in row["anchor_structure"].split(";") if term}
+              final = {term for term in row["final_structure"].split(";") if term}
+              assert anchor <= final
+              assert int(float(row["certificate_violation_count"])) == 0
+
+          decision = {
+              "schema_version": 1,
+              "status": "DEVELOPMENT-GO" if gate["passed"] else "DEVELOPMENT-NO-GO",
+              "passed": bool(gate["passed"]),
+              "criteria": gate["criteria"],
+              "scientific_boundary": (
+                  "A GO authorizes only a separately frozen v8 independent-validation protocol with a new untouched seed namespace. "
+                  "A NO-GO permanently spends 25101--25105 and forbids retuning v8 on them."
+              ),
+          }
+          (root / "decision.json").write_text(json.dumps(decision, indent=2, sort_keys=True), encoding="utf-8")
+
+          def digest(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          source_paths = [
+              "research/TRANSACTIONS_SCSV_SPCC_V8_PROTOCOL.md",
+              "src/fedfalsify/scsv_v8.py",
+              "src/fedfalsify/scsv_v8_benchmarks.py",
+              "src/fedfalsify/scsv_v8_study.py",
+              "src/fedfalsify/scsv_v6.py",
+              "src/fedfalsify/scsv_v7.py",
+              "tests/test_scsv_v8.py",
+              ".github/workflows/scsv_v8_development.yml",
+          ]
+          manifest = {
+              "schema_version": 1,
+              "run_mode": "fresh-scsv-spcc-v8-development",
+              "run_commit": os.environ["RUN_COMMIT"],
+              "workflow_run_id": int(os.environ["RUN_ID"]),
+              "fresh_development_seeds": [25101, 25102, 25103, 25104, 25105],
+              "engineering_seed_used": [],
+              "historical_v7_evidence_commit": "c295727cc781fb64ff038b4640e655f5eaee56c0",
+              "historical_v7_status": "DEVELOPMENT-NO-GO",
+              "historical_v6_independent_status": "INDEPENDENT-NO-GO",
+              "rows": len(rows),
+              "conditions": len(keys),
+              "source_sha256": {path: digest(path) for path in source_paths},
+              "output_sha256": {
+                  "rows.csv": digest(rows_path),
+                  "summary.json": digest(summary_path),
+                  "decision.json": digest(root / "decision.json"),
+              },
+          }
+          (root / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+          (root / "COMPLETE").write_text("SCSV-SPCC v8 development evidence sealed\n", encoding="utf-8")
+
+          outputs = [rows_path, summary_path, root / "decision.json", root / "manifest.json"]
+          with (root / "SHA256SUMS").open("w", encoding="utf-8") as handle:
+              for path in outputs:
+                  handle.write(f"{digest(path)}  {path.name}\n")
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed v8 evidence before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-spcc-v8-development-evidence
+          path: results/scsv_v8
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit sealed v8 development evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/scsv_v8
+          git commit -m "results: seal SCSV-SPCC v8 development evidence [skip ci]"
+          git fetch origin feat/fedfalsify-mvi
+          git rebase origin/feat/fedfalsify-mvi
+          git push origin HEAD:feat/fedfalsify-mvi
