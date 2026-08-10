@@ -1,0 +1,28 @@
+{
+  "criteria": {
+    "A_integrity_540_fresh_conditions": true,
+    "B_anchor_monotonicity": true,
+    "C_null_spurious_deviation_le_002": true,
+    "D_zero_exact_harms": true,
+    "E_overall_exact_noninferior_001": true,
+    "F_deviation_subset_exact_gain_ge_005": true,
+    "G_deviation_precision_ge_099": true,
+    "H_deviation_recall_ge_093": false,
+    "I_each_family_recovery_ge_090": false,
+    "J_four_client_recovery_ge_088": false,
+    "K_eight_client_recovery_ge_092": false,
+    "L_sixteen_client_recovery_ge_092": true,
+    "M_high_noise_recovery_ge_088": false,
+    "N_imbalance_gap_le_006": true,
+    "O_dual_both_ge_090_and_no_spurious_in_exact": false,
+    "P_role_contrast_integrity": true,
+    "Q_certificate_integrity": true,
+    "R_mechanism_superiority_vs_v7style": true,
+    "S_communication_le_150pct_v6": true,
+    "T_runtime_le_200pct_v6": true
+  },
+  "passed": false,
+  "schema_version": 1,
+  "scientific_boundary": "A GO authorizes only a separately frozen v8 independent-validation protocol with a new untouched seed namespace. A NO-GO permanently spends 25101--25105 and forbids retuning v8 on them.",
+  "status": "DEVELOPMENT-NO-GO"
+}
