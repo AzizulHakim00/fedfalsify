@@ -1,0 +1,95 @@
+name: SCSV-SPCC v8 engineering smoke
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scsv-spcc-v8-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: contains(github.event.head_commit.message, '[run-v8-smoke]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen historical boundary
+        run: |
+          set -euo pipefail
+          V7_SEAL=c295727cc781fb64ff038b4640e655f5eaee56c0
+          FORENSICS=c0d1f3a963823f55daf2a5da9f00ff7b8e9c919e
+          test "$(git rev-parse "${V7_SEAL}:results/scsv_v7/decision.json")" = "$(git rev-parse "HEAD:results/scsv_v7/decision.json")"
+          test "$(git rev-parse "${V7_SEAL}:results/scsv_v7/rows.csv")" = "$(git rev-parse "HEAD:results/scsv_v7/rows.csv")"
+          test "$(git rev-parse "${FORENSICS}:research/TRANSACTIONS_SCSV_RCD_V7_POST_DEVELOPMENT_FORENSICS.md")" = "$(git rev-parse "HEAD:research/TRANSACTIONS_SCSV_RCD_V7_POST_DEVELOPMENT_FORENSICS.md")"
+          grep -q '"status": "DEVELOPMENT-NO-GO"' results/scsv_v7/decision.json
+          grep -q '"status": "INDEPENDENT-NO-GO"' results/scsv_v6_independent/decision.json
+          echo "Historical boundary PASS"
+
+      - name: Run v8 scientific invariant and forced-path tests
+        run: pytest -q tests/test_scsv_v8.py
+
+      - name: Run engineering smoke only
+        run: |
+          rm -rf results/scsv_v8_smoke
+          mkdir -p results/scsv_v8_smoke
+          python -m fedfalsify.scsv_v8_study \
+            --smoke \
+            --methods scsv-spcc-v8-full \
+            --output results/scsv_v8_smoke/rows.csv \
+            --summary results/scsv_v8_smoke/summary.json
+
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+
+          root = Path("results/scsv_v8_smoke")
+          rows = list(csv.DictReader((root / "rows.csv").open(encoding="utf-8")))
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          assert len(rows) == 7, len(rows)
+          assert {row["method"] for row in rows} == {"scsv-spcc-v8-full"}
+          assert {int(row["seed"]) for row in rows} == {25001}
+          forbidden = {25101, 25102, 25103, 25104, 25105}
+          assert not forbidden & {int(row["seed"]) for row in rows}
+          assert summary["status"] == "scsv-spcc-v8-engineering-smoke"
+          assert summary["conditions"] == 7
+          assert summary["development_gate"]["evaluated"] is False
+          assert summary["development_gate"]["passed"] is None
+          for row in rows:
+              anchor = {term for term in row["anchor_structure"].split(";") if term}
+              final = {term for term in row["final_structure"].split(";") if term}
+              assert anchor <= final
+              assert int(float(row["certificate_violation_count"])) == 0
+          print("SCSV-SPCC v8 smoke isolation PASS")
+          PY
+
+      - name: Upload engineering smoke artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-spcc-v8-engineering-smoke
+          path: results/scsv_v8_smoke
+          if-no-files-found: error
+          retention-days: 7
