@@ -1,0 +1,139 @@
+name: SCSV-RCEF v9 fresh development evidence
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scsv-rcef-v9-development
+  cancel-in-progress: false
+
+jobs:
+  evidence:
+    if: contains(github.event.head_commit.message, '[run-v9-development]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 480
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen v9 implementation and historical boundary
+        run: |
+          set -euo pipefail
+          V8_SEAL=a80477308f84c93e02108ff0e9528613f9561f90
+          test "$(git rev-parse "${V8_SEAL}:results/scsv_v8/decision.json")" = "$(git rev-parse "HEAD:results/scsv_v8/decision.json")"
+          test "$(git rev-parse "${V8_SEAL}:results/scsv_v8/rows.csv")" = "$(git rev-parse "HEAD:results/scsv_v8/rows.csv")"
+          grep -q '"status": "DEVELOPMENT-NO-GO"' results/scsv_v8/decision.json
+          grep -q '"status": "DEVELOPMENT-NO-GO"' results/scsv_v7/decision.json
+          grep -q '"status": "INDEPENDENT-NO-GO"' results/scsv_v6_independent/decision.json
+          pytest -q tests/test_scsv_v9.py
+
+      - name: Execute frozen 600-condition fresh v9 development matrix
+        run: |
+          rm -rf results/scsv_v9
+          python -m fedfalsify.scsv_v9_study --mode development --out results/scsv_v9
+
+      - name: Audit and seal v9 development evidence
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json
+          from pathlib import Path
+
+          root = Path('results/scsv_v9')
+          rows = list(csv.DictReader((root / 'rows.csv').open(encoding='utf-8')))
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          decision = json.loads((root / 'decision.json').read_text(encoding='utf-8'))
+          assert len(rows) == 3600, len(rows)
+          methods = {
+              'scsv-rcef-v9-full',
+              'scsv-rcef-v9-no-role-proposer',
+              'scsv-rcef-v9-selector-only',
+              'scsv-spcc-v8-style',
+              'scsv-v6-anchor',
+              'centralized-forward',
+          }
+          assert {row['method'] for row in rows} == methods
+          assert {int(row['seed']) for row in rows} == {26101,26102,26103,26104,26105}
+          assert 26001 not in {int(row['seed']) for row in rows}
+          keys = {
+              (row['family'], row['noise_ratio'], row['samples_per_client'], row['num_clients'], row['balance_profile'], row['role_profile'], row['seed'])
+              for row in rows
+          }
+          assert len(keys) == 600, len(keys)
+          assert summary['conditions'] == 600
+          assert summary['rows'] == 3600
+          assert decision['status'] in {'DEVELOPMENT-GO','DEVELOPMENT-NO-GO'}
+          assert decision['passed'] == all(decision['criteria'].values())
+
+          source_paths = [
+              'research/TRANSACTIONS_SCSV_RCEF_V9_PROTOCOL.md',
+              'research/TRANSACTIONS_SCSV_RCEF_V9_NOVELTY_AUDIT.md',
+              'research/TRANSACTIONS_SCSV_SPCC_V8_POST_DEVELOPMENT_FORENSICS.md',
+              'src/fedfalsify/scsv_v6.py',
+              'src/fedfalsify/scsv_v8.py',
+              'src/fedfalsify/scsv_v9.py',
+              'src/fedfalsify/scsv_v9_benchmarks.py',
+              'src/fedfalsify/scsv_v9_study.py',
+              'tests/test_scsv_v9.py',
+              '.github/workflows/scsv_v9_development.yml',
+          ]
+          def sha(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          output_paths = ['rows.csv','summary.json','decision.json']
+          manifest = {
+              'schema_version': 1,
+              'run_mode': 'fresh-scsv-rcef-v9-development',
+              'run_commit': '${{ github.sha }}',
+              'workflow_run_id': '${{ github.run_id }}',
+              'conditions': 600,
+              'rows': 3600,
+              'engineering_seed_used': [],
+              'fresh_development_seeds': [26101,26102,26103,26104,26105],
+              'historical_v6_independent_status': 'INDEPENDENT-NO-GO',
+              'historical_v7_status': 'DEVELOPMENT-NO-GO',
+              'historical_v8_status': 'DEVELOPMENT-NO-GO',
+              'historical_v8_evidence_commit': 'a80477308f84c93e02108ff0e9528613f9561f90',
+              'source_sha256': {path: sha(path) for path in source_paths},
+              'output_sha256': {name: sha(root / name) for name in output_paths},
+          }
+          (root / 'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
+          output_paths.append('manifest.json')
+          sums = ''.join(f"{sha(root / name)}  {name}\n" for name in output_paths)
+          (root / 'SHA256SUMS').write_text(sums, encoding='utf-8')
+          (root / 'COMPLETE').write_text('SCSV-RCEF v9 development evidence sealed\n', encoding='utf-8')
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed v9 evidence before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-rcef-v9-development-evidence
+          path: results/scsv_v9
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit sealed v9 development evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/scsv_v9
+          git commit -m "results: seal SCSV-RCEF v9 development evidence [skip ci]"
+          git push origin HEAD:feat/fedfalsify-mvi
