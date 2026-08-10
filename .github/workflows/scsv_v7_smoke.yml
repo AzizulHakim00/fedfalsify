@@ -45,8 +45,8 @@ jobs:
           grep -q '"status": "INDEPENDENT-NO-GO"' results/scsv_v6_independent/decision.json
           echo "Historical boundary PASS"
 
-      - name: Run v7 scientific invariant tests
-        run: pytest -q tests/test_scsv_v7.py
+      - name: Run v7 scientific invariant and forced-path tests
+        run: pytest -q tests/test_scsv_v7.py tests/test_scsv_v7_acceptance_paths.py
 
       - name: Run engineering smoke only
         run: |
@@ -77,7 +77,7 @@ jobs:
           assert summary["development_gate"]["passed"] is None
           for row in rows:
               anchor = {term for term in row["anchor_structure"].split(";") if term}
-              final = {term for term in row["discovered_terms"].split(";") if term} | {"1"}
+              final = {term for term in row["final_structure"].split(";") if term}
               assert anchor <= final
           print("SCSV-RCD v7 smoke isolation PASS")
           PY
