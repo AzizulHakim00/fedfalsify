@@ -18,7 +18,6 @@ from .client import FederatedFalsifierClient
 from .scsv_v7 import SCSVRCDV7Output, scsv_rcd_v7_method
 from .scsv_v7_benchmarks import (
     V7_DEVIATIONS,
-    V7_FAMILIES,
     V7GeneratedBenchmark,
     generate_v7_benchmark,
     generate_v7_global_test_data,
@@ -62,6 +61,7 @@ class V7StudyRow:
     runtime_seconds: float
     communication_bytes: int
     discovered_terms: str
+    final_structure: str
     accepted_deviations: str
     anchor_structure: str
     bank_terms: str
@@ -160,6 +160,9 @@ def _evaluate_candidate(
     fn = len(true_deviations - predicted_deviations)
     dev_precision = tp / (tp + fp) if tp + fp else float(not true_deviations)
     dev_recall = tp / (tp + fn) if tp + fn else 1.0
+    operational_structure = (
+        tuple(output.final_structure) if output is not None else tuple(candidate.active_terms)
+    )
 
     return V7StudyRow(
         family=generated.family,
@@ -185,6 +188,7 @@ def _evaluate_candidate(
         runtime_seconds=float(runtime_seconds),
         communication_bytes=int(communication_bytes),
         discovered_terms=";".join(sorted(predicted)),
+        final_structure=";".join(operational_structure),
         accepted_deviations=";".join(output.accepted_deviations) if output else "",
         anchor_structure=";".join(output.anchor_structure) if output else "",
         bank_terms=";".join(output.bank_terms) if output else "",
@@ -305,7 +309,6 @@ def _evaluate_condition(
             )
         )
 
-    # Preserve requested protocol noise exactly rather than the realized ratio.
     return [V7StudyRow(**{**asdict(row), "noise_ratio": float(requested_noise)}) for row in rows]
 
 
@@ -481,7 +484,7 @@ def summarize(rows: Sequence[V7StudyRow], *, evaluate_gate: bool = True) -> dict
     cert_violations = sum(row.certificate_violation_count for row in full)
     anchor_preserved = all(
         set(filter(None, row.anchor_structure.split(";"))).issubset(
-            set(filter(None, row.discovered_terms.split(";"))) | {"1"}
+            set(filter(None, row.final_structure.split(";")))
         )
         for row in full
     )
