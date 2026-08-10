@@ -1,0 +1,91 @@
+name: SCSV-RCD v7 engineering smoke
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scsv-rcd-v7-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: contains(github.event.head_commit.message, '[run-v7-smoke]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen historical boundary
+        run: |
+          set -euo pipefail
+          HIST=1d99c923dcc82ec909368ae528c40ecfbcf2006b
+          test "$(git rev-parse "${HIST}:src/fedfalsify/scsv_v6.py")" = "$(git rev-parse "HEAD:src/fedfalsify/scsv_v6.py")"
+          test "$(git rev-parse "${HIST}:results/rccd_spent_diagnostic/decision.json")" = "$(git rev-parse "HEAD:results/rccd_spent_diagnostic/decision.json")"
+          grep -q '"status": "RCCD-MECHANISM-SIGNAL"' results/rccd_spent_diagnostic/decision.json
+          grep -q '"status": "INDEPENDENT-NO-GO"' results/scsv_v6_independent/decision.json
+          echo "Historical boundary PASS"
+
+      - name: Run v7 scientific invariant tests
+        run: pytest -q tests/test_scsv_v7.py
+
+      - name: Run engineering smoke only
+        run: |
+          rm -rf results/scsv_v7_smoke
+          mkdir -p results/scsv_v7_smoke
+          python -m fedfalsify.scsv_v7_study \
+            --smoke \
+            --methods scsv-rcd-v7-full \
+            --output results/scsv_v7_smoke/rows.csv \
+            --summary results/scsv_v7_smoke/summary.json
+
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+
+          root = Path("results/scsv_v7_smoke")
+          rows = list(csv.DictReader((root / "rows.csv").open(encoding="utf-8")))
+          summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+          assert len(rows) == 6, len(rows)
+          assert {row["method"] for row in rows} == {"scsv-rcd-v7-full"}
+          assert {int(row["seed"]) for row in rows} == {24001}
+          assert not ({24101, 24102, 24103, 24104, 24105} & {int(row["seed"]) for row in rows})
+          assert summary["status"] == "scsv-rcd-v7-engineering-smoke"
+          assert summary["conditions"] == 6
+          assert summary["development_gate"]["evaluated"] is False
+          assert summary["development_gate"]["passed"] is None
+          for row in rows:
+              anchor = {term for term in row["anchor_structure"].split(";") if term}
+              final = {term for term in row["discovered_terms"].split(";") if term} | {"1"}
+              assert anchor <= final
+          print("SCSV-RCD v7 smoke isolation PASS")
+          PY
+
+      - name: Upload engineering smoke artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-rcd-v7-engineering-smoke
+          path: results/scsv_v7_smoke
+          if-no-files-found: error
+          retention-days: 7
