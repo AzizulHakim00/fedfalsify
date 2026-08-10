@@ -43,7 +43,7 @@ jobs:
           test "$(git rev-parse "${HIST}:results/rccd_spent_diagnostic/decision.json")" = "$(git rev-parse "HEAD:results/rccd_spent_diagnostic/decision.json")"
           grep -q '"status": "RCCD-MECHANISM-SIGNAL"' results/rccd_spent_diagnostic/decision.json
           grep -q '"status": "INDEPENDENT-NO-GO"' results/scsv_v6_independent/decision.json
-          pytest -q tests/test_scsv_v7.py
+          pytest -q tests/test_scsv_v7.py tests/test_scsv_v7_acceptance_paths.py
 
       - name: Execute frozen 580-condition fresh v7 development matrix
         run: |
@@ -126,7 +126,7 @@ jobs:
                   assert math.isfinite(float(row[field])), (field, row)
           for row in full:
               anchor = {term for term in row["anchor_structure"].split(";") if term}
-              final = {term for term in row["discovered_terms"].split(";") if term} | {"1"}
+              final = {term for term in row["final_structure"].split(";") if term}
               assert anchor <= final
               assert int(float(row["certificate_violation_count"])) == 0
 
@@ -147,11 +147,13 @@ jobs:
 
           source_paths = [
               "research/TRANSACTIONS_SCSV_RCD_V7_PROTOCOL.md",
+              "research/TRANSACTIONS_SCSV_RCD_V7_NOVELTY_AUDIT.md",
               "src/fedfalsify/scsv_v7.py",
               "src/fedfalsify/scsv_v7_benchmarks.py",
               "src/fedfalsify/scsv_v7_study.py",
               "src/fedfalsify/scsv_v6.py",
               "tests/test_scsv_v7.py",
+              "tests/test_scsv_v7_acceptance_paths.py",
               ".github/workflows/scsv_v7_development.yml",
           ]
           manifest = {
