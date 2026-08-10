@@ -1,0 +1,132 @@
+{
+  "conditions": 580,
+  "development_gate": {
+    "criteria": {
+      "A_integrity_580_fresh_conditions": true,
+      "B_shared_anchor_preserved": true,
+      "C_null_spurious_deviation_le_005": true,
+      "D_zero_exact_harms": false,
+      "E_overall_exact_noninferior_001": true,
+      "F_deviation_subset_exact_gain_ge_003": true,
+      "G_deviation_precision_ge_095": true,
+      "H_deviation_recall_ge_090": false,
+      "I_each_family_recovery_ge_085": false,
+      "J_four_client_recovery_ge_085": false,
+      "K_eight_client_recovery_ge_090": true,
+      "L_sixteen_client_recovery_ge_090": true,
+      "M_imbalance_gap_le_008": true,
+      "N_high_noise_recovery_ge_085": false,
+      "O_dual_both_ge_075_and_no_spurious_in_exact": true,
+      "P_certificate_integrity": true,
+      "Q_communication_le_150pct_v6": true,
+      "R_runtime_le_200pct_v6": true
+    },
+    "evaluated": true,
+    "passed": false,
+    "scientific_boundary": "A GO authorizes only a separately frozen independent v7 validation with a new seed namespace. A NO-GO permanently spends 24101--24105 and forbids retuning v7 on them.",
+    "status": "DEVELOPMENT-NO-GO"
+  },
+  "gate_values": {
+    "balanced_recovery": 0.8541666666666666,
+    "certificate_violations": 0,
+    "client_recovery": {
+      "4": 0.7875,
+      "8": 0.9125,
+      "16": 0.925
+    },
+    "deviation_precision": 0.996,
+    "deviation_recall": 0.8892857142857142,
+    "deviation_subset_v6_exact": 0.676923076923077,
+    "deviation_subset_v7_exact": 0.7557692307692307,
+    "dual_both_recovery": 0.95,
+    "dual_exact_spurious_count": 0,
+    "exact_harms": 2,
+    "family_recovery": {
+      "interaction_role": 0.9583333333333334,
+      "linear_role": 0.9,
+      "quadratic_role": 0.8916666666666667,
+      "trig_role": 0.75
+    },
+    "high_noise_recovery": 0.7583333333333333,
+    "imbalanced_recovery": 0.8958333333333334,
+    "null_spurious_deviation_acceptance": 0.03333333333333333,
+    "v6_communication_median": 8736692.5,
+    "v6_exact": 0.7086206896551724,
+    "v6_runtime_median": 4.703629590499986,
+    "v7_communication_median": 8736692.5,
+    "v7_exact": 0.7758620689655172,
+    "v7_runtime_median": 4.704261321499871
+  },
+  "methods": {
+    "centralized-forward": {
+      "communication_bytes_median": 0.0,
+      "deviation_precision_pooled": 1.0,
+      "deviation_recall_pooled": 0.9625,
+      "exact_recovery": 0.8706896551724138,
+      "runs": 580,
+      "runtime_seconds_median": 0.030086159499660425,
+      "spurious_deviation_acceptance": 0.0,
+      "term_precision": 0.9692528735632184,
+      "term_recall": 0.9777586206896551,
+      "test_nmse": 0.00044043889327026237
+    },
+    "legacy-certificate": {
+      "communication_bytes_median": 286439.0,
+      "deviation_precision_pooled": 1.0,
+      "deviation_recall_pooled": 0.19107142857142856,
+      "exact_recovery": 0.05172413793103448,
+      "runs": 580,
+      "runtime_seconds_median": 0.22699903150004275,
+      "spurious_deviation_acceptance": 0.0,
+      "term_precision": 0.8122413793103448,
+      "term_recall": 0.5773275862068965,
+      "test_nmse": 0.03729110735115842
+    },
+    "scsv-rcd-v7-full": {
+      "communication_bytes_median": 8736692.5,
+      "deviation_precision_pooled": 0.996,
+      "deviation_recall_pooled": 0.8892857142857142,
+      "exact_recovery": 0.7758620689655172,
+      "runs": 580,
+      "runtime_seconds_median": 4.704261321499871,
+      "spurious_deviation_acceptance": 0.0034482758620689655,
+      "term_precision": 0.9658045977011495,
+      "term_recall": 0.9311494252873563,
+      "test_nmse": 0.0029513806769204567
+    },
+    "scsv-rcd-v7-no-probe": {
+      "communication_bytes_median": 8736692.5,
+      "deviation_precision_pooled": 0.9961612284069098,
+      "deviation_recall_pooled": 0.9267857142857143,
+      "exact_recovery": 0.8051724137931034,
+      "runs": 580,
+      "runtime_seconds_median": 4.710125387000062,
+      "spurious_deviation_acceptance": 0.0034482758620689655,
+      "term_precision": 0.9661494252873564,
+      "term_recall": 0.9402011494252873,
+      "test_nmse": 0.002624708542038015
+    },
+    "scsv-v6-full": {
+      "communication_bytes_median": 8736692.5,
+      "deviation_precision_pooled": 1.0,
+      "deviation_recall_pooled": 0.8017857142857143,
+      "exact_recovery": 0.7086206896551724,
+      "runs": 580,
+      "runtime_seconds_median": 4.703629590499986,
+      "spurious_deviation_acceptance": 0.0,
+      "term_precision": 0.9664367816091954,
+      "term_recall": 0.9102011494252874,
+      "test_nmse": 0.0038994800720084373
+    }
+  },
+  "rows": 2900,
+  "schema_version": 1,
+  "seeds": [
+    24101,
+    24102,
+    24103,
+    24104,
+    24105
+  ],
+  "status": "scsv-rcd-v7-development"
+}
