@@ -156,9 +156,9 @@ def test_true_anchor_exception_can_be_recertified_and_retained():
         balance_profile="balanced", role_profile="single", noise_ratio=0.10,
     )
     fake = _fake_anchor(
-        ("1", "x1", "x3^2", QUADRATIC_DEV_V10),
-        (0.0, 0.56, 0.86, 0.5),
-        ("x1", "x3^2", QUADRATIC_DEV_V10),
+        ("1", "x3^2", QUADRATIC_DEV_V10),
+        (0.0, 0.86, 0.5),
+        ("x3^2", QUADRATIC_DEV_V10),
     )
     role = _forced_role(generated.clients)
     summaries = [
@@ -189,7 +189,7 @@ def test_client_consensus_rescues_split_direction_disagreement_while_split_veto_
         "quadratic_role_v10", seed=SMOKE_SEED, num_clients=4,
         balance_profile="balanced", role_profile="single", noise_ratio=0.10,
     )
-    fake = _fake_anchor(("1", "x1", "x3^2"), (0.0, 0.56, 0.86), ("x1", "x3^2"))
+    fake = _fake_anchor(("1", "x3^2"), (0.0, 0.86), ("x3^2",))
     role = _forced_role(generated.clients)
     summaries = [
         (20, 10.5, 10.0, 0.2, "CONTRADICTED"),
@@ -234,7 +234,7 @@ def test_positive_pooled_evidence_is_rejected_when_client_median_is_nonpositive(
         "quadratic_role_v10", seed=SMOKE_SEED, num_clients=4,
         balance_profile="balanced", role_profile="single", noise_ratio=0.10,
     )
-    fake = _fake_anchor(("1", "x1", "x3^2"), (0.0, 0.56, 0.86), ("x1", "x3^2"))
+    fake = _fake_anchor(("1", "x3^2"), (0.0, 0.86), ("x3^2",))
     role = _forced_role(generated.clients)
     with patch("fedfalsify.scsv_v10.scsv_cert_method", return_value=fake), patch(
         "fedfalsify.scsv_v10._role_hypothesis", return_value=role
