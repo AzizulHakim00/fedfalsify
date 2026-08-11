@@ -25,6 +25,13 @@ from .replacement import (
     FederatedCoreReplacement,
     ReplacementCertificate,
 )
+from .scsv_v11 import (
+    SCSVELRCV11Output,
+    V11ClientEffectDiagnostic,
+    V11DeviationDiagnostic,
+    V11EffectRole,
+    scsv_elrc_v11_method,
+)
 from .server import DiscoveryResult, FedFalsifyDiscovery, RepairDecision
 from .statistics import (
     BootstrapInterval,
@@ -53,10 +60,14 @@ __all__ = [
     "NoisyCertificateClient",
     "RepairDecision",
     "ReplacementCertificate",
+    "SCSVELRCV11Output",
     "SensitivityProbe",
     "TermCatalog",
     "TreeModel",
     "TreeSearchOutput",
+    "V11ClientEffectDiagnostic",
+    "V11DeviationDiagnostic",
+    "V11EffectRole",
     "expression_library",
     "generate_benchmark",
     "generate_exception_clients",
@@ -70,6 +81,7 @@ __all__ = [
     "run_exception_benchmark",
     "run_spurious_correlation_benchmark",
     "run_tree_search",
+    "scsv_elrc_v11_method",
     "wilson_interval",
 ]
 
