@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'DEVELOPMENT-NO-GO' results/scsv_v10/summary.json
-          grep -q '28101, 28102, 28103, 28104, 28105' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
+          grep -q '28101--28105' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
           grep -q 'reserved final-confirmation `11001+` remains untouched' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
 
       - name: Run v11 unit and natural-path tests
