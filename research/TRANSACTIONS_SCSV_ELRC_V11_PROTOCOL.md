@@ -4,24 +4,43 @@
 
 **FedFalsify v11: Set-Conditional Structural Verification with Effect-Localized Role Certification (SCSV-ELRC)**
 
-## Scientific status
+## Current authorization state
 
-This is a separately versioned successor to the sealed v10 `DEVELOPMENT-NO-GO`. V10 code, rows, summaries, and seeds remain frozen and are not relabeled.
+**ENGINEERING-ONLY / FRESH DEVELOPMENT BLOCKED.**
 
-V11 is motivated by spent-v10 forensics showing that the remaining boundary is dominated by false negatives: v10 preserved deviation precision at 1.00 and spurious-deviation acceptance at 0.00, but missed true deviations when gate occupancy did not identify the response-effect role and when a role-specific child depended on a parent that was not globally qualified.
+The v11 implementation and engineering smoke are preserved, but `29101--29105` are not authorized for execution. A separate `research/SCSV_V11_DEVELOPMENT_AUTHORIZATION.md` must be created only after the successor rationale is reconciled with the sealed v10 post-development forensic report.
+
+This is Protocol Amendment A. It was made after the engineering-only `29001` smoke and before any `291xx` run. No v11 fresh-development result was available or used when making this amendment. Scientific thresholds below are retained rather than tuned from the smoke.
+
+## Scientific status and forensic correction
+
+V11 is a separately versioned successor to the sealed v10 `DEVELOPMENT-NO-GO`. V10 code, rows, summaries, and seeds remain frozen and are not relabeled.
+
+The initial v11 hypothesis separated gate occurrence from response-effect localization and introduced provenance-only weak source heredity. The subsequently sealed read-only v10 post-development forensic decomposition materially corrected the motivation:
+
+- 520 true deviation instances were present;
+- 481 were recovered and 39 were missed;
+- 34 misses were pooled-evidence failures;
+- 5 misses were source-qualification failures;
+- 0 misses were true-deviation occupancy-role failures;
+- 57 additional exact-recovery failures occurred even though every true deviation was recovered, exposing a shared/core-anchor structural ceiling.
+
+Therefore **effect-localized role discovery is retained only as a new mechanism hypothesis, not as the demonstrated dominant correction to v10**. Weak source heredity directly targets the five observed source-qualification misses. The current v11 draft does not yet directly solve the dominant high-noise pooled-evidence boundary or the shared/core-anchor ceiling, so fresh development is blocked until those mechanisms are explicitly reconciled and separately ablated.
 
 ## Seed firewall
 
 - engineering-only smoke: `29001`;
-- fresh development: `29101, 29102, 29103, 29104, 29105`;
+- reserved fresh development: `29101, 29102, 29103, 29104, 29105`;
 - v10 `28001` and `28101--28105` are forbidden;
 - reserved final-confirmation `11001+` remains untouched.
 
-The `291xx` namespace may be executed only through the guarded development workflow after v11 implementation tests and the `29001` smoke pass. Starting any `291xx` development run permanently spends all five development seeds regardless of outcome.
+The `291xx` namespace may be executed only through the guarded development workflow after a separate authorization document is committed. Starting any `291xx` development run permanently spends all five development seeds regardless of outcome.
 
 ## Frozen anchor and quarantine
 
-V11 calls the unchanged v6 SCSV-Cert anchor with score proposer enabled and the same six-term shared-anchor cap. Ordinary anchor terms (`kind != 'exception'`) are immutable. Anchor exception terms are quarantined and must be re-certified by v11 before becoming operational.
+V11 calls the unchanged v6 SCSV-Cert anchor with score proposer enabled and the same six-term shared-anchor cap. Ordinary anchor terms (`kind != 'exception'`) are immutable in the present v11 implementation. Anchor exception terms are quarantined and must be re-certified by v11 before becoming operational.
+
+The sealed v10 forensics show that ordinary-anchor immutability is itself a likely total exact-recovery ceiling. This limitation must be explicitly addressed before fresh v11 authorization; it cannot be hidden by exception-layer gains.
 
 ## Candidate provenance
 
@@ -31,6 +50,8 @@ A v11 exception candidate must have a declared `source_term` and satisfy at leas
 2. the source is present in the v6 high-recall bank.
 
 This is **weak structural heredity**. A source that is banked but not globally operational is provenance-only; it is not automatically inserted into the final global equation.
+
+This mechanism is directly aligned with the five sealed v10 source-qualification misses, all of which occurred at noise ratio `0.30`.
 
 ## Gate occupancy is only an estimability guard
 
@@ -42,6 +63,8 @@ For every held-out discovery fold:
 - the four training folds must contain at least `8` active rows.
 
 Gate occupancy never directly defines the client role.
+
+This role mechanism is exploratory in v11 because sealed v10 forensics found zero true-deviation misses caused by occupancy-role failure.
 
 ## Five-fold discovery-only effect localization
 
@@ -82,7 +105,7 @@ A source that is provenance-only does not receive a global coefficient merely to
 
 ## Independent held-out certification
 
-The frozen v10 selector/probe architecture is retained. On inferred role clients compute:
+The current v11 implementation retains the frozen v10 selector/probe architecture. On inferred role clients compute:
 
 `Delta_pool = log((F_s + F_p)/(R_s + R_p)) + log(N)/N`.
 
@@ -97,6 +120,8 @@ The held-out certificate requires:
 
 There is no separate selector/probe direction veto in the v11 primary method.
 
+**Known unresolved boundary:** the sealed v10 forensic report attributes 34 of 39 missed true deviations to this pooled-evidence stage, with 31 of those 34 occurring at noise `0.30`. The current v11 implementation retains that stage and therefore is not yet scientifically aligned enough to spend fresh development seeds. A pre-development reconciliation must add or replace the evidence-power mechanism without weakening the observed v10 false-positive control, and must preregister the corresponding ablation.
+
 ## Outside-role non-degradation
 
 The tested deviation must not worsen aggregate selector or probe SSE on outside-role clients (numerical tolerance inherited from v8/v10). Pair-invariant failure or outside-role degradation rejects the candidate.
@@ -107,15 +132,17 @@ The tested deviation must not worsen aggregate selector or probe SSE on outside-
 - maximum final structure size: `10` including intercept;
 - multiple positive exceptions linked to the same source are all rejected for source ambiguity;
 - more than two surviving positive exceptions triggers global ambiguity and rejects all new exceptions;
-- ordinary anchor terms may never be deleted.
+- ordinary anchor terms may never be deleted in the current implementation.
 
 ## Spent-v10 forensic use
 
 `src/fedfalsify/scsv_v11_forensics.py` may read only sealed v10 rows on `28101--28105` and produce a descriptive failure taxonomy. It must never regenerate those conditions or be represented as v11 evidence.
 
-## Fresh-development matrix
+The canonical detailed forensic interpretation is `research/TRANSACTIONS_SCSV_AQCC_V10_POST_DEVELOPMENT_FORENSICS.md`; if a simplified v11 diagnostic conflicts with that report, the sealed canonical report governs the scientific rationale.
 
-The v11 development matrix reuses the frozen v10 benchmark grammar but uses new seeds. It contains 600 matched conditions spanning:
+## Reserved fresh-development matrix
+
+If and only if a separate authorization is later committed, the v11 development matrix reuses the frozen v10 benchmark grammar but uses new seeds. It contains 600 matched conditions spanning:
 
 - quadratic, linear, trigonometric, and interaction role deviations;
 - 4, 8, and 16 clients;
@@ -125,11 +152,11 @@ The v11 development matrix reuses the frozen v10 benchmark grammar but uses new 
 - null and anchor-contamination null families;
 - weak-source and dual-deviation families.
 
-Every fresh condition runs v11 and the frozen v10 method as a matched comparator on the same new data.
+Every fresh condition would run v11 and the frozen v10 method as a matched comparator on the same new data.
 
-## Development GO/NO-GO gates
+## Reserved development GO/NO-GO gates
 
-All gates must pass:
+These gates are retained as predeclared targets but **are not currently authorized for evaluation**:
 
 - 600 unique fresh conditions using exactly `29101--29105`;
 - zero implementation/integrity violations;
@@ -148,17 +175,28 @@ All gates must pass:
 - dual-both recovery >= `0.90`;
 - median communication and runtime each <= `8x` matched v10.
 
-A GO authorizes only a separately frozen independent-validation protocol using a new untouched seed namespace. A NO-GO permanently spends `29101--29105` and forbids retuning v11 on them.
+A future authorization must additionally preregister distinct ablations for:
+
+1. high-noise evidence-power correction;
+2. provenance-only weak heredity;
+3. effect-localized role discovery;
+4. shared/core-anchor re-certification or repair.
+
+A GO would authorize only a separately frozen independent-validation protocol using a new untouched seed namespace. A NO-GO permanently spends `29101--29105` and forbids retuning on them.
 
 ## Claim boundary
 
-Before fresh development, permitted claim:
+Permitted now:
 
-> V11 is a preregistered mechanism redesign that separates gate estimability from response-effect localization and replaces mandatory global parent inheritance with provenance-only weak heredity.
+> V11 is an engineering-verified draft mechanism that separates gate estimability from response-effect localization and implements provenance-only weak heredity while preserving independent held-out certification.
 
-Not permitted before successful fresh development and independent validation:
+> Sealed v10 forensics show that the dominant remaining measured sensitivity boundary is high-noise pooled evidence, with a smaller source-qualification boundary and a separate shared/core-anchor exact-recovery ceiling.
 
+Not permitted now:
+
+- describing occupancy-role failure as the dominant measured v10 failure;
 - v11 superiority;
+- spending `29101--29105` before a separate authorization document exists;
 - final Transactions readiness;
 - universal symbolic recovery;
 - causal interpretation of client roles;
