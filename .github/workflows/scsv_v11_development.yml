@@ -1,0 +1,77 @@
+name: SCSV-ELRC v11 fresh development
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type RUN_FRESH_V11_DEVELOPMENT to permanently spend 29101--29105'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scsv-elrc-v11-fresh-development
+  cancel-in-progress: false
+
+jobs:
+  development:
+    if: inputs.confirm == 'RUN_FRESH_V11_DEVELOPMENT'
+    runs-on: ubuntu-latest
+    timeout-minutes: 720
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e '.[dev]'
+
+      - name: Enforce pre-run scientific firewall
+        run: |
+          set -euo pipefail
+          grep -q 'fresh development: `29101, 29102, 29103, 29104, 29105`' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
+          grep -q 'A NO-GO permanently spends `29101--29105`' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
+          grep -q 'reserved final-confirmation `11001+` remains untouched' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
+          test ! -e results/scsv_v11/COMPLETE
+          pytest -q tests/test_scsv_v11.py
+
+      - name: Run fresh 600-condition development matrix
+        run: |
+          rm -rf results/scsv_v11
+          python -m fedfalsify.scsv_v11_study --output-dir results/scsv_v11
+
+      - name: Audit development seed isolation and decision
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path('results/scsv_v11')
+          rows = list(csv.DictReader((root / 'rows.csv').open(encoding='utf-8')))
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          assert len(rows) == 1200, len(rows)
+          assert {int(row['seed']) for row in rows} == {29101,29102,29103,29104,29105}
+          assert summary['conditions'] == 600
+          assert summary['rows'] == 1200
+          assert summary['development_gate']['status'] in {'DEVELOPMENT-GO','DEVELOPMENT-NO-GO'}
+          assert not ({11001,11002,11003,11004,11005} & {int(row['seed']) for row in rows})
+          print(json.dumps(summary['development_gate'], indent=2, sort_keys=True))
+          PY
+
+      - name: Upload immutable development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-elrc-v11-fresh-development
+          path: results/scsv_v11
+          if-no-files-found: error
+          retention-days: 90
