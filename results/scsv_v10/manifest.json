@@ -1,0 +1,38 @@
+{
+  "conditions": 600,
+  "engineering_seed_used": [],
+  "fresh_development_seeds": [
+    28101,
+    28102,
+    28103,
+    28104,
+    28105
+  ],
+  "historical_v6_independent_status": "INDEPENDENT-NO-GO",
+  "historical_v7_status": "DEVELOPMENT-NO-GO",
+  "historical_v8_status": "DEVELOPMENT-NO-GO",
+  "historical_v9_status": "DEVELOPMENT-NO-GO",
+  "output_sha256": {
+    "decision.json": "766393fc8ebcfd746c8673a679fd07f8664f76ea9541e5454f3d12ea904f2921",
+    "rows.csv": "9ec5f8469035169a39a0e62a3c5a0c5258bfb5e8944e2313609dfa58fba2052b",
+    "summary.json": "9df58fed65bfa148bb915df9ca6114d4dd4149830dceab81850e67d720a9748e"
+  },
+  "rows": 3600,
+  "run_commit": "da9010592538693fb8deba13353f62e8e62ca6ad",
+  "run_mode": "fresh-scsv-aqcc-v10-sharded-development",
+  "schema_version": 1,
+  "source_sha256": {
+    ".github/workflows/scsv_v10_development.yml": "a61e636104bdc010b04926fbc5ab792677f249d32352d5be8fc92faee4d585cc",
+    ".github/workflows/scsv_v10_smoke.yml": "48ad885ce190a239175446e261c63f54123fb850e3692722cb921a9d50b3d5f9",
+    "research/TRANSACTIONS_SCSV_AQCC_V10_ENGINEERING_AUTHORIZATION.md": "acd920814b2e5ac7c00604e030cfb2071077f7ab4e79720829576df8fb1cea76",
+    "research/TRANSACTIONS_SCSV_AQCC_V10_NOVELTY_AUDIT.md": "79883e3770496ba0580683ccbc8b49b7cebc404ef718599fb72b1c5c56c3de1b",
+    "research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md": "d38cbf3e06be09fce06a9af2a49e5c7c5457c102bd5f099055d531e1753ff725",
+    "src/fedfalsify/scsv_v10.py": "22c2187b8841c88977e8d3341f0901c4c645b3cbf355488174ebce4069484d7a",
+    "src/fedfalsify/scsv_v10_benchmarks.py": "6e065a83f8ac7a6c2f10ef11829f03791fc49ee7659c84b51dbf971ac34c58c0",
+    "src/fedfalsify/scsv_v10_sharded.py": "b5b6de079a81df1d3c1ef8f5620daac93058e51c77f92b80f2012b3731e80125",
+    "src/fedfalsify/scsv_v10_study.py": "1584e918e415c20a860a094627cb2b38ad8122e99d788cf941f73a7b65367189",
+    "tests/test_scsv_v10.py": "d38e4b5ef548923f786d867ec4a547e2fa6b3311fffc5a5c0e15542790f427c0",
+    "tests/test_scsv_v10_sharded.py": "38cb853b6cf0adc206c5acdef707ed8f2d2a58bc19f4cfecef935e56afccc8e3"
+  },
+  "workflow_run_id": "31521163927"
+}
