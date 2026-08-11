@@ -1,0 +1,89 @@
+name: SCSV-ELRC v11 engineering smoke
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scsv-elrc-v11-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[run-v11-smoke]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen scientific boundaries
+        run: |
+          set -euo pipefail
+          grep -q 'DEVELOPMENT-NO-GO' results/scsv_v10/summary.json
+          grep -q '28101, 28102, 28103, 28104, 28105' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
+          grep -q 'reserved final-confirmation `11001+` remains untouched' research/TRANSACTIONS_SCSV_ELRC_V11_PROTOCOL.md
+
+      - name: Run v11 unit and natural-path tests
+        run: pytest -q tests/test_scsv_v11.py
+
+      - name: Run spent-v10 descriptive taxonomy
+        run: |
+          python -m fedfalsify.scsv_v11_forensics \
+            --rows results/scsv_v10/rows.csv \
+            --output results/scsv_v11_forensics/summary.json
+
+      - name: Run engineering smoke only
+        run: |
+          rm -rf results/scsv_v11_smoke
+          python -m fedfalsify.scsv_v11_study \
+            --smoke \
+            --output-dir results/scsv_v11_smoke
+
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path('results/scsv_v11_smoke')
+          rows = list(csv.DictReader((root / 'rows.csv').open(encoding='utf-8')))
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          assert len(rows) == 12, len(rows)
+          assert {int(row['seed']) for row in rows} == {29001}
+          assert len({(r['family'], r['noise_ratio'], r['num_clients'], r['balance_profile'], r['role_profile'], r['seed']) for r in rows}) == 6
+          assert {r['method'] for r in rows} == {'scsv-elrc-v11-full', 'scsv-aqcc-v10-frozen-comparator'}
+          forbidden = {28001, 28101, 28102, 28103, 28104, 28105, 29101, 29102, 29103, 29104, 29105}
+          assert not forbidden & {int(row['seed']) for row in rows}
+          assert summary['conditions'] == 6
+          assert summary['rows'] == 12
+          assert summary['seeds'] == [29001]
+          print('SCSV-ELRC v11 engineering smoke isolation PASS')
+          PY
+
+      - name: Upload v11 engineering artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-elrc-v11-engineering-smoke
+          path: |
+            results/scsv_v11_smoke
+            results/scsv_v11_forensics
+          if-no-files-found: error
+          retention-days: 7
