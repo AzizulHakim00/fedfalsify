@@ -162,7 +162,7 @@ def test_true_anchor_exception_can_be_recertified_and_retained():
     )
     role = _forced_role(generated.clients)
     summaries = [
-        (20, 8.0, 10.0, -0.1, "SUPPORTED"),
+        (20, 5.0, 10.0, -0.5, "SUPPORTED"),
         (20, 10.5, 10.0, 0.2, "CONTRADICTED"),
     ]
     with patch("fedfalsify.scsv_v10.scsv_cert_method", return_value=fake), patch(
