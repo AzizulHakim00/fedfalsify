@@ -1,0 +1,16 @@
+name: transactions-adaptive-tree-diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archived-study:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archived evidence notice
+        run: |
+          echo "All twelve adaptive diagnostic conditions completed and are archived."
+          echo "Use manual dispatch only for infrastructure reproduction."

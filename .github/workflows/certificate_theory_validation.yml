@@ -1,0 +1,16 @@
+name: certificate-theory-validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archived-study:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archived evidence notice
+        run: |
+          echo "The 100-cell, two-million-trial theory validation is complete and archived."
+          echo "Manual reruns must preserve the frozen assumptions and seed."

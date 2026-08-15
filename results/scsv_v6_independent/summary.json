@@ -1,0 +1,342 @@
+{
+  "conditions": 590,
+  "gate_values": {
+    "all_probe_certification": 0.8508474576271187,
+    "panel_g_bank_target_recall": 0.9988888888888889,
+    "panel_g_centralized_exact": 0.9733333333333334,
+    "panel_g_complete_bank": 0.9966666666666667,
+    "panel_g_exception_recovery": 0.98,
+    "panel_g_legacy_exact": 0.43333333333333335,
+    "panel_g_legacy_nmse": 0.014401703879108683,
+    "panel_g_legacy_spurious_acceptance": 0.0,
+    "panel_g_precision": 0.9828333333333333,
+    "panel_g_recall": 0.9819444444444444,
+    "panel_g_spurious_acceptance": 0.0,
+    "panel_g_v5_exact": 0.2733333333333333,
+    "panel_g_v6_exact": 0.9366666666666666,
+    "panel_g_v6_nmse": 0.00046177288303276447,
+    "panel_s32_exact": 1.0,
+    "panel_s32_exception_recovery": 1.0,
+    "panel_s_balanced_exact": 0.8962962962962963,
+    "panel_s_comm_per_client": {
+      "4": 758118.0,
+      "16": 750606.5
+    },
+    "panel_s_exact_by_clients": {
+      "4": 0.7888888888888889,
+      "8": 0.9,
+      "16": 0.9666666666666667
+    },
+    "panel_s_exception_by_clients": {
+      "4": 0.8,
+      "8": 0.9,
+      "16": 0.9333333333333333
+    },
+    "panel_s_imbalanced_exact": 0.8740740740740741,
+    "panel_s_legacy_exact_by_clients": {
+      "4": 0.4111111111111111,
+      "8": 0.4,
+      "16": 0.4444444444444444
+    },
+    "panel_s_runtime": {
+      "4": 2.2261455045002094,
+      "16": 8.441813475499885
+    }
+  },
+  "independent_gate": {
+    "criteria": {
+      "A_panel_g_exact_gt_legacy_005": true,
+      "B_panel_g_exact_gt_v5_010": true,
+      "C_panel_g_within_005_centralized": true,
+      "D_panel_g_precision_ge_095": true,
+      "E_panel_g_recall_ge_095": true,
+      "F_panel_g_nmse_not_worse_legacy": true,
+      "G_panel_g_spurious_controlled": true,
+      "H_panel_g_exception_ge_090": true,
+      "I_panel_g_bank_recall_ge_098": true,
+      "J_panel_g_complete_bank_ge_095": true,
+      "K_panel_s_each_client_count_gt_legacy_003": true,
+      "L_panel_s_16_no_collapse": true,
+      "M_panel_s_imbalance_robust": true,
+      "N_panel_s_exception_each_count_ge_090": false,
+      "O_panel_s_comm_per_client_scaling": true,
+      "P_panel_s_runtime_scaling": true,
+      "Q_panel_s32_structural_and_exception": true,
+      "R_probe_certification_ge_070": true
+    },
+    "evaluated": true,
+    "passed": false,
+    "scientific_boundary": "GO authorizes only the separately preserved external SRSD layer; NO-GO is retained without tuning on seeds 20101--20105."
+  },
+  "methods_present": [
+    "centralized-forward",
+    "hr-v5-full",
+    "legacy-certificate",
+    "score-only-federated",
+    "scsv-v6-full",
+    "scsv-v6-no-score-proposer"
+  ],
+  "panel_methods": {
+    "G": {
+      "centralized-forward": {
+        "communication_bytes_median": 0.0,
+        "communication_per_client_median": 0.0,
+        "exact_recovery": 0.9733333333333334,
+        "exception_recovered": 1.0,
+        "runs": 300,
+        "runtime_seconds_median": 0.016277249999973264,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.9934444444444445,
+        "term_recall": 0.9977777777777778,
+        "test_nmse": 0.00019731341696224892
+      },
+      "hr-v5-full": {
+        "communication_bytes_median": 3187222.0,
+        "communication_per_client_median": 796805.5,
+        "exact_recovery": 0.2733333333333333,
+        "exception_recovered": 0.79,
+        "runs": 300,
+        "runtime_seconds_median": 2.308039541500051,
+        "spurious_accepted": 0.0033333333333333335,
+        "term_precision": 0.8042222222222222,
+        "term_recall": 0.6827777777777778,
+        "test_nmse": 0.1546869120917203
+      },
+      "legacy-certificate": {
+        "communication_bytes_median": 119454.5,
+        "communication_per_client_median": 29863.625,
+        "exact_recovery": 0.43333333333333335,
+        "exception_recovered": 0.96,
+        "runs": 300,
+        "runtime_seconds_median": 0.14496270950007784,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.7983888888888889,
+        "term_recall": 0.7858333333333333,
+        "test_nmse": 0.014401703879108683
+      },
+      "score-only-federated": {
+        "communication_bytes_median": 2405065.5,
+        "communication_per_client_median": 601266.375,
+        "exact_recovery": 0.0,
+        "exception_recovered": 1.0,
+        "runs": 300,
+        "runtime_seconds_median": 1.2748594199999843,
+        "spurious_accepted": 0.30666666666666664,
+        "term_precision": 0.666,
+        "term_recall": 0.9988888888888889,
+        "test_nmse": 0.0004600156182360379
+      },
+      "scsv-v6-full": {
+        "candidate_bank_contains_all_truth": 0.9966666666666667,
+        "candidate_bank_target_recall": 0.9988888888888889,
+        "candidate_sets_median": 63.0,
+        "communication_bytes_median": 3043983.5,
+        "communication_per_client_median": 760995.875,
+        "exact_recovery": 0.9366666666666666,
+        "exception_recovered": 0.9933333333333333,
+        "probe_certification_fraction": 0.8333333333333334,
+        "runs": 300,
+        "runtime_seconds_median": 2.289617556499934,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.9828333333333333,
+        "term_recall": 0.9819444444444444,
+        "test_nmse": 0.00046177288303276447
+      },
+      "scsv-v6-no-score-proposer": {
+        "candidate_bank_contains_all_truth": 0.43333333333333335,
+        "candidate_bank_target_recall": 0.8075,
+        "candidate_sets_median": 16.0,
+        "communication_bytes_median": 633172.5,
+        "communication_per_client_median": 158293.125,
+        "exact_recovery": 0.43333333333333335,
+        "exception_recovered": 0.77,
+        "probe_certification_fraction": 0.8733333333333333,
+        "runs": 300,
+        "runtime_seconds_median": 1.0267284940000536,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.8682222222222222,
+        "term_recall": 0.795,
+        "test_nmse": 0.027482656339469842
+      }
+    },
+    "S": {
+      "centralized-forward": {
+        "communication_bytes_median": 0.0,
+        "communication_per_client_median": 0.0,
+        "exact_recovery": 0.8777777777777778,
+        "exception_recovered": 0.9925925925925926,
+        "runs": 270,
+        "runtime_seconds_median": 0.023363902500250333,
+        "spurious_accepted": 0.011111111111111112,
+        "term_precision": 0.9714197530864197,
+        "term_recall": 0.9910493827160494,
+        "test_nmse": 0.0003107410520833989
+      },
+      "hr-v5-full": {
+        "communication_bytes_median": 6292551.0,
+        "communication_per_client_median": 790089.8125,
+        "exact_recovery": 0.16666666666666666,
+        "exception_recovered": 0.8222222222222222,
+        "runs": 270,
+        "runtime_seconds_median": 4.374663794499838,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.6817901234567901,
+        "term_recall": 0.5651234567901234,
+        "test_nmse": 0.19516311097423875
+      },
+      "legacy-certificate": {
+        "communication_bytes_median": 238147.0,
+        "communication_per_client_median": 29769.4375,
+        "exact_recovery": 0.4185185185185185,
+        "exception_recovered": 0.8925925925925926,
+        "runs": 270,
+        "runtime_seconds_median": 0.2732944824997503,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.7402469135802469,
+        "term_recall": 0.7290123456790123,
+        "test_nmse": 0.011767293473064848
+      },
+      "score-only-federated": {
+        "communication_bytes_median": 4797282.5,
+        "communication_per_client_median": 599675.34375,
+        "exact_recovery": 0.0,
+        "exception_recovered": 1.0,
+        "runs": 270,
+        "runtime_seconds_median": 2.4044642745000147,
+        "spurious_accepted": 0.24814814814814815,
+        "term_precision": 0.662962962962963,
+        "term_recall": 0.9941358024691358,
+        "test_nmse": 0.0007081446212749505
+      },
+      "scsv-v6-full": {
+        "candidate_bank_contains_all_truth": 0.9703703703703703,
+        "candidate_bank_target_recall": 0.9907407407407407,
+        "candidate_sets_median": 63.0,
+        "communication_bytes_median": 6005570.5,
+        "communication_per_client_median": 751298.875,
+        "exact_recovery": 0.8851851851851852,
+        "exception_recovered": 0.9592592592592593,
+        "probe_certification_fraction": 0.8592592592592593,
+        "runs": 270,
+        "runtime_seconds_median": 4.26760964999994,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.9704320987654321,
+        "term_recall": 0.9638888888888889,
+        "test_nmse": 0.0010354042785020343
+      },
+      "scsv-v6-no-score-proposer": {
+        "candidate_bank_contains_all_truth": 0.37777777777777777,
+        "candidate_bank_target_recall": 0.7811728395061728,
+        "candidate_sets_median": 16.0,
+        "communication_bytes_median": 1206987.5,
+        "communication_per_client_median": 151307.34375,
+        "exact_recovery": 0.36666666666666664,
+        "exception_recovered": 0.7333333333333333,
+        "probe_certification_fraction": 0.8777777777777778,
+        "runs": 270,
+        "runtime_seconds_median": 1.87648274150024,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.8811728395061729,
+        "term_recall": 0.7731481481481481,
+        "test_nmse": 0.019363142957631817
+      }
+    },
+    "S32": {
+      "centralized-forward": {
+        "communication_bytes_median": 0.0,
+        "communication_per_client_median": 0.0,
+        "exact_recovery": 1.0,
+        "exception_recovered": 1.0,
+        "runs": 20,
+        "runtime_seconds_median": 0.0840398710001864,
+        "spurious_accepted": 0.0,
+        "term_precision": 1.0,
+        "term_recall": 1.0,
+        "test_nmse": 0.00010861584613369653
+      },
+      "hr-v5-full": {
+        "communication_bytes_median": 27092137.0,
+        "communication_per_client_median": 846629.28125,
+        "exact_recovery": 0.2,
+        "exception_recovered": 0.5,
+        "runs": 20,
+        "runtime_seconds_median": 20.11928237999973,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.8125,
+        "term_recall": 0.6083333333333333,
+        "test_nmse": 0.3340811992139467
+      },
+      "legacy-certificate": {
+        "communication_bytes_median": 1090937.5,
+        "communication_per_client_median": 34091.796875,
+        "exact_recovery": 0.5,
+        "exception_recovered": 0.5,
+        "runs": 20,
+        "runtime_seconds_median": 1.2203236550003567,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.85,
+        "term_recall": 0.85,
+        "test_nmse": 0.016122176279568322
+      },
+      "score-only-federated": {
+        "communication_bytes_median": 20117296.5,
+        "communication_per_client_median": 628665.515625,
+        "exact_recovery": 0.0,
+        "exception_recovered": 1.0,
+        "runs": 20,
+        "runtime_seconds_median": 9.913006240000414,
+        "spurious_accepted": 0.35,
+        "term_precision": 0.7,
+        "term_recall": 1.0,
+        "test_nmse": 0.00019041249820666594
+      },
+      "scsv-v6-full": {
+        "candidate_bank_contains_all_truth": 1.0,
+        "candidate_bank_target_recall": 1.0,
+        "candidate_sets_median": 63.0,
+        "communication_bytes_median": 25614349.5,
+        "communication_per_client_median": 800448.421875,
+        "exact_recovery": 1.0,
+        "exception_recovered": 1.0,
+        "probe_certification_fraction": 1.0,
+        "runs": 20,
+        "runtime_seconds_median": 19.470475586500015,
+        "spurious_accepted": 0.0,
+        "term_precision": 1.0,
+        "term_recall": 1.0,
+        "test_nmse": 0.00010861584613370472
+      },
+      "scsv-v6-no-score-proposer": {
+        "candidate_bank_contains_all_truth": 0.4,
+        "candidate_bank_target_recall": 0.8416666666666667,
+        "candidate_sets_median": 16.0,
+        "communication_bytes_median": 5516296.0,
+        "communication_per_client_median": 172384.25,
+        "exact_recovery": 0.4,
+        "exception_recovered": 0.5,
+        "probe_certification_fraction": 0.5,
+        "runs": 20,
+        "runtime_seconds_median": 9.583933445999719,
+        "spurious_accepted": 0.0,
+        "term_precision": 0.8341666666666666,
+        "term_recall": 0.8416666666666667,
+        "test_nmse": 0.014876842805648247
+      }
+    }
+  },
+  "panels": {
+    "G": 1800,
+    "S": 1620,
+    "S32": 120
+  },
+  "rows": 3540,
+  "schema_version": 1,
+  "seeds": [
+    20101,
+    20102,
+    20103,
+    20104,
+    20105
+  ],
+  "status": "scsv-v6-independent-validation"
+}

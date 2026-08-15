@@ -1,0 +1,31 @@
+{
+  "claim_boundary": "Passing permits independent external validation and scalability only.",
+  "criteria": {
+    "communication_below_30x": true,
+    "conditional_exception_recovery": false,
+    "exception_candidate_recall": false,
+    "high_noise_gain_over_legacy": false,
+    "high_noise_poly3_complete_coverage": false,
+    "high_noise_poly3_target_recall": false,
+    "median_candidate_pool_size": true,
+    "overall_exact_noninferiority": false,
+    "predictive_safety": false,
+    "runtime_below_15x": true,
+    "spurious_acceptance_controlled": true,
+    "zero_backward_exact_harms": false,
+    "zero_forward_exact_harms": true
+  },
+  "failed_criteria": [
+    "conditional_exception_recovery",
+    "exception_candidate_recall",
+    "high_noise_gain_over_legacy",
+    "high_noise_poly3_complete_coverage",
+    "high_noise_poly3_target_recall",
+    "overall_exact_noninferiority",
+    "predictive_safety",
+    "zero_backward_exact_harms"
+  ],
+  "passed": false,
+  "schema_version": 1,
+  "status": "NO-GO"
+}

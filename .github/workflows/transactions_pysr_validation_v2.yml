@@ -1,0 +1,18 @@
+name: transactions-pysr-validation-v2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archived-study:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archived validation notice
+        run: |
+          echo "The frozen 400-row matched official-PySR validation is complete."
+          echo "Artifact: transactions-pysr-validation-v2-final"
+          echo "Artifact digest: sha256:def0e4aba3534d38d67318d8250e967331fa4d1c989a5bc24115f128ee6a0399"
+          echo "Manual reruns must preserve seeds 10501--10505, budgets and endpoints."

@@ -1,0 +1,53 @@
+{
+  "conditions": 590,
+  "mechanism_signal": {
+    "accepts": 12,
+    "attempts": 12,
+    "criteria": {
+      "A_anchor_and_bank_identity": true,
+      "B_non_exception_structures_identical": true,
+      "C_existing_exception_structures_unchanged": true,
+      "D_source_linked_attempts_only": true,
+      "E_accepted_selector_conditional_pass": true,
+      "F_accepted_probe_conditional_pass": true,
+      "G_accepted_outside_role_safe": true,
+      "H_panel_s_4_exception_ge_090": true,
+      "I_panel_s_8_exception_ge_090": true,
+      "J_panel_s_16_exception_ge_09333": true,
+      "K_panel_s32_exception_remains_one": true,
+      "L_overall_exact_noninferior_001": true,
+      "M_zero_exact_harms": true,
+      "N_no_spurious_worsening_non_exception": true,
+      "O_rescue_at_least_7_of_13": true,
+      "P_rescue_hard_cubic_4client_imbalanced": true
+    },
+    "evaluated": true,
+    "exact_harms": 0,
+    "frozen_exception_misses": 13,
+    "frozen_v6_exact_recovery": 0.9152542372881356,
+    "hard_cubic_4client_imbalanced_rescues": 4,
+    "panel_s32_exception_recovery": 1.0,
+    "panel_s_exception_recovery": {
+      "16": 1.0,
+      "4": 0.9666666666666667,
+      "8": 1.0
+    },
+    "passed": true,
+    "probe_delta_max_accepted": -0.884299932948067,
+    "rccd_exact_recovery": 0.9203389830508475,
+    "rescued_exception_misses": 12,
+    "selector_delta_max_accepted": -0.5367635318231607,
+    "spurious_worse_non_exception": 0
+  },
+  "rows": 590,
+  "schema_version": 1,
+  "scientific_boundary": "Post-independent spent-seed mechanism diagnostic only; never independent confirmation or external authorization.",
+  "seeds": [
+    20101,
+    20102,
+    20103,
+    20104,
+    20105
+  ],
+  "status": "rccd-spent-seed-diagnostic"
+}

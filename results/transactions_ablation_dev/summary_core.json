@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "status": "development-complete",
+  "workflow_run_id": 30854002562,
+  "artifact_id": 8872030104,
+  "artifact_digest": "sha256:c0e339f9e2a1e306657c1c48c96bd0a3f5fe37de46ed2dfc375c4d522d0b5ff0",
+  "source_git_commit": "e5c95ba34f4b389a83454688f797732a402d1304",
+  "rows": 1200,
+  "seeds": [10001, 10002, 10003, 10004, 10005],
+  "frozen_seed_overlap": [],
+  "conditions_per_variant": 150,
+  "methods": {
+    "centralized-catalog": {
+      "exact_recovery": 0.9733333333333334,
+      "test_nmse": 0.000012442582611442943,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "runtime_seconds": 0.01448503934666912,
+      "communication_bytes": 0
+    },
+    "fedfalsify-full": {
+      "exact_recovery": 0.9466666666666667,
+      "test_nmse": 0.00015680066109782434,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "runtime_seconds": 0.23741625476666595,
+      "communication_bytes": 315871.88666666666
+    },
+    "fedfalsify-no-nondegradation": {
+      "exact_recovery": 0.9466666666666667,
+      "test_nmse": 0.00015680066109782434,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "runtime_seconds": 0.23727343880666543,
+      "communication_bytes": 315871.88666666666
+    },
+    "fedfalsify-no-heterogeneity": {
+      "exact_recovery": 0.8666666666666667,
+      "test_nmse": 0.005689021293878175,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 0.8666666666666667,
+      "runtime_seconds": 2.73392061962,
+      "communication_bytes": 5326196.493333333
+    },
+    "fedfalsify-no-replacement": {
+      "exact_recovery": 0.86,
+      "test_nmse": 0.001024617854080241,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "runtime_seconds": 0.14129598685999728,
+      "communication_bytes": 127041.65333333334
+    },
+    "fedfalsify-no-exception-module": {
+      "exact_recovery": 0.6333333333333333,
+      "test_nmse": 0.10359353176769881,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 0.6666666666666666,
+      "runtime_seconds": 0.2147415298733298,
+      "communication_bytes": 292434.6
+    },
+    "local-consensus": {
+      "exact_recovery": 0.5333333333333333,
+      "test_nmse": 0.09899580331778512,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 0.6666666666666666,
+      "runtime_seconds": 0.024576763593331493,
+      "communication_bytes": 2154.3333333333335
+    },
+    "score-only-federated": {
+      "exact_recovery": 0.24,
+      "test_nmse": 0.00004882095869252452,
+      "spurious_accepted": 0.2866666666666667,
+      "exception_recovered": 1.0,
+      "runtime_seconds": 1.124324781779995,
+      "communication_bytes": 2243957.06
+    }
+  },
+  "key_findings": {
+    "centralized_catalog_is_privileged_upper_bound": true,
+    "replacement_is_significant": true,
+    "replacement_holm_mcnemar_p": 0.0009765625,
+    "exception_module_is_essential": true,
+    "exception_module_holm_mcnemar_p": 7.105427357601002e-14,
+    "falsification_separates_structure_from_fit": true,
+    "score_only_spurious_acceptance": 0.2866666666666667,
+    "nondegradation_gate_active_in_current_matrix": false,
+    "coefficient_heterogeneity_role": "exception disambiguation and efficiency",
+    "principal_full_method_failure": "high-noise poly3 surrogate ambiguity"
+  },
+  "archived_file_hashes": {
+    "rows.csv": "34842080dbfebb0784c36da3b6591019946f9d0543f0e08ee54ddde9ecb2c916",
+    "summary_holm.json": "9eb5572d5e1e453f0c2f2f926de6ea2777c2f0b8a94c5e20860be22ca6640a22",
+    "summary_raw.json": "fee31bfaa64cf057be5da2d1151c222bb2816363f6f71d64c190e5d68080be9d"
+  },
+  "scientific_boundary": [
+    "Development evidence only.",
+    "May guide method design but cannot support final confirmatory claims.",
+    "Validation seeds 10501--10520 remain untouched.",
+    "Final confirmation seeds 11001--11030 remain untouched."
+  ]
+}

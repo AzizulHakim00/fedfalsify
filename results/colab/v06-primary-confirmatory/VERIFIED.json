@@ -1,0 +1,8 @@
+{
+  "final_manifest_sha256": "d65f095d4431bc9d32b0911e1a119c02e8ce0130b171abe63fef8df95c927a5c",
+  "premerge_audit_sha256": "34122d4b4791a1ecaa1cc55d00a699b1c09616e7d51ddcb9d2864e91da1e30c1",
+  "row_count": 2400,
+  "run_id": "v06-primary-confirmatory",
+  "status": "verified",
+  "verified_at_utc": "2026-08-03T20:33:12.336770+00:00"
+}

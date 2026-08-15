@@ -1,0 +1,33 @@
+{
+  "conditions": 450,
+  "fresh_v6_seeds_used": [],
+  "output_sha256": {
+    "decision.json": "5062c36187749894895143e6ff7636c0ee254bf762829ea3b4aace660c726b07",
+    "rows.csv": "eec8943e8468164a5f580bf1ea28dffa1e2e66dce80a6b2a4db8ec69a7e275cf",
+    "summary.json": "cea9b37f1b62362a45d55debbe2c3412cb394928204c59fc474b0af549ec408e"
+  },
+  "rows": 900,
+  "run_commit": "885fe53e3fb7d877a6faa95f270c516a6b2e096b",
+  "run_mode": "post-hoc-spent-seed-mechanism-diagnostic",
+  "schema_version": 1,
+  "source_sha256": {
+    ".github/workflows/scsv_spent_diagnostic.yml": "a0b345976a2be9ba97b66e0a812a724d3c098657ce1d70081fc1bb2ebd12e246",
+    "research/TRANSACTIONS_HR_V5_FORENSICS.md": "3d988dcafa6e6323b4f9bf3651aa0770272953288334a2c633ab4905ac372db6",
+    "research/TRANSACTIONS_SCSV_EXPLORATORY_PROTOCOL.md": "a281a7b2e7010f41310f63ed8c36294599761d16b2d498b15ea356d0013cafb2",
+    "src/fedfalsify/crossfit_redesign.py": "9d5e773b6e9cb99aea28202ecfdefc06af9288ae4cb70d9fb06defff8a34e489",
+    "src/fedfalsify/crossfit_surrogate.py": "17b5bbe88aedc3d1d474748a6fbce6e28d89eeae743019c60b48dc2debf039c2",
+    "src/fedfalsify/high_recall_v5.py": "7b00f13110d41391fedcdaaa44ab553874b497eef4ade48e310276d0bd208570",
+    "src/fedfalsify/role_conditional.py": "5f90b9875bf4f3049daa19a1808b0dee679a17daaecb153c99ad1af09cefac01",
+    "src/fedfalsify/scsv_diagnostic.py": "8faa1e039be619d399ad72bcce34c93c916be02f3dc3236026b9f31fe15bfcd0",
+    "src/fedfalsify/scsv_diagnostic_study.py": "7a5a3549270bcc8f63d4a4ba8c376e39f2ad8bb55b2c0d272b45519253ef5434",
+    "tests/test_scsv_diagnostic.py": "ec3236473bc071d8c3f3d86416b4f17261374a4db695f4439f9a10b4cce900f6"
+  },
+  "spent_seeds": [
+    17101,
+    17102,
+    17103,
+    17104,
+    17105
+  ],
+  "workflow_run_id": 31276255096
+}

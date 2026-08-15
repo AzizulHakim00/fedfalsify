@@ -1,0 +1,155 @@
+name: SCSV spent-seed exploratory diagnostic
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scsv-spent-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnostic:
+    if: contains(github.event.head_commit.message, '[run-scsv-spent]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen exploratory implementation
+        run: pytest -q tests/test_scsv_diagnostic.py
+
+      - name: Execute spent-seed SCSV diagnostic
+        run: |
+          rm -rf results/scsv_diagnostic
+          mkdir -p results/scsv_diagnostic
+          python -m fedfalsify.scsv_diagnostic_study \
+            --output results/scsv_diagnostic/rows.csv \
+            --summary results/scsv_diagnostic/summary.json
+
+      - name: Audit exploratory boundary
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math, os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path('results/scsv_diagnostic')
+          rows_path = root / 'rows.csv'
+          summary_path = root / 'summary.json'
+          rows = list(csv.DictReader(rows_path.open(encoding='utf-8')))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          assert len(rows) == 900, len(rows)
+          assert {row['method'] for row in rows} == {'scsv-selector', 'scsv-validated'}
+          assert set(Counter(row['method'] for row in rows).values()) == {450}
+          seeds = {int(row['seed']) for row in rows}
+          assert seeds == {17101, 17102, 17103, 17104, 17105}, seeds
+          assert 18001 not in seeds
+          assert all(seed < 18101 for seed in seeds)
+          conditions = {
+              (row['benchmark'], row['scenario'], row['noise_ratio'],
+               row['samples_per_client'], row['seed'])
+              for row in rows
+          }
+          assert len(conditions) == 450, len(conditions)
+          assert summary['status'] == 'scsv-spent-seed-diagnostic'
+          assert summary['diagnostic_signal']['evaluated'] is True
+
+          for row in rows:
+              for field in ('exact_recovery','term_precision','term_recall','test_nmse',
+                            'runtime_seconds','communication_bytes'):
+                  assert math.isfinite(float(row[field])), (field, row)
+
+          decision = {
+              'schema_version': 1,
+              'status': 'MECHANISM-SIGNAL' if summary['diagnostic_signal']['passed']
+                        else 'NO-MECHANISM-SIGNAL',
+              'passed': bool(summary['diagnostic_signal']['passed']),
+              'criteria': summary['diagnostic_signal']['criteria'],
+              'scientific_boundary': (
+                  'Post-hoc spent-seed diagnostic only. This is not v6 evidence '
+                  'and cannot support confirmatory claims.'
+              ),
+          }
+          (root / 'decision.json').write_text(
+              json.dumps(decision, indent=2, sort_keys=True), encoding='utf-8'
+          )
+
+          def digest(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          source_paths = [
+              'research/TRANSACTIONS_HR_V5_FORENSICS.md',
+              'research/TRANSACTIONS_SCSV_EXPLORATORY_PROTOCOL.md',
+              'src/fedfalsify/scsv_diagnostic.py',
+              'src/fedfalsify/scsv_diagnostic_study.py',
+              'src/fedfalsify/high_recall_v5.py',
+              'src/fedfalsify/role_conditional.py',
+              'src/fedfalsify/crossfit_redesign.py',
+              'src/fedfalsify/crossfit_surrogate.py',
+              'tests/test_scsv_diagnostic.py',
+              '.github/workflows/scsv_spent_diagnostic.yml',
+          ]
+          manifest = {
+              'schema_version': 1,
+              'run_mode': 'post-hoc-spent-seed-mechanism-diagnostic',
+              'run_commit': os.environ['RUN_COMMIT'],
+              'workflow_run_id': int(os.environ['RUN_ID']),
+              'spent_seeds': sorted(seeds),
+              'fresh_v6_seeds_used': [],
+              'rows': len(rows),
+              'conditions': len(conditions),
+              'source_sha256': {path: digest(path) for path in source_paths},
+              'output_sha256': {
+                  'rows.csv': digest(rows_path),
+                  'summary.json': digest(summary_path),
+                  'decision.json': digest(root / 'decision.json'),
+              },
+          }
+          (root / 'manifest.json').write_text(
+              json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8'
+          )
+          (root / 'COMPLETE').write_text('spent-seed diagnostic sealed\n', encoding='utf-8')
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed exploratory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-spent-diagnostic
+          path: results/scsv_diagnostic
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit sealed exploratory diagnostic
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/scsv_diagnostic
+          git commit -m "results: seal SCSV spent-seed diagnostic [skip ci]"
+          git fetch origin feat/fedfalsify-mvi
+          git rebase origin/feat/fedfalsify-mvi
+          git push origin HEAD:feat/fedfalsify-mvi

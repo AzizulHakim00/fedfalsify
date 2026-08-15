@@ -1,0 +1,31 @@
+name: official-pysr-smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pysr-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.11"
+      - name: Install official PySR extra
+        run: python -m pip install -e ".[sr]"
+      - name: Run official PySR smoke
+        run: fedfalsify-pysr --smoke --output results/v06_official_pysr_smoke.csv
+      - name: Archive official PySR smoke
+        uses: actions/upload-artifact@v4
+        with:
+          name: v06-official-pysr-smoke
+          path: results/v06_official_pysr_smoke.csv
+          if-no-files-found: error

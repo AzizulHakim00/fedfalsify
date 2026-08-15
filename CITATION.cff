@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, cite the repository and the original methods listed in research/REFERENCES.bib."
+title: "FedFalsify: Federated Counterexample-Guided Mechanism Discovery Prototype"
+type: software
+authors:
+  - family-names: "Hakim"
+    given-names: "Azizul"
+version: 0.6.0
+date-released: 2026-08-03
+url: "https://github.com/AzizulHakim00/fedfalsify"
+license: MIT

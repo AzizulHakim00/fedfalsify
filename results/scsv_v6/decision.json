@@ -1,0 +1,26 @@
+{
+  "claim_boundary": "Passing permits only a separately frozen independent scalability/external-validation stage; failure freezes v6 as NO-GO.",
+  "criteria": {
+    "A_overall_exact_gt_legacy_005": true,
+    "B_overall_exact_gt_v5_010": true,
+    "C_high_noise_poly3_gt_v5_010": true,
+    "D_high_noise_interaction_noninferior_legacy": true,
+    "E_base_noninferior_legacy": true,
+    "F_nested_sine_preserved_v5": true,
+    "G_trig_product_preserved_v5": true,
+    "H_precision_ge_096": true,
+    "I_recall_ge_095": true,
+    "J_spurious_acceptance_controlled": true,
+    "K_exception_recovery_ge_095": true,
+    "L_bank_target_recall_ge_098": true,
+    "M_complete_bank_ge_095": true,
+    "N_nmse_not_worse_than_legacy": true,
+    "O_probe_certification_ge_075": true,
+    "P_communication_not_worse_than_v5": true,
+    "Q_runtime_le_150pct_v5": true
+  },
+  "failed_criteria": [],
+  "passed": true,
+  "schema_version": 1,
+  "status": "GO"
+}

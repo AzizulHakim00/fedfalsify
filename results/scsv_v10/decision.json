@@ -1,0 +1,33 @@
+{
+  "criteria": {
+    "A_integrity_600_fresh_conditions": true,
+    "B_ordinary_anchor_preservation": true,
+    "C_quarantine_integrity": true,
+    "D_null_spurious_deviation_le_002": true,
+    "E_zero_exact_harms": false,
+    "F_overall_exact_gain_ge_002": false,
+    "G_deviation_subset_exact_gain_ge_004": false,
+    "H_deviation_precision_ge_099": true,
+    "I_deviation_recall_ge_095": false,
+    "J_each_main_family_recovery_ge_092": false,
+    "K_weak_source_recovery_ge_085": true,
+    "L_four_client_recovery_ge_090": false,
+    "M_eight_client_recovery_ge_093": true,
+    "N_sixteen_client_recovery_ge_095": false,
+    "O_high_noise_recovery_ge_090": false,
+    "P_imbalance_gap_le_005": true,
+    "Q_dual_both_ge_090_and_no_spurious": false,
+    "R_quarantine_mechanism_superiority": true,
+    "S_client_consensus_mechanism_superiority": false,
+    "T_role_integrity": true,
+    "U_source_qualification_integrity": true,
+    "V_pair_invariant": true,
+    "W_client_consensus_integrity": true,
+    "X_communication_le_185pct_v9": true,
+    "Y_runtime_le_250pct_v9": true
+  },
+  "passed": false,
+  "schema_version": 1,
+  "scientific_boundary": "A GO authorizes only a separately frozen v10 independent-validation protocol with a new untouched seed namespace. A NO-GO permanently spends 28101--28105 and forbids retuning v10 on them.",
+  "status": "DEVELOPMENT-NO-GO"
+}

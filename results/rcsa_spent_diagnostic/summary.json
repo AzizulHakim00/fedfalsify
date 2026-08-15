@@ -1,0 +1,45 @@
+{
+  "conditions": 590,
+  "mechanism_signal": {
+    "augmentation_accepts": 0,
+    "augmentation_attempts": 13,
+    "criteria": {
+      "A_candidate_bank_identity": true,
+      "B_non_exception_structures_identical": true,
+      "C_existing_exception_structures_unchanged": true,
+      "D_panel_s_4_exception_ge_090": false,
+      "E_panel_s_8_exception_ge_frozen": true,
+      "F_panel_s_16_exception_ge_frozen": true,
+      "G_panel_s32_exception_remains_one": true,
+      "H_overall_exact_noninferior_001": true,
+      "I_zero_exact_harms": true,
+      "J_no_spurious_worsening_non_exception": true,
+      "K_rescue_at_least_7_of_13": false
+    },
+    "evaluated": true,
+    "exact_harms": 0,
+    "frozen_exception_misses": 13,
+    "frozen_v6_exact_recovery": 0.9152542372881356,
+    "panel_s32_exception_recovery": 1.0,
+    "panel_s_exception_recovery": {
+      "16": 0.9333333333333333,
+      "4": 0.8,
+      "8": 0.9
+    },
+    "passed": false,
+    "rcsa_exact_recovery": 0.9152542372881356,
+    "rescued_exception_misses": 0,
+    "spurious_worse_non_exception": 0
+  },
+  "rows": 590,
+  "schema_version": 1,
+  "scientific_boundary": "Post-independent spent-seed mechanism diagnostic only; never independent confirmation or external authorization.",
+  "seeds": [
+    20101,
+    20102,
+    20103,
+    20104,
+    20105
+  ],
+  "status": "rcsa-spent-seed-diagnostic"
+}

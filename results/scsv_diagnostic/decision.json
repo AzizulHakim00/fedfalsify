@@ -1,0 +1,16 @@
+{
+  "criteria": {
+    "A_selector_exact_signal": true,
+    "B_validated_exact_improves_v5": true,
+    "C_poly3_exact_signal": true,
+    "D_nested_sine_preserved": true,
+    "E_trig_product_preserved": true,
+    "F_precision_not_below_v5": true,
+    "G_communication_below_v5": true,
+    "H_exception_route_has_eligible_diagnostics": true
+  },
+  "passed": true,
+  "schema_version": 1,
+  "scientific_boundary": "Post-hoc spent-seed diagnostic only. This is not v6 evidence and cannot support confirmatory claims.",
+  "status": "MECHANISM-SIGNAL"
+}

@@ -1,0 +1,18 @@
+{
+  "status": "NO-GO",
+  "scope": "crossfit-governed redesign v1",
+  "reason": "One of five frozen development criteria failed: high-noise poly3/interaction exact recovery did not improve over legacy.",
+  "required_high_noise_exact_gain": 0.05,
+  "observed_high_noise_exact_gain": 0.0,
+  "legacy_high_noise_exact_recovery": 0.35,
+  "governed_high_noise_exact_recovery": 0.35,
+  "spent_development_seeds": [13001, 13002, 13003, 13004, 13005],
+  "final_confirmation_seeds_untouched": true,
+  "prohibited_actions": [
+    "Do not retune thresholds or fallback rules on seeds 13001--13005.",
+    "Do not execute final confirmation for this redesign.",
+    "Do not claim the polynomial-surrogate boundary was solved.",
+    "Do not present score-only fallback as structural discovery."
+  ],
+  "permitted_interpretation": "Cross-fitting plus governed continuation improved predictive NMSE and repaired some split-instability omissions, but did not resolve high-noise polynomial structural identifiability."
+}

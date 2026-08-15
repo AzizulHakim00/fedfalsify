@@ -1,0 +1,113 @@
+{
+  "status": "development-only",
+  "matrix": {
+    "mechanisms": 5,
+    "scenarios": 3,
+    "noise_ratio": 0.03,
+    "samples_per_client": 120,
+    "clients": 4,
+    "seeds": [6001, 6002, 6003],
+    "methods": 4,
+    "method_runs": 180,
+    "matched_conditions_per_method": 45,
+    "tree_population": 24,
+    "tree_generations": 5,
+    "maximum_genes": 4
+  },
+  "methods": {
+    "fedfalsify-v05": {
+      "exact_recovery": 0.9333333333333333,
+      "exact_wilson_95": [0.8214339803640811, 0.977067967400749],
+      "term_precision": 0.9814814814814815,
+      "term_recall": 0.987037037037037,
+      "test_nmse": 1.0038542873577607e-05,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "runtime_seconds": 0.2125035443999994,
+      "communication_bytes": 282689.2444444444
+    },
+    "centralized-tree-gp": {
+      "exact_recovery": 0.15555555555555556,
+      "exact_wilson_95": [0.07745423484758268, 0.2878390887239627],
+      "term_precision": 0.3814814814814815,
+      "term_recall": 0.40925925925925927,
+      "test_nmse": 0.07312336095653961,
+      "spurious_accepted": 0.2222222222222222,
+      "exception_recovered": 0.8,
+      "runtime_seconds": 0.3561799068222213,
+      "communication_bytes": 0
+    },
+    "federated-tree-gp-style": {
+      "exact_recovery": 0.15555555555555556,
+      "exact_wilson_95": [0.07745423484758268, 0.2878390887239627],
+      "term_precision": 0.3814814814814815,
+      "term_recall": 0.40925925925925927,
+      "test_nmse": 0.0731233609565396,
+      "spurious_accepted": 0.2222222222222222,
+      "exception_recovered": 0.8,
+      "runtime_seconds": 0.4775908129555559,
+      "communication_bytes": 341518.22222222225
+    },
+    "centralized-residual-counterexample-gp": {
+      "exact_recovery": 0.15555555555555556,
+      "exact_wilson_95": [0.07745423484758268, 0.2878390887239627],
+      "term_precision": 0.37777777777777777,
+      "term_recall": 0.3814814814814815,
+      "test_nmse": 0.0887208477643008,
+      "spurious_accepted": 0.24444444444444444,
+      "exception_recovered": 0.7777777777777778,
+      "runtime_seconds": 0.3703752777999998,
+      "communication_bytes": 0
+    }
+  },
+  "paired_exact_recovery": {
+    "centralized-tree-gp": {
+      "reference_only_success": 35,
+      "comparator_only_success": 0,
+      "discordant_pairs": 35,
+      "raw_mcnemar_p": 5.820766091346741e-11,
+      "holm_adjusted_p": 1.7462298274040222e-10
+    },
+    "federated-tree-gp-style": {
+      "reference_only_success": 35,
+      "comparator_only_success": 0,
+      "discordant_pairs": 35,
+      "raw_mcnemar_p": 5.820766091346741e-11,
+      "holm_adjusted_p": 1.7462298274040222e-10
+    },
+    "centralized-residual-counterexample-gp": {
+      "reference_only_success": 35,
+      "comparator_only_success": 0,
+      "discordant_pairs": 35,
+      "raw_mcnemar_p": 5.820766091346741e-11,
+      "holm_adjusted_p": 1.7462298274040222e-10
+    }
+  },
+  "fedfalsify_failures": [
+    {
+      "benchmark": "poly3",
+      "scenario": "complementary",
+      "seed": 6002,
+      "discovered_terms": "sin(x1);x1^2;x1^3",
+      "missing": "x1",
+      "extra": "sin(x1)"
+    },
+    {
+      "benchmark": "poly3",
+      "scenario": "exception",
+      "seed": 6002,
+      "discovered_terms": "I(x3>1)*x3^2;sin(x1);x1^2;x1^3",
+      "missing": "x1",
+      "extra": "sin(x1)"
+    },
+    {
+      "benchmark": "interaction",
+      "scenario": "exception",
+      "seed": 6003,
+      "discovered_terms": "I(x3>1)*x3^2;x1*x2;x3;x3^2",
+      "missing": "none",
+      "extra": "x3"
+    }
+  ],
+  "integrity_note": "The matrix is development evidence. Controlled GP budgets are moderate, official PySR was not executed, and FedFalsify uses a finite named catalog containing target terms. Do not use this file to claim universal or publication-confirmed superiority."
+}

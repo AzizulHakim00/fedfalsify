@@ -1,0 +1,47 @@
+name: SCSV-Cert v6 independent engineering smoke
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+    paths:
+      - 'research/TRANSACTIONS_SCSV_V6_INDEPENDENT_VALIDATION_PROTOCOL.md'
+      - 'src/fedfalsify/scsv_v6_independent.py'
+      - 'src/fedfalsify/scsv_v6_independent_study.py'
+      - 'tests/test_scsv_v6_independent.py'
+      - '.github/workflows/scsv_v6_independent_smoke.yml'
+      - '.github/workflows/scsv_v6_independent_evidence.yml'
+
+jobs:
+  smoke:
+    if: ${{ !contains(github.event.head_commit.message, '[skip-independent]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install package
+        run: pip install -e . pytest
+      - name: Run independent invariant tests
+        run: pytest -q tests/test_scsv_v6_independent.py
+      - name: Run independent engineering smoke only
+        run: >-
+          python -m fedfalsify.scsv_v6_independent_study
+          --smoke
+          --output results/scsv_v6_independent_smoke/rows.csv
+          --summary results/scsv_v6_independent_smoke/summary.json
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path('results/scsv_v6_independent_smoke')
+          rows = list(csv.DictReader((root / 'rows.csv').open(encoding='utf-8')))
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          assert len(rows) == 1
+          assert {int(row['seed']) for row in rows} == {20001}
+          assert {row['method'] for row in rows} == {'scsv-v6-full'}
+          assert summary['independent_gate']['evaluated'] is False
+          assert summary['independent_gate']['passed'] is None
+          assert not ({20101,20102,20103,20104,20105} & {int(row['seed']) for row in rows})
+          PY

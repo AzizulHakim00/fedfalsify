@@ -1,0 +1,168 @@
+name: tests
+
+on:
+  push:
+    branches: [main, feat/fedfalsify-transactions]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Test
+        run: pytest
+      - name: Base discovery demo
+        run: fedfalsify-demo --benchmark base --samples 300 --noise 0.03 --rounds 7
+      - name: Spurious-correlation benchmark
+        run: fedfalsify-demo --benchmark spurious --samples 400 --noise 0.03 --seed 191
+      - name: Exception benchmark
+        run: fedfalsify-demo --benchmark exception --samples 450 --noise 0.02 --seed 229
+      - name: Preregistered pilot smoke test
+        run: fedfalsify-pilot --smoke --samples 120 --output results/pilot_smoke.csv
+      - name: Coefficient-heterogeneity ablation smoke test
+        run: fedfalsify-heterogeneity --smoke --output results/v04_smoke.csv
+      - name: Core-surrogate replacement smoke test
+        run: fedfalsify-core-replacement --smoke --output results/v05_smoke.csv
+      - name: Expression-tree confirmatory smoke test
+        run: fedfalsify-confirmatory --smoke --output results/v06_confirmatory_smoke.csv --summary results/v06_confirmatory_smoke.json
+      - name: Holm-corrected confirmatory report
+        run: fedfalsify-confirmatory-report --input results/v06_confirmatory_smoke.json --output results/v06_confirmatory_smoke_corrected.json
+      - name: Certificate privacy ablation smoke test
+        run: fedfalsify-privacy-study --smoke --output results/v06_privacy_smoke.csv
+      - name: Transactions semantic-analysis smoke test
+        run: |
+          fedfalsify-transactions-analysis \
+            --input results/colab/v06-primary-confirmatory/final/v06_confirmatory.csv \
+            --output-dir results/transactions_ci \
+            --samples 200
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(
+              Path("results/transactions_ci/transactions_summary.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert summary["input_rows"] == 2400
+          assert summary["unique_method_condition_rows"] == 2400
+          assert summary["duplicate_method_condition_rows"] == 0
+          parse_failures = {
+              method: values["parse_failures"]
+              for method, values in summary["methods"].items()
+          }
+          print("Semantic parse failures:", parse_failures)
+          assert all(value == 0 for value in parse_failures.values()), parse_failures
+          PY
+      - name: Transactions ablation smoke test
+        run: |
+          fedfalsify-transactions-ablation \
+            --smoke \
+            --bootstrap-resamples 200 \
+            --output results/transactions_ablation_smoke.csv \
+            --summary results/transactions_ablation_smoke_raw.json \
+            --holm-summary results/transactions_ablation_smoke_holm.json
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+
+          with Path("results/transactions_ablation_smoke.csv").open(
+              newline="", encoding="utf-8"
+          ) as handle:
+              rows = list(csv.DictReader(handle))
+          assert len(rows) == 14
+          assert {int(row["seed"]) for row in rows} == {10001}
+          PY
+      - name: Audited Colab dry run
+        run: |
+          fedfalsify-colab run-chunk \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --benchmarks base \
+            --scenarios complementary \
+            --noise 0.03 \
+            --samples 60 \
+            --clients 4 \
+            --seeds 9001 \
+            --chunk-index 0 \
+            --total-chunks 1 \
+            --population-size 12 \
+            --generations 2 \
+            --max-genes 3 \
+            --bootstrap-resamples 500
+          fedfalsify-colab-audit seal-chunk \
+            --repo-root . \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --chunk-index 0 \
+            --total-chunks 1
+          fedfalsify-colab-audit verify-run \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --expected-chunks 1 \
+            --expected-rows 4
+          fedfalsify-colab merge \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --expected-chunks 1 \
+            --expected-rows 4 \
+            --bootstrap-resamples 500
+          fedfalsify-colab-audit seal-final \
+            --run-id ci-colab-dry-run \
+            --output-root results/colab \
+            --expected-rows 4
+          test -f results/colab/ci-colab-dry-run/VERIFIED.json
+      - name: Stability-superset v3 smoke test
+        run: |
+          fedfalsify-stability-study --smoke \
+            --output results/stability_v3_smoke.csv \
+            --summary results/stability_v3_smoke.json
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          with Path("results/stability_v3_smoke.csv").open(
+              newline="", encoding="utf-8"
+          ) as handle:
+              rows = list(csv.DictReader(handle))
+          summary = json.loads(
+              Path("results/stability_v3_smoke.json").read_text(encoding="utf-8")
+          )
+          assert len(rows) == 14
+          assert {int(row["seed"]) for row in rows} == {15001}
+          assert summary["development_gate"]["evaluated"] is False
+          assert summary["development_gate"]["passed"] is None
+          PY
+      - name: Role-conditioned v4 engineering smoke test
+        run: |
+          fedfalsify-role-v4-study --smoke \
+            --output results/role_v4_smoke.csv \
+            --summary results/role_v4_smoke.json
+          python - <<'PY'
+          import csv
+          import json
+          from pathlib import Path
+
+          with Path("results/role_v4_smoke.csv").open(
+              newline="", encoding="utf-8"
+          ) as handle:
+              rows = list(csv.DictReader(handle))
+          summary = json.loads(
+              Path("results/role_v4_smoke.json").read_text(encoding="utf-8")
+          )
+          assert len(rows) == 40
+          assert {int(row["seed"]) for row in rows} == {16001}
+          assert summary["development_gate"]["evaluated"] is False
+          assert summary["development_gate"]["passed"] is None
+          PY

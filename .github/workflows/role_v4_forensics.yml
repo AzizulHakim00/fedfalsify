@@ -1,0 +1,74 @@
+name: RC-DES v4 forensic decomposition
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+    paths:
+      - "src/fedfalsify/role_v4_forensics.py"
+      - ".github/workflows/role_v4_forensics.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  forensic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e .
+
+      - name: Verify sealed v4 evidence exists
+        run: |
+          test -f results/role_conditional_v4/COMPLETE
+          test -f results/role_conditional_v4/rows.csv
+          test -f results/role_conditional_v4/summary.json
+          test -f results/role_conditional_v4/decision.json
+
+      - name: Run post-hoc forensic decomposition
+        run: |
+          python -m fedfalsify.role_v4_forensics \
+            --rows results/role_conditional_v4/rows.csv \
+            --json results/role_conditional_v4/forensics.json \
+            --markdown research/TRANSACTIONS_ROLE_CONDITIONAL_V4_FORENSICS.md
+
+      - name: Validate forensic output
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("results/role_conditional_v4/forensics.json")
+          d = json.loads(p.read_text())
+          assert d["analysis_status"] == "POST_HOC_DIAGNOSTIC_ONLY"
+          assert d["evidence_rows"] == 4500
+          assert set(d["seeds"]) == {16101,16102,16103,16104,16105}
+          assert all(v == 450 for v in d["conditions_per_method"].values())
+          assert Path("research/TRANSACTIONS_ROLE_CONDITIONAL_V4_FORENSICS.md").exists()
+          print("forensic audit passed")
+          PY
+
+      - name: Commit compact forensic record
+        env:
+          BRANCH: feat/fedfalsify-mvi
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/TRANSACTIONS_ROLE_CONDITIONAL_V4_FORENSICS.md
+          git add -f results/role_conditional_v4/forensics.json
+          if git diff --cached --quiet; then
+            echo "No forensic changes to commit"
+            exit 0
+          fi
+          git commit -m "research: record post-hoc v4 failure forensics"
+          git push origin "HEAD:${BRANCH}"

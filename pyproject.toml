@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fedfalsify"
+version = "0.6.0"
+description = "Certificate-guided federated symbolic discovery research prototype"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Azizul Hakim"}]
+dependencies = ["numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+sr = ["pysr>=1.5.10,<2"]
+
+[project.scripts]
+fedfalsify-demo = "fedfalsify.demo:main"
+fedfalsify-pilot = "fedfalsify.experiments:main"
+fedfalsify-heterogeneity = "fedfalsify.heterogeneity_study:main"
+fedfalsify-core-replacement = "fedfalsify.core_replacement_study:main"
+fedfalsify-confirmatory = "fedfalsify.confirmatory:main"
+fedfalsify-confirmatory-report = "fedfalsify.confirmatory_report:main"
+fedfalsify-privacy-study = "fedfalsify.privacy_study:main"
+fedfalsify-pysr = "fedfalsify.pysr_study:main"
+fedfalsify-colab = "fedfalsify.colab_pipeline:main"
+fedfalsify-colab-audit = "fedfalsify.colab_audit:main"
+fedfalsify-transactions-analysis = "fedfalsify.transactions_analysis_fixed:main"
+fedfalsify-transactions-ablation = "fedfalsify.transactions_ablation_v2:main"
+fedfalsify-transactions-pysr = "fedfalsify.transactions_pysr:main"
+fedfalsify-transactions-pysr-validation = "fedfalsify.transactions_pysr_validation_fixed:main"
+fedfalsify-transactions-adaptive-tree = "fedfalsify.transactions_adaptive_tree_fixed:main"
+fedfalsify-certificate-theory = "fedfalsify.certificate_bounds:main"
+fedfalsify-external-beijing = "fedfalsify.external_beijing:main"
+fedfalsify-external-beijing-study = "fedfalsify.external_beijing_study_fixed:main"
+fedfalsify-external-srsd-study = "fedfalsify.external_srsd_study_v4:main"
+fedfalsify-crossfit-redesign = "fedfalsify.redesign_study_fixed:main"
+fedfalsify-surrogate-study = "fedfalsify.surrogate_study_fixed:main"
+fedfalsify-stability-study = "fedfalsify.stability_study:main"
+fedfalsify-role-v4-study = "fedfalsify.role_conditional_study:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

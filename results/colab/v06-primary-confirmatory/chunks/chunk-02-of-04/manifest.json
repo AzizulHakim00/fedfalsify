@@ -1,0 +1,212 @@
+{
+  "command": "run-chunk",
+  "completed_at_utc": "2026-08-03T17:52:58.594954+00:00",
+  "config": {
+    "all_seeds": [
+      9001,
+      9002,
+      9003,
+      9004,
+      9005,
+      9006,
+      9007,
+      9008,
+      9009,
+      9010,
+      9011,
+      9012,
+      9013,
+      9014,
+      9015,
+      9016,
+      9017,
+      9018,
+      9019,
+      9020
+    ],
+    "benchmarks": [
+      "base",
+      "poly3",
+      "nested_sine",
+      "trig_product",
+      "interaction"
+    ],
+    "bootstrap_resamples": 4000,
+    "chunk_index_zero_based": 1,
+    "client_counts": [
+      4
+    ],
+    "generations": 12,
+    "max_genes": 4,
+    "max_terms": 6,
+    "methods": [
+      "fedfalsify-v05",
+      "centralized-tree-gp",
+      "federated-tree-gp-style",
+      "centralized-residual-counterexample-gp"
+    ],
+    "noise_ratios": [
+      0.03,
+      0.1
+    ],
+    "population_size": 48,
+    "samples_per_client": [
+      300
+    ],
+    "scenarios": [
+      "complementary",
+      "spurious",
+      "exception"
+    ],
+    "selected_seeds": [
+      9006,
+      9007,
+      9008,
+      9009,
+      9010
+    ],
+    "total_chunks": 4
+  },
+  "created_at_utc": "2026-08-03T17:52:58.593150+00:00",
+  "expected_row_count": 600,
+  "fedfalsify_version": "0.6.0",
+  "files": {
+    "rows.csv": {
+      "bytes": 187835,
+      "sha256": "1c1fc0c62cd11abd48e381a70c218d52b67aa441b9f5349f96d73b2072ac021d"
+    },
+    "summary_holm.json": {
+      "bytes": 4382,
+      "sha256": "a7ab6af467630b1833cc42e9606a983facc8ed4b90601a1491ae124054253d70"
+    },
+    "summary_raw.json": {
+      "bytes": 4032,
+      "sha256": "2869089a99878eec036c648de07e6556c3b55ddc587964ca36235a76dda8f4af"
+    }
+  },
+  "git_commit": "387e83a04ced187779d890c2a7bfa4a9849adde8",
+  "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "protocol_config_fingerprint_sha256": "60969b89b8855ef03718c000ab411918c0d20074532348c221e0725979e42ef1",
+  "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+  "row_count": 600,
+  "run_id": "v06-primary-confirmatory",
+  "schema_version": 1,
+  "sealed_at_utc": "2026-08-03T20:32:38.760755+00:00",
+  "source_file_count": 28,
+  "source_files": {
+    "colab/FedFalsify_v06_Confirmatory_Colab_Auto.ipynb": {
+      "bytes": 18224,
+      "sha256": "61d98bd644e7dc1aac089e498dc806887666b16ceeeb4792ae7604907a36076c"
+    },
+    "pyproject.toml": {
+      "bytes": 1164,
+      "sha256": "208066f903163096536656f58a9e745639d1df68b91ec4e278c2c2e19c0952b7"
+    },
+    "research/V0_6_CONFIRMATORY_PROTOCOL.md": {
+      "bytes": 8345,
+      "sha256": "8f64d08dc80c0e4daf895b02ed25c58976a98df50c33733ac86c1a00dbf0d590"
+    },
+    "src/fedfalsify/__init__.py": {
+      "bytes": 2060,
+      "sha256": "697cb2ae332ec6ef6644103b7fdcc650aceba3d702739115b593bc673dd38d49"
+    },
+    "src/fedfalsify/baselines.py": {
+      "bytes": 9254,
+      "sha256": "5264e051e452995963100ad50d28a631e80ece4c0caee0f39358f7d4a14bc3c7"
+    },
+    "src/fedfalsify/basis.py": {
+      "bytes": 5659,
+      "sha256": "bf89b44af1b7e8cde440587a09ea2661d344a9602b39922ac68e7d34677d2dd8"
+    },
+    "src/fedfalsify/benchmarks.py": {
+      "bytes": 9220,
+      "sha256": "0a3fed0364baadfaefba3bcd3bc7aa23ee0a4e2d668d4fa529038695f1fc1866"
+    },
+    "src/fedfalsify/certificate.py": {
+      "bytes": 1610,
+      "sha256": "234525a2d3809fa0ca5dce13013cf813f2cee3df789d634c97c2868abdd3f5be"
+    },
+    "src/fedfalsify/client.py": {
+      "bytes": 6599,
+      "sha256": "d04daaa1fc88dbd996a14a592ebc0a9b09f96c360241d7bc619df038cde1f6da"
+    },
+    "src/fedfalsify/colab_audit.py": {
+      "bytes": 14175,
+      "sha256": "7d2fddd4a1eda813d4f028310ffd46632050350731ed2cd435d4e724072401ef"
+    },
+    "src/fedfalsify/colab_pipeline.py": {
+      "bytes": 15445,
+      "sha256": "218628739799774bea2b03165711a4912e3d2c40cbcedde8c6b278a9d8e873e6"
+    },
+    "src/fedfalsify/confirmatory.py": {
+      "bytes": 16977,
+      "sha256": "b65ae9bfcf1affaa837771a212eee5e4c28a2dee08032c13c9c749b9a3091890"
+    },
+    "src/fedfalsify/confirmatory_report.py": {
+      "bytes": 1812,
+      "sha256": "a049d95adb33250ea5302cea44ba702b8896524356e7e0ed507014ea3ae6b249"
+    },
+    "src/fedfalsify/core_replacement_study.py": {
+      "bytes": 7434,
+      "sha256": "9bd7538b8b26335a4f72438c0babd6c26339cae083755898d1fb807f285961d4"
+    },
+    "src/fedfalsify/data.py": {
+      "bytes": 5142,
+      "sha256": "3e0c57121a60a1a8dba58155983de9f518336811bb0f6004ffcdd895bb9b92a2"
+    },
+    "src/fedfalsify/demo.py": {
+      "bytes": 3351,
+      "sha256": "7789fc4ab916613b7d85d8979deaf162f506ecf37431a625ff7881ee29f102ee"
+    },
+    "src/fedfalsify/evaluation.py": {
+      "bytes": 4493,
+      "sha256": "24728b00f2139a95d36a76923e1a900c0d119cccc6369d9e86395589a6322ef5"
+    },
+    "src/fedfalsify/experiments.py": {
+      "bytes": 6707,
+      "sha256": "c668ea0b223547d765e0364d35e30e37b69d6d75a8264fa7738eb0ecf36e3c01"
+    },
+    "src/fedfalsify/expression_baselines.py": {
+      "bytes": 14708,
+      "sha256": "60258bac3c79ba57343eb9f5bc00376df3ba5a28ae1b3b15ef4c66282cd04f21"
+    },
+    "src/fedfalsify/expression_tree.py": {
+      "bytes": 7366,
+      "sha256": "eb15397950c2d41e055235bba1ad462aefecbef929db535bef7367c6cb69c3cd"
+    },
+    "src/fedfalsify/heterogeneity_study.py": {
+      "bytes": 2224,
+      "sha256": "9d053c30f234654fafef4850fe1df80f669f52b77c9515fc06b7164609461bfe"
+    },
+    "src/fedfalsify/privacy.py": {
+      "bytes": 9497,
+      "sha256": "6ca7cf8ab4c74b369e3378d0ad3f4341ef12297d942e57ec1573ff05d9de1817"
+    },
+    "src/fedfalsify/privacy_study.py": {
+      "bytes": 8319,
+      "sha256": "8f86db3970ae1789331df4ea67c00ebe9067e26e312260d5729fc30749e07049"
+    },
+    "src/fedfalsify/pysr_adapter.py": {
+      "bytes": 2834,
+      "sha256": "d41d78a6215717ca85f852450e888544c740d3b41b4567a2212e28df813cf795"
+    },
+    "src/fedfalsify/pysr_study.py": {
+      "bytes": 5197,
+      "sha256": "98b9522d299295cbddc8f30f1ca700a64fa9328e0e3456ee3376911b23f4643d"
+    },
+    "src/fedfalsify/replacement.py": {
+      "bytes": 17605,
+      "sha256": "02ca5852ff422dee13dbbde24e1e27cfcdd20e5cc6301c46644295a30b2f865a"
+    },
+    "src/fedfalsify/server.py": {
+      "bytes": 18474,
+      "sha256": "3c12c2bdf6a511cc1b90adadd694dfe3fb184888d35582aa667c5d6c6bb77b74"
+    },
+    "src/fedfalsify/statistics.py": {
+      "bytes": 4708,
+      "sha256": "7024c10ed95ce80942c159a60014fc2b64b8a2399e27c9f3241be97b8c771d0a"
+    }
+  },
+  "source_fingerprint_sha256": "a797f15ba419ba575e138601b3faba10f65cea188becacd9a76c7127cf42da45",
+  "status": "completed"
+}

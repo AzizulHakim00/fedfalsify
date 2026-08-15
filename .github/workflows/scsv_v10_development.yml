@@ -1,0 +1,277 @@
+name: SCSV-AQCC v10 sharded fresh development evidence
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scsv-aqcc-v10-development
+  cancel-in-progress: false
+
+jobs:
+  shard:
+    if: contains(github.event.head_commit.message, '[run-v10-development]')
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [28101, 28102, 28103, 28104, 28105]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen v10 scientific state and historical boundary
+        run: |
+          set -euo pipefail
+          GREEN_V10=06697f65a3f234bd93fe72cf882ecdfaa1040304
+          for path in \
+            research/TRANSACTIONS_SCSV_AQCC_V10_NOVELTY_AUDIT.md \
+            research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md \
+            src/fedfalsify/scsv_v10_benchmarks.py \
+            src/fedfalsify/scsv_v10.py \
+            src/fedfalsify/scsv_v10_study.py \
+            src/fedfalsify/scsv_v10_sharded.py \
+            tests/test_scsv_v10.py \
+            tests/test_scsv_v10_sharded.py; do
+            test "$(git rev-parse "${GREEN_V10}:${path}")" = "$(git rev-parse "HEAD:${path}")"
+          done
+          grep -q 'DEVELOPMENT-NO-GO' research/TRANSACTIONS_SCSV_RCEF_V9_POST_RECOVERY_FORENSICS.md
+          grep -q '27101--27105' research/TRANSACTIONS_SCSV_RCEF_V9_POST_RECOVERY_FORENSICS.md
+          grep -q 'INFRASTRUCTURE-CANCELLED / NO SCIENTIFIC VERDICT' research/TRANSACTIONS_SCSV_RCEF_V9_INFRASTRUCTURE_CANCELLATION.md
+          grep -q '26101--26105' research/TRANSACTIONS_SCSV_RCEF_V9_INFRASTRUCTURE_CANCELLATION.md
+          pytest -q tests/test_scsv_v10.py tests/test_scsv_v10_sharded.py
+
+      - name: Execute one frozen 120-condition v10 shard
+        run: |
+          rm -rf "results/scsv_v10_shard_${{ matrix.seed }}"
+          python -m fedfalsify.scsv_v10_sharded shard \
+            --seed "${{ matrix.seed }}" \
+            --out "results/scsv_v10_shard_${{ matrix.seed }}"
+
+      - name: Audit shard isolation
+        run: |
+          SEED="${{ matrix.seed }}" python - <<'PY'
+          import csv, json, math, os
+          from pathlib import Path
+          seed = int(os.environ['SEED'])
+          root = Path(f'results/scsv_v10_shard_{seed}')
+          rows = list(csv.DictReader((root / f'rows-{seed}.csv').open(encoding='utf-8')))
+          manifest = json.loads((root / f'manifest-{seed}.json').read_text(encoding='utf-8'))
+          assert len(rows) == 720
+          assert {int(row['seed']) for row in rows} == {seed}
+          methods = {
+              'scsv-aqcc-v10-full', 'scsv-aqcc-v10-no-quarantine',
+              'scsv-aqcc-v10-split-veto', 'scsv-rcef-v9-style',
+              'scsv-v6-anchor', 'centralized-forward',
+          }
+          assert {row['method'] for row in rows} == methods
+          keys = {
+              (row['family'],row['noise_ratio'],row['samples_per_client'],row['num_clients'],row['balance_profile'],row['role_profile'],row['seed'])
+              for row in rows
+          }
+          assert len(keys) == 120
+          assert manifest['seed'] == seed and manifest['conditions'] == 120 and manifest['rows'] == 720
+          for row in rows:
+              for field in ('exact_recovery','term_precision','term_recall','test_nmse','train_mse','runtime_seconds'):
+                  assert math.isfinite(float(row[field]))
+          forbidden = {28001,26101,26102,26103,26104,26105,27101,27102,27103,27104,27105}
+          assert not forbidden & {int(row['seed']) for row in rows}
+          print(f'V10 shard {seed} isolation PASS')
+          PY
+
+      - name: Upload raw v10 shard
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-aqcc-v10-shard-${{ matrix.seed }}
+          path: results/scsv_v10_shard_${{ matrix.seed }}
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    if: contains(github.event.head_commit.message, '[run-v10-development]')
+    needs: shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact aggregation source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen v10 scientific files before aggregation
+        run: |
+          set -euo pipefail
+          GREEN_V10=06697f65a3f234bd93fe72cf882ecdfaa1040304
+          for path in \
+            research/TRANSACTIONS_SCSV_AQCC_V10_NOVELTY_AUDIT.md \
+            research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md \
+            src/fedfalsify/scsv_v10_benchmarks.py \
+            src/fedfalsify/scsv_v10.py \
+            src/fedfalsify/scsv_v10_study.py \
+            src/fedfalsify/scsv_v10_sharded.py \
+            tests/test_scsv_v10.py \
+            tests/test_scsv_v10_sharded.py; do
+            test "$(git rev-parse "${GREEN_V10}:${path}")" = "$(git rev-parse "HEAD:${path}")"
+          done
+
+      - name: Download all five raw v10 shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: scsv-aqcc-v10-shard-*
+          path: results/v10_shards
+          merge-multiple: true
+
+      - name: Verify shard completeness before aggregation
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          root = Path('results/v10_shards')
+          row_files = sorted(root.glob('rows-281*.csv'))
+          manifest_files = sorted(root.glob('manifest-281*.json'))
+          assert len(row_files) == 5, [str(p) for p in row_files]
+          assert len(manifest_files) == 5, [str(p) for p in manifest_files]
+          expected = {28101,28102,28103,28104,28105}
+          observed, condition_keys, row_keys = set(), set(), set()
+          total = 0
+          methods = {
+              'scsv-aqcc-v10-full','scsv-aqcc-v10-no-quarantine','scsv-aqcc-v10-split-veto',
+              'scsv-rcef-v9-style','scsv-v6-anchor','centralized-forward'
+          }
+          for path in row_files:
+              rows = list(csv.DictReader(path.open(encoding='utf-8')))
+              assert len(rows) == 720
+              seeds = {int(r['seed']) for r in rows}; assert len(seeds) == 1
+              observed |= seeds; total += len(rows)
+              local_conditions = {
+                  (r['family'],r['noise_ratio'],r['samples_per_client'],r['num_clients'],r['balance_profile'],r['role_profile'],r['seed'])
+                  for r in rows
+              }
+              assert len(local_conditions) == 120
+              condition_keys |= local_conditions
+              for r in rows:
+                  rk = (r['family'],r['noise_ratio'],r['samples_per_client'],r['num_clients'],r['balance_profile'],r['role_profile'],r['seed'],r['method'])
+                  assert rk not in row_keys; row_keys.add(rk)
+              for key in local_conditions:
+                  matched = {r['method'] for r in rows if (r['family'],r['noise_ratio'],r['samples_per_client'],r['num_clients'],r['balance_profile'],r['role_profile'],r['seed']) == key}
+                  assert matched == methods
+          assert observed == expected
+          assert total == 3600 and len(condition_keys) == 600 and len(row_keys) == 3600
+          print('V10 five-shard pre-aggregation integrity PASS')
+          PY
+
+      - name: Combine shards and evaluate frozen A-Y gates once
+        run: |
+          rm -rf results/scsv_v10
+          python -m fedfalsify.scsv_v10_sharded combine \
+            --input-root results/v10_shards \
+            --out results/scsv_v10
+
+      - name: Audit and seal combined v10 evidence
+        run: |
+          python - <<'PY'
+          import csv, hashlib, json, math
+          from pathlib import Path
+          root = Path('results/scsv_v10')
+          rows = list(csv.DictReader((root / 'rows.csv').open(encoding='utf-8')))
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          decision = json.loads((root / 'decision.json').read_text(encoding='utf-8'))
+          assert len(rows) == 3600
+          assert {int(r['seed']) for r in rows} == {28101,28102,28103,28104,28105}
+          assert summary['conditions'] == 600 and summary['rows'] == 3600
+          assert summary['seeds'] == [28101,28102,28103,28104,28105]
+          assert decision['status'] in {'DEVELOPMENT-GO','DEVELOPMENT-NO-GO'}
+          assert decision['passed'] == all(decision['criteria'].values())
+          assert len(decision['criteria']) == 25
+          assert '28101--28105' in decision['scientific_boundary']
+          numeric_fields = [
+              'noise_ratio','exact_recovery','term_precision','term_recall','test_nmse','train_mse',
+              'deviation_precision','deviation_recall','all_true_deviations_recovered',
+              'spurious_deviation_accepted','runtime_seconds'
+          ]
+          for row in rows:
+              for field in numeric_fields:
+                  assert math.isfinite(float(row[field])), (field,row[field])
+          source_paths = [
+              'research/TRANSACTIONS_SCSV_AQCC_V10_NOVELTY_AUDIT.md',
+              'research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md',
+              'research/TRANSACTIONS_SCSV_AQCC_V10_ENGINEERING_AUTHORIZATION.md',
+              'src/fedfalsify/scsv_v10_benchmarks.py',
+              'src/fedfalsify/scsv_v10.py',
+              'src/fedfalsify/scsv_v10_study.py',
+              'src/fedfalsify/scsv_v10_sharded.py',
+              'tests/test_scsv_v10.py',
+              'tests/test_scsv_v10_sharded.py',
+              '.github/workflows/scsv_v10_smoke.yml',
+              '.github/workflows/scsv_v10_development.yml',
+          ]
+          def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          outputs = ['rows.csv','summary.json','decision.json']
+          manifest = {
+              'schema_version': 1,
+              'run_mode': 'fresh-scsv-aqcc-v10-sharded-development',
+              'run_commit': '${{ github.sha }}',
+              'workflow_run_id': '${{ github.run_id }}',
+              'conditions': 600,
+              'rows': 3600,
+              'engineering_seed_used': [],
+              'fresh_development_seeds': [28101,28102,28103,28104,28105],
+              'historical_v6_independent_status': 'INDEPENDENT-NO-GO',
+              'historical_v7_status': 'DEVELOPMENT-NO-GO',
+              'historical_v8_status': 'DEVELOPMENT-NO-GO',
+              'historical_v9_status': 'DEVELOPMENT-NO-GO',
+              'source_sha256': {p: sha(p) for p in source_paths},
+              'output_sha256': {p: sha(root / p) for p in outputs},
+          }
+          (root / 'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
+          outputs.append('manifest.json')
+          (root / 'SHA256SUMS').write_text(''.join(f"{sha(root / p)}  {p}\n" for p in outputs), encoding='utf-8')
+          (root / 'COMPLETE').write_text('SCSV-AQCC v10 sharded development evidence sealed\n', encoding='utf-8')
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed v10 evidence before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-aqcc-v10-development-evidence
+          path: results/scsv_v10
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit sealed v10 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/scsv_v10
+          git commit -m "results: seal SCSV-AQCC v10 development evidence [skip ci]"
+          git push origin HEAD:feat/fedfalsify-mvi

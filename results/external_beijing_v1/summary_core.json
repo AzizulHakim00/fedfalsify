@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "external-validation-complete",
+  "study": "UCI Beijing 12-station contemporaneous PM2.5 association",
+  "workflow_run": 30860646170,
+  "artifact_id": 8874265597,
+  "artifact_name": "external-beijing-v1",
+  "artifact_digest": "sha256:8d00c6d856d3888cfcc549a22c94f1d9e8962425360296eb010ca72cdb71992b",
+  "source_merge_commit": "fe25d5df66d0350327cdff8015f3c30797adc6ef",
+  "station_count": 12,
+  "raw_rows": 420768,
+  "test_rows_in_artifact": 84,
+  "loso_rows_in_artifact": 24,
+  "mean_station_test_nmse": {
+    "pooled-hist-gradient-boosting": 0.0714266120944745,
+    "centralized-forward": 0.08717820951217208,
+    "score-only-federated": 0.08717820951217188,
+    "pooled-linear-ridge": 0.09484496093131618,
+    "local-only-forward": 0.09996046849818463,
+    "fedfalsify": 0.11910251420790059,
+    "official-pysr": 0.11911057241748967
+  },
+  "station_non_degradation_vs_local": {
+    "pooled-hist-gradient-boosting": 1.0,
+    "centralized-forward": 0.5833333333333334,
+    "score-only-federated": 0.5833333333333334,
+    "pooled-linear-ridge": 0.5,
+    "fedfalsify": 0.08333333333333333,
+    "official-pysr": 0.08333333333333333
+  },
+  "expressions": {
+    "fedfalsify": "0.8412*pm10",
+    "official-pysr": "x1*0.8411471",
+    "centralized-forward": "-0.01833 + 0.6253*pm10 + 0.2425*co - 0.128*pm10*wspm + 0.3764*dewp + 0.294*month_cos",
+    "score-only-federated": "-0.01833 + 0.6253*pm10 + 0.2425*co - 0.128*pm10*wspm + 0.3764*dewp + 0.294*month_cos"
+  },
+  "primary_interpretation": "The current full FedFalsify certificate stopped too early on real multi-site air-quality data. Score-only federated search matched centralized forward selection and materially outperformed full FedFalsify, while the non-symbolic gradient-boosting context baseline was strongest.",
+  "claim_boundary": [
+    "Associational prediction only; no causal pollution claim.",
+    "The result is negative for the current full FedFalsify configuration.",
+    "No station, method, or test period was removed.",
+    "Centralized and PySR methods pool sampled observations; FedFalsify and score-only federated do not.",
+    "The result motivates validation-aware certificate calibration or cross-fitting before final confirmation."
+  ]
+}

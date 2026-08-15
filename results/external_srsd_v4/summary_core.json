@@ -1,0 +1,106 @@
+{
+  "schema_version": 4,
+  "status": "external-validation-complete",
+  "study": "Final unit-invariant SRSD-Feynman five-equation study",
+  "workflow_run": 30862392893,
+  "artifact_id": 8874930076,
+  "artifact_name": "external-srsd-v4",
+  "artifact_digest": "sha256:5ff59b002458a9cd439c105757bebf579d836a361b4aac80f43e3956a7af4c8b",
+  "source_merge_commit": "b62bd3627e59e3165f9c4aa3d64259d4c2e39fdc",
+  "problems": [
+    "feynman-i.12.1",
+    "feynman-i.14.3",
+    "feynman-i.18.12",
+    "feynman-ii.15.4",
+    "feynman-ii.27.18"
+  ],
+  "rows": 35,
+  "truth_supported": {
+    "fedfalsify": {
+      "strict_exact_recovery": 0.8,
+      "semantic_1e6": 0.8,
+      "semantic_1e4": 0.8,
+      "mean_test_nmse": 0.017351516758743,
+      "dummy_free_rate": 1.0
+    },
+    "centralized-forward": {
+      "strict_exact_recovery": 1.0,
+      "semantic_1e6": 1.0,
+      "semantic_1e4": 1.0,
+      "mean_test_nmse": 1.564878e-24,
+      "dummy_free_rate": 1.0
+    },
+    "score-only-federated": {
+      "strict_exact_recovery": 1.0,
+      "semantic_1e6": 1.0,
+      "semantic_1e4": 1.0,
+      "mean_test_nmse": 1.564435e-24,
+      "dummy_free_rate": 1.0
+    }
+  },
+  "catalog_misspecified": {
+    "fedfalsify": {
+      "semantic_1e4": 0.0,
+      "mean_test_nmse": 0.5627478,
+      "dummy_free_rate": 1.0
+    },
+    "centralized-forward": {
+      "semantic_1e4": 0.0,
+      "mean_test_nmse": 0.5545554,
+      "dummy_free_rate": 1.0
+    },
+    "score-only-federated": {
+      "semantic_1e4": 0.0,
+      "mean_test_nmse": 0.5532080,
+      "dummy_free_rate": 0.8
+    }
+  },
+  "official_pysr": {
+    "semantic_1e6": 0.6,
+    "semantic_1e4": 0.6,
+    "mean_test_nmse": 0.17865531957974162,
+    "dummy_free_rate": 1.0,
+    "successful_problems": [
+      "feynman-i.12.1",
+      "feynman-i.14.3",
+      "feynman-ii.27.18"
+    ],
+    "failed_problems": [
+      "feynman-i.18.12",
+      "feynman-ii.15.4"
+    ]
+  },
+  "fedfalsify_failure": {
+    "problem": "feynman-ii.27.18",
+    "truth": "E^2",
+    "selected_expression": "0.9538*z(x0)",
+    "test_nmse": 0.08675758,
+    "centralized_and_score_only_exact": true
+  },
+  "repair_history": {
+    "failed_schema_predecessor_run": 30860646170,
+    "inadmissible_target_scale_v2_run": 30861162857,
+    "unit_sensitive_basis_v3_run": 30861771502,
+    "final_v4_repairs": [
+      "two-pass scale-aware target normalization",
+      "single identifiable truth representation",
+      "training-only standardization of nonconstant finite basis columns"
+    ],
+    "unchanged": [
+      "problem list",
+      "official train/test splits",
+      "quartile client partitions",
+      "three nuisance variables",
+      "methods",
+      "PySR budget",
+      "external seeds"
+    ]
+  },
+  "claim_boundary": [
+    "The finite catalog succeeds when the true named mechanism is available and numerically conditioned.",
+    "Full FedFalsify remains more conservative than score-only federated search on the E-squared problem.",
+    "All finite methods fail under deliberate catalog misspecification.",
+    "Official PySR recovers three of five equations adaptively at the frozen budget.",
+    "This five-problem suite is external ground-truth validation, not universal benchmark superiority."
+  ]
+}

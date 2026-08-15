@@ -1,0 +1,87 @@
+name: SCSV-AQCC v10 engineering smoke
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scsv-aqcc-v10-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: contains(github.event.head_commit.message, '[run-v10-smoke]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify historical scientific boundaries
+        run: |
+          set -euo pipefail
+          grep -q 'INDEPENDENT-NO-GO' research/TRANSACTIONS_SCSV_RCEF_V9_POST_RECOVERY_FORENSICS.md || true
+          grep -q 'DEVELOPMENT-NO-GO' research/TRANSACTIONS_SCSV_RCEF_V9_POST_RECOVERY_FORENSICS.md
+          grep -q '27101--27105' research/TRANSACTIONS_SCSV_RCEF_V9_POST_RECOVERY_FORENSICS.md
+          grep -q '26101--26105' research/TRANSACTIONS_SCSV_RCEF_V9_INFRASTRUCTURE_CANCELLATION.md
+          grep -q 'v6 independent validation: `INDEPENDENT-NO-GO`' research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md
+          grep -q 'v7 fresh development: `DEVELOPMENT-NO-GO`' research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md
+          grep -q 'v8 fresh development: `DEVELOPMENT-NO-GO`' research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md
+          grep -q 'sharded v9 recovery on `27101--27105`: `DEVELOPMENT-NO-GO`' research/TRANSACTIONS_SCSV_AQCC_V10_PROTOCOL.md
+
+      - name: Run v10 forced-path and sharding firewall tests
+        run: pytest -q tests/test_scsv_v10.py tests/test_scsv_v10_sharded.py
+
+      - name: Run v10 engineering smoke only
+        run: |
+          rm -rf results/scsv_v10_smoke
+          python -m fedfalsify.scsv_v10_study --mode smoke --out results/scsv_v10_smoke
+
+      - name: Audit smoke isolation
+        run: |
+          python - <<'PY'
+          import csv, json, math
+          from pathlib import Path
+          root = Path('results/scsv_v10_smoke')
+          rows = list(csv.DictReader((root / 'rows.csv').open(encoding='utf-8')))
+          summary = json.loads((root / 'summary.json').read_text(encoding='utf-8'))
+          assert len(rows) == 48, len(rows)
+          assert {int(row['seed']) for row in rows} == {28001}
+          assert len({(r['family'],r['noise_ratio'],r['num_clients'],r['balance_profile'],r['role_profile'],r['seed']) for r in rows}) == 8
+          assert len({r['method'] for r in rows}) == 6
+          forbidden = {26101,26102,26103,26104,26105,27101,27102,27103,27104,27105,28101,28102,28103,28104,28105}
+          assert not forbidden & {int(row['seed']) for row in rows}
+          assert summary['conditions'] == 8
+          assert summary['rows'] == 48
+          assert summary['seeds'] == [28001]
+          for row in rows:
+              for field in ('exact_recovery','term_precision','term_recall','test_nmse','train_mse','runtime_seconds'):
+                  assert math.isfinite(float(row[field]))
+          print('SCSV-AQCC v10 engineering smoke isolation PASS')
+          PY
+
+      - name: Upload v10 engineering smoke artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scsv-aqcc-v10-engineering-smoke
+          path: results/scsv_v10_smoke
+          if-no-files-found: error
+          retention-days: 7

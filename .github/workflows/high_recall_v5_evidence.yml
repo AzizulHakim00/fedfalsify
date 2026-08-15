@@ -1,0 +1,227 @@
+name: transactions-high-recall-v5-evidence
+
+on:
+  push:
+    branches:
+      - feat/fedfalsify-mvi
+
+permissions:
+  contents: write
+
+concurrency:
+  group: high-recall-v5-evidence
+  cancel-in-progress: false
+
+jobs:
+  full-study:
+    if: contains(github.event.head_commit.message, '[run-v5-full]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact source pin
+        run: |
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          echo "Pinned v5 source: ${GITHUB_SHA}"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]"
+
+      - name: Verify frozen v5 implementation
+        run: python -m pytest -q tests/test_high_recall_v5.py
+
+      - name: Execute frozen 4,500-row v5 matrix
+        run: |
+          rm -rf results/high_recall_v5
+          mkdir -p results/high_recall_v5
+          python -m fedfalsify.high_recall_v5_study \
+            --output results/high_recall_v5/rows.csv \
+            --summary results/high_recall_v5/summary.json
+
+      - name: Audit and seal v5 evidence
+        env:
+          RUN_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import json
+          import math
+          import os
+          from collections import Counter
+          from pathlib import Path
+
+          root = Path('results/high_recall_v5')
+          rows_path = root / 'rows.csv'
+          summary_path = root / 'summary.json'
+          rows = list(csv.DictReader(rows_path.open(encoding='utf-8')))
+          summary = json.loads(summary_path.read_text(encoding='utf-8'))
+
+          expected_methods = {
+              'legacy-certificate',
+              'crossfit-v2-structural',
+              'stability-superset-v3',
+              'role-v4-no-backward',
+              'hr-v5-full',
+              'hr-v5-no-bundle-rescue',
+              'hr-v5-no-score-proposer',
+              'hr-v5-no-role-conditioning',
+              'centralized-forward',
+              'score-only-federated',
+          }
+          expected_seeds = {17101, 17102, 17103, 17104, 17105}
+
+          if len(rows) != 4500:
+              raise RuntimeError(f'expected 4500 rows, found {len(rows)}')
+          methods = {row['method'] for row in rows}
+          if methods != expected_methods:
+              raise RuntimeError(f'method mismatch: {methods}')
+          counts = Counter(row['method'] for row in rows)
+          if set(counts.values()) != {450}:
+              raise RuntimeError(f'unbalanced method rows: {counts}')
+
+          seeds = {int(row['seed']) for row in rows}
+          if seeds != expected_seeds:
+              raise RuntimeError(f'v5 evidence seed violation: {seeds}')
+          if 17001 in seeds:
+              raise RuntimeError('engineering smoke seed entered v5 evidence')
+
+          key_fields = ('benchmark','scenario','noise_ratio','samples_per_client','seed','method')
+          keys = [tuple(row[field] for field in key_fields) for row in rows]
+          if len(set(keys)) != 4500:
+              raise RuntimeError('duplicate condition/method rows detected')
+          conditions = {
+              (row['benchmark'], row['scenario'], row['noise_ratio'], row['samples_per_client'], row['seed'])
+              for row in rows
+          }
+          if len(conditions) != 450:
+              raise RuntimeError(f'expected 450 matched conditions, found {len(conditions)}')
+          per_condition = Counter(
+              (row['benchmark'], row['scenario'], row['noise_ratio'], row['samples_per_client'], row['seed'])
+              for row in rows
+          )
+          if set(per_condition.values()) != {10}:
+              raise RuntimeError('not every condition contains all ten methods')
+
+          if summary.get('rows') != 4500 or summary.get('conditions') != 450:
+              raise RuntimeError('summary dimensions do not match retained rows')
+          if summary.get('seeds') != sorted(expected_seeds):
+              raise RuntimeError(f"summary seed mismatch: {summary.get('seeds')}")
+          gate = summary.get('development_gate', {})
+          if gate.get('evaluated') is not True or not isinstance(gate.get('passed'), bool):
+              raise RuntimeError('frozen v5 development gate was not evaluated')
+          criteria = gate.get('criteria', {})
+          if len(criteria) != 15 or not all(isinstance(value, bool) for value in criteria.values()):
+              raise RuntimeError(f'invalid frozen gate criteria: {criteria}')
+
+          numeric = (
+              'exact_recovery', 'term_precision', 'term_recall', 'test_nmse',
+              'train_mse', 'spurious_accepted', 'exception_recovered',
+              'runtime_seconds', 'communication_bytes',
+          )
+          for row in rows:
+              for field in numeric:
+                  if not math.isfinite(float(row[field])):
+                      raise RuntimeError(f'non-finite {field}: {row}')
+
+          full = [row for row in rows if row['method'] == 'hr-v5-full']
+          if len(full) != 450:
+              raise RuntimeError('full v5 row count mismatch')
+          for row in full:
+              if not 0 <= int(float(row['candidate_bank_size'])) <= 10:
+                  raise RuntimeError(f"candidate bank cap violated: {row['candidate_bank_size']}")
+              if int(float(row['single_exact_harms'])) < 0 or int(float(row['pair_exact_harms'])) < 0:
+                  raise RuntimeError('negative harm count is invalid')
+
+          decision = {
+              'schema_version': 1,
+              'status': 'GO' if gate['passed'] else 'NO-GO',
+              'passed': gate['passed'],
+              'criteria': criteria,
+              'failed_criteria': [name for name, passed in criteria.items() if not passed],
+              'claim_boundary': gate['scientific_boundary'],
+          }
+          decision_path = root / 'decision.json'
+          decision_path.write_text(json.dumps(decision, indent=2, sort_keys=True), encoding='utf-8')
+
+          def digest(path: Path) -> str:
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          source_paths = [
+              Path('.github/workflows/high_recall_v5_evidence.yml'),
+              Path('.github/workflows/high_recall_v5_smoke.yml'),
+              Path('research/TRANSACTIONS_HIGH_RECALL_VERIFIED_FORWARD_V5_PROTOCOL.md'),
+              Path('research/TRANSACTIONS_HIGH_RECALL_V5_EVIDENCE_AUTHORIZATION.md'),
+              Path('src/fedfalsify/basis.py'),
+              Path('src/fedfalsify/benchmarks.py'),
+              Path('src/fedfalsify/certificate.py'),
+              Path('src/fedfalsify/client.py'),
+              Path('src/fedfalsify/server.py'),
+              Path('src/fedfalsify/baselines.py'),
+              Path('src/fedfalsify/crossfit_redesign.py'),
+              Path('src/fedfalsify/crossfit_surrogate.py'),
+              Path('src/fedfalsify/stability_screen.py'),
+              Path('src/fedfalsify/stability_superset.py'),
+              Path('src/fedfalsify/role_conditional.py'),
+              Path('src/fedfalsify/role_conditional_study.py'),
+              Path('src/fedfalsify/high_recall_v5.py'),
+              Path('src/fedfalsify/high_recall_v5_study.py'),
+              Path('tests/test_high_recall_v5.py'),
+              Path('pyproject.toml'),
+          ]
+          missing = [str(path) for path in source_paths if not path.exists()]
+          if missing:
+              raise RuntimeError(f'missing provenance files: {missing}')
+
+          manifest = {
+              'schema_version': 1,
+              'status': 'sealed',
+              'run_mode': 'primary-v5-development-evidence',
+              'run_commit': os.environ['RUN_COMMIT'],
+              'workflow_run_id': int(os.environ['RUN_ID']),
+              'engineering_smoke_seed_excluded': 17001,
+              'evidence_seeds': sorted(expected_seeds),
+              'rows': len(rows),
+              'conditions': len(conditions),
+              'methods': sorted(expected_methods),
+              'source_sha256': {str(path): digest(path) for path in source_paths},
+              'output_sha256': {
+                  'rows.csv': digest(rows_path),
+                  'summary.json': digest(summary_path),
+                  'decision.json': digest(decision_path),
+              },
+          }
+          (root / 'manifest.json').write_text(
+              json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8'
+          )
+          (root / 'COMPLETE').write_text('sealed\n', encoding='utf-8')
+          print(json.dumps(decision, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload sealed v5 artifact before repository write
+        uses: actions/upload-artifact@v4
+        with:
+          name: high-recall-v5-evidence
+          path: results/high_recall_v5
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Commit sealed v5 evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/high_recall_v5
+          git commit -m "results: seal HR-VFS v5 development evidence [skip-v5-full] [skip ci]"
+          git fetch origin feat/fedfalsify-mvi
+          git rebase origin/feat/fedfalsify-mvi
+          git push origin HEAD:feat/fedfalsify-mvi

@@ -1,0 +1,62 @@
+{
+  "conditions": 450,
+  "diagnostic_signal": {
+    "criteria": {
+      "A_selector_exact_signal": true,
+      "B_validated_exact_improves_v5": true,
+      "C_poly3_exact_signal": true,
+      "D_nested_sine_preserved": true,
+      "E_trig_product_preserved": true,
+      "F_precision_not_below_v5": true,
+      "G_communication_below_v5": true,
+      "H_exception_route_has_eligible_diagnostics": true
+    },
+    "evaluated": true,
+    "passed": true,
+    "reference_v5_communication_median": 3117371.0,
+    "reference_v5_exact": 0.62,
+    "reference_v5_poly3_exact": 0.06666666666666667,
+    "reference_v5_precision": 0.9082222222222223
+  },
+  "methods": {
+    "scsv-selector": {
+      "bank_complete_truth": 1.0,
+      "bank_size_median": 6.0,
+      "bank_target_recall": 1.0,
+      "candidate_sets_median": 63.0,
+      "communication_bytes_median": 3023577.5,
+      "exact_recovery": 0.9577777777777777,
+      "probe_pass_fraction": 0.86,
+      "runs": 450,
+      "runtime_seconds_median": 1.563753740500033,
+      "term_precision": 0.9894444444444445,
+      "term_recall": 0.987037037037037,
+      "test_nmse": 0.00022152990926052406
+    },
+    "scsv-validated": {
+      "bank_complete_truth": 1.0,
+      "bank_size_median": 6.0,
+      "bank_target_recall": 1.0,
+      "candidate_sets_median": 63.0,
+      "communication_bytes_median": 3023577.5,
+      "exact_recovery": 0.86,
+      "probe_pass_fraction": 0.86,
+      "runs": 450,
+      "runtime_seconds_median": 1.563753740500033,
+      "term_precision": 0.9511111111111111,
+      "term_recall": 0.9131481481481482,
+      "test_nmse": 0.016059158989811095
+    }
+  },
+  "rows": 900,
+  "schema_version": 1,
+  "scientific_boundary": "Post-hoc spent-seed mechanism diagnostic only; never fresh v6 evidence.",
+  "seeds": [
+    17101,
+    17102,
+    17103,
+    17104,
+    17105
+  ],
+  "status": "scsv-spent-seed-diagnostic"
+}

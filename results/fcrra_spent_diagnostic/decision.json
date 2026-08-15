@@ -1,0 +1,21 @@
+{
+  "criteria": {
+    "A_candidate_bank_identity": true,
+    "B_non_exception_structures_identical": true,
+    "C_existing_exception_structures_unchanged": true,
+    "D_outside_role_predictions_identical": true,
+    "E_panel_s_4_exception_ge_090": false,
+    "F_panel_s_8_exception_ge_090": true,
+    "G_panel_s_16_exception_ge_09333": true,
+    "H_panel_s32_exception_remains_one": true,
+    "I_overall_exact_noninferior_001": true,
+    "J_zero_exact_harms": true,
+    "K_no_spurious_worsening_non_exception": true,
+    "L_rescue_at_least_7_of_13": false,
+    "M_rescue_hard_cubic_4client_imbalanced": false
+  },
+  "passed": false,
+  "schema_version": 1,
+  "scientific_boundary": "Post-independent spent-seed diagnostic only. A PASS can authorize only design of a separately versioned successor with genuinely fresh seeds; it does not convert v6 to independent GO and does not authorize retrospective SRSD confirmation.",
+  "status": "FCRRA-MECHANISM-SIGNAL-NO-GO"
+}

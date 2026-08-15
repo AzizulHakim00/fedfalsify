@@ -1,0 +1,34 @@
+{
+  "conditions": 540,
+  "engineering_seed_used": [],
+  "fresh_development_seeds": [
+    25101,
+    25102,
+    25103,
+    25104,
+    25105
+  ],
+  "historical_v6_independent_status": "INDEPENDENT-NO-GO",
+  "historical_v7_evidence_commit": "c295727cc781fb64ff038b4640e655f5eaee56c0",
+  "historical_v7_status": "DEVELOPMENT-NO-GO",
+  "output_sha256": {
+    "decision.json": "d029e10b0b32f2ffb95a5312feee61d7e64b5c4c7d18b4d88f0e5c54373ac6d5",
+    "rows.csv": "a28b2a82c14a94550e1a601d26192e15c6558d20f8a367f047ac2892f5a3a35c",
+    "summary.json": "e773f62f4d77cd46a106b69993ecc03eaa9b1cee84b28a188b1fb7b06db0ebb2"
+  },
+  "rows": 2700,
+  "run_commit": "98be110c35c9d8d3770aca53b6d9cb40161da360",
+  "run_mode": "fresh-scsv-spcc-v8-development",
+  "schema_version": 1,
+  "source_sha256": {
+    ".github/workflows/scsv_v8_development.yml": "486c04c4cc1d34db99e3b63e88ee687ebf5cdf79baa9ee4f54fd281be2bf2f80",
+    "research/TRANSACTIONS_SCSV_SPCC_V8_PROTOCOL.md": "bd37a74589148da32b064f9ee212cc965de6fa9c2f75b4cb8d83e599602fa8a5",
+    "src/fedfalsify/scsv_v6.py": "f56a38da25a60752b5580e449a7213e88ef6d7a6006759272274331e5ff174fb",
+    "src/fedfalsify/scsv_v7.py": "636958d960fd008ee36bc3cc940c3c56d671e25ff0a5969d0b7f443b722a4a29",
+    "src/fedfalsify/scsv_v8.py": "37bacdf37489001bc7c20b5fa4cb56cd81545c4cd68e0f33906c6fc652baa0f9",
+    "src/fedfalsify/scsv_v8_benchmarks.py": "fe1673aec3d9945751ed6351f45e6a79ef5bb26de68834c2b4b6108f2ae70a38",
+    "src/fedfalsify/scsv_v8_study.py": "f1163c36e35d2ef962827fc2246036d8bb289ba2e3aaeb644c5c67820aab4f56",
+    "tests/test_scsv_v8.py": "b0d851f93e91ff014a0183bdad52ece32de35108f08feda716e17c27de8a8a65"
+  },
+  "workflow_run_id": 31419411157
+}

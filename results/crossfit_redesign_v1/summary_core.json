@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "status": "development-redesign-complete-scientific-gate-failed",
+  "workflow_run_id": 30892814499,
+  "artifact": {
+    "id": 8885931902,
+    "name": "crossfit-redesign-v1-parallel-final",
+    "digest": "sha256:fd824e995f7d10aaeaa83788ca3af86b463c167d55cd01ea0c67028c75f7fc83",
+    "head_sha": "17a4b8c02bff8517dd5b2bb6a2872d3e5530571c",
+    "rows_sha256": "c947aec8317fe84d55ccebd6db760f95255bd0d983529c2e3a5a7e1ceb26ac95",
+    "summary_sha256": "314640ff171cad85814f2863f3d0d16e7d846e5f2ceceabf6a19c38c7d27619e"
+  },
+  "matrix": {
+    "conditions": 450,
+    "rows": 2250,
+    "seeds": [13001, 13002, 13003, 13004, 13005],
+    "benchmarks": ["base", "poly3", "nested_sine", "trig_product", "interaction"],
+    "scenarios": ["complementary", "spurious", "exception"],
+    "noise_ratios": [0.03, 0.10, 0.20],
+    "samples_per_client": [120, 300],
+    "clients": 4
+  },
+  "method_summary": {
+    "legacy-certificate": {
+      "exact_recovery": 0.7155555555555555,
+      "test_nmse": 0.005437894227746417,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "term_precision": 0.8920370370370371,
+      "term_recall": 0.8857407407407407,
+      "runtime_seconds": 0.10721889459333328,
+      "communication_bytes": 120648.91777777778
+    },
+    "crossfit-intersection": {
+      "exact_recovery": 0.6311111111111111,
+      "test_nmse": 0.026039996773871713,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 0.9733333333333334,
+      "term_precision": 0.9138888888888889,
+      "term_recall": 0.83,
+      "runtime_seconds": 1.1458344743488886,
+      "communication_bytes": 2602359.8866666667
+    },
+    "crossfit-governed": {
+      "exact_recovery": 0.7266666666666667,
+      "test_nmse": 0.0033792101986785486,
+      "spurious_accepted": 0.006666666666666667,
+      "exception_recovered": 0.9933333333333333,
+      "term_precision": 0.9074074074074074,
+      "term_recall": 0.9198148148148149,
+      "fallback_selected": 0.2577777777777778,
+      "runtime_seconds": 1.1564253845733339,
+      "communication_bytes": 2630724.16
+    },
+    "score-only-federated": {
+      "exact_recovery": 0.12444444444444444,
+      "test_nmse": 0.00028754199955619014,
+      "spurious_accepted": 0.35333333333333333,
+      "exception_recovered": 1.0,
+      "term_precision": 0.5981851851851852,
+      "term_recall": 0.9955555555555555
+    },
+    "centralized-forward": {
+      "exact_recovery": 0.8955555555555555,
+      "test_nmse": 0.0001202646609162115,
+      "spurious_accepted": 0.0,
+      "exception_recovered": 1.0,
+      "term_precision": 0.9693703703703703,
+      "term_recall": 0.9987037037037036
+    }
+  },
+  "paired_governed_vs_legacy": {
+    "exact_recovery_difference": 0.011111111111111112,
+    "exact_recovery_condition_bootstrap_95": [-0.011111111111111112, 0.03333333333333333],
+    "governed_only_exact_successes": 15,
+    "legacy_only_exact_successes": 10,
+    "exact_mcnemar_two_sided_p": 0.42435622215270996,
+    "test_nmse_difference": -0.002058684029067867,
+    "test_nmse_relative_reduction": 0.37858110931316,
+    "test_nmse_condition_bootstrap_95": [-0.0035821896814131966, -0.000623006212453755],
+    "spurious_acceptance_difference": 0.006666666666666667,
+    "spurious_condition_bootstrap_95": [0.0, 0.015555555555555555]
+  },
+  "fallback_audit": {
+    "activations": 116,
+    "activation_rate": 0.2577777777777778,
+    "exact_improvements_vs_intersection": 43,
+    "exact_harms_vs_intersection": 0,
+    "nmse_improvements_vs_intersection": 116,
+    "nmse_harms_vs_intersection": 0,
+    "source_counts": {
+      "direction-b": 36,
+      "crossfit-union": 28,
+      "direction-a": 26,
+      "score-only": 26
+    },
+    "source_exact_gains_vs_intersection": {
+      "direction-b": 21,
+      "direction-a": 14,
+      "crossfit-union": 8,
+      "score-only": 0
+    },
+    "score_only_fallback_exact_successes": 0,
+    "score_only_fallback_runs": 26,
+    "score_only_fallback_spurious_acceptances": 3
+  },
+  "development_gate": {
+    "overall_exact_noninferiority": true,
+    "mean_test_nmse_improves": true,
+    "spurious_acceptance_controlled": true,
+    "high_noise_poly_interaction_exact_gain": false,
+    "fallback_not_disproportionate_on_spurious": true,
+    "passed": false
+  },
+  "failed_gate": {
+    "criterion": "high_noise_poly_interaction_exact_gain",
+    "required_gain": 0.05,
+    "legacy_exact_recovery": 0.35,
+    "governed_exact_recovery": 0.35,
+    "observed_gain": 0.0
+  },
+  "decision": "NO-GO for final confirmation of this redesign; do not retune on seeds 13001--13005."
+}

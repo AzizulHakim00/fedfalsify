@@ -1,0 +1,110 @@
+name: federated-catalog-equivalence
+
+on:
+  push:
+    branches: [feat/fedfalsify-mvi]
+    paths:
+      - .github/workflows/federated_catalog_equivalence.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Test algebraic equivalence
+        run: pytest tests/test_federated_catalog.py tests/test_transactions_ablation_v2.py
+      - name: Run paired catalog matrix
+        run: |
+          rm -rf results/federated_catalog_equivalence
+          mkdir -p results/federated_catalog_equivalence
+          fedfalsify-transactions-ablation \
+            --benchmarks base,poly3,nested_sine,trig_product,interaction \
+            --scenarios complementary,spurious,exception \
+            --noise 0.03,0.10 \
+            --samples 300 \
+            --clients 4 \
+            --seeds 10006-10010 \
+            --variants centralized-catalog,federated-information-catalog \
+            --max-terms 6 \
+            --bootstrap-resamples 2000 \
+            --output results/federated_catalog_equivalence/rows.csv \
+            --summary results/federated_catalog_equivalence/summary_raw.json \
+            --holm-summary results/federated_catalog_equivalence/summary_holm.json
+      - name: Verify every paired condition
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          from collections import defaultdict
+          from pathlib import Path
+          import statistics
+
+          root = Path("results/federated_catalog_equivalence")
+          with (root / "rows.csv").open(newline="", encoding="utf-8") as handle:
+              rows = list(csv.DictReader(handle))
+          assert len(rows) == 300
+          groups = defaultdict(dict)
+          for row in rows:
+              key = (
+                  row["benchmark"], row["scenario"], row["noise_ratio"],
+                  row["samples_per_client"], row["num_clients"], row["seed"]
+              )
+              groups[key][row["method"]] = row
+          assert len(groups) == 150
+          communication = []
+          runtime_ratios = []
+          for key, methods in groups.items():
+              assert set(methods) == {
+                  "centralized-catalog", "federated-information-catalog"
+              }
+              central = methods["centralized-catalog"]
+              federated = methods["federated-information-catalog"]
+              assert central["discovered_terms"] == federated["discovered_terms"], key
+              assert central["exact_recovery"] == federated["exact_recovery"], key
+              assert abs(float(central["test_nmse"]) - float(federated["test_nmse"])) < 1e-10, key
+              assert abs(float(central["train_mse"]) - float(federated["train_mse"])) < 1e-10, key
+              communication.append(int(federated["communication_bytes"]))
+              runtime_ratios.append(
+                  float(federated["runtime_seconds"])
+                  / max(float(central["runtime_seconds"]), 1e-12)
+              )
+          summary = {
+              "schema_version": 1,
+              "status": "equivalent",
+              "paired_conditions": len(groups),
+              "all_selected_supports_equal": True,
+              "all_exact_recovery_equal": True,
+              "all_train_and_test_predictions_numerically_equal": True,
+              "median_federated_communication_bytes": statistics.median(communication),
+              "mean_federated_communication_bytes": statistics.mean(communication),
+              "median_runtime_ratio_federated_over_centralized": statistics.median(runtime_ratios),
+              "seeds": list(range(10006, 10011)),
+              "scientific_boundary": [
+                  "Finite shared catalog only.",
+                  "Aggregate sufficient statistics are not formal privacy.",
+                  "Equivalent accuracy does not imply equivalent communication or leakage risk."
+              ]
+          }
+          (root / "equivalence_summary.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8"
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+      - name: Upload equivalence evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: federated-catalog-equivalence
+          path: results/federated_catalog_equivalence
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,24 @@
+name: transactions-crossfit-redesign-v1-parallel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archived:
+    name: archived-parallel-redesign-workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evidence notice
+        run: |
+          echo "This development workflow is frozen after successful matched execution and sealing."
+          echo "Workflow run: 30892814499"
+          echo "Artifact: crossfit-redesign-v1-parallel-final"
+          echo "Artifact ID: 8885931902"
+          echo "Artifact digest: sha256:fd824e995f7d10aaeaa83788ca3af86b463c167d55cd01ea0c67028c75f7fc83"
+          echo "Rows: 2250; matched conditions: 450"
+          echo "Scientific gate: FAILED high-noise polynomial/interaction exact-gain criterion."
+          echo "Use git history at head 17a4b8c02bff8517dd5b2bb6a2872d3e5530571c to inspect the executable workflow."
+          echo "Do not rerun or tune on development seeds 13001--13005."
