@@ -1,0 +1,43 @@
+name: Phase 3B statistical foundation
+
+on:
+  push:
+    branches:
+      - research/phase3b-scientific-implementation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  batch-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install package and statistical dependency
+        run: python -m pip install -e ".[dev]" "scipy>=1.11,<2"
+      - name: Verify frozen comparator files are unchanged
+        run: |
+          git diff --exit-code 78d0ab7ca7afb1edfa4725a45dfd20ce2db39659 -- \
+            src/fedfalsify/scsv_v11.py \
+            src/fedfalsify/scsv_v11_study.py \
+            src/fedfalsify/scsv_v10_benchmarks.py
+      - name: Verify frozen v11 comparator tests
+        run: pytest -q tests/test_scsv_v11.py
+      - name: Run Phase-3B Batch-A tests
+        run: |
+          pytest -q \
+            tests/test_phase3_seed_firewall.py \
+            tests/test_sufficient_stats.py \
+            tests/test_linear_algebra.py \
+            tests/test_nested_tests.py \
+            tests/test_multiple_testing.py
+      - name: Run full repository test suite
+        run: pytest -q
