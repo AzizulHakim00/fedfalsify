@@ -78,6 +78,34 @@ def test_nested_f_abstains_on_exact_collinearity():
     assert out.f_statistic is None
 
 
+def test_nested_f_abstains_when_random_duplicate_column_leaves_gram_roundoff_eigenvalue():
+    rng = np.random.default_rng(771)
+    n = 180
+    x1 = rng.normal(size=n)
+    duplicate = rng.normal(size=n)
+    design = np.column_stack([np.ones(n), x1, duplicate, duplicate])
+    y = 0.4 + 2.2 * x1
+    packet = SufficientStatsPacket(
+        client_id="random-collinear",
+        support=n,
+        terms=("1", "x1", "z", "z_copy"),
+        gram=np.asarray(design.T @ design, dtype=float),
+        target=np.asarray(design.T @ y, dtype=float),
+        target_energy=float(y @ y),
+        observed_support=(n, n, n, n),
+    )
+
+    out = partial_nested_f(
+        packet,
+        ("1", "x1", "z"),
+        ("1", "x1", "z", "z_copy"),
+        candidate_term="z_copy",
+    )
+
+    assert not out.admissible
+    assert out.reason == "STRUCTURAL-RANK-AMBIGUOUS"
+
+
 def test_nested_f_zero_full_sse_returns_infinite_f_and_zero_p():
     x = np.asarray([-2.0, -1.0, 0.0, 1.0, 2.0, 3.0])
     y = 1.0 + 3.0 * x
@@ -87,6 +115,37 @@ def test_nested_f_zero_full_sse_returns_infinite_f_and_zero_p():
     assert np.isinf(out.f_statistic)
     assert out.p_value == 0.0
     assert out.raw_gain > 0.0
+
+
+def test_nested_f_roundoff_only_gain_on_exact_null_candidate_returns_p_one():
+    rng = np.random.default_rng(22)
+    n = 60
+    x1 = rng.normal(size=n)
+    z = np.zeros(n)
+    z[:20] = rng.normal(size=20)
+    design = np.column_stack([np.ones(n), x1, z])
+    y = 0.5 + 0.8 * x1
+    packet = SufficientStatsPacket(
+        client_id="roundoff-null",
+        support=n,
+        terms=("1", "x1", "z"),
+        gram=np.asarray(design.T @ design, dtype=float),
+        target=np.asarray(design.T @ y, dtype=float),
+        target_energy=float(y @ y),
+        observed_support=(n, n, 20),
+    )
+
+    out = partial_nested_f(
+        packet,
+        ("1", "x1"),
+        ("1", "x1", "z"),
+        candidate_term="z",
+    )
+
+    assert out.admissible
+    assert out.f_statistic == 0.0
+    assert out.p_value == 1.0
+    assert out.candidate_sign == 0
 
 
 def test_aggregate_scope_matches_direct_packet_aggregation():
