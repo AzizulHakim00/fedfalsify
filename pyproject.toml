@@ -4,16 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedfalsify"
-version = "0.6.0"
+version = "0.7.0"
 description = "Certificate-guided federated symbolic discovery research prototype"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "Azizul Hakim"}]
-dependencies = ["numpy>=1.26,<3"]
+dependencies = ["numpy>=1.26,<3", "scipy>=1.11,<2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9"]
+study = ["pandas>=2.1,<4", "joblib>=1.3,<2"]
 sr = ["pysr>=1.5.10,<2"]
 
 [project.scripts]
@@ -40,6 +41,7 @@ fedfalsify-crossfit-redesign = "fedfalsify.redesign_study_fixed:main"
 fedfalsify-surrogate-study = "fedfalsify.surrogate_study_fixed:main"
 fedfalsify-stability-study = "fedfalsify.stability_study:main"
 fedfalsify-role-v4-study = "fedfalsify.role_conditional_study:main"
+fedfalsify-phase3-engineering = "fedfalsify.phase3_engineering_runner:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
