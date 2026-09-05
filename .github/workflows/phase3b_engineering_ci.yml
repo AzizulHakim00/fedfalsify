@@ -54,6 +54,7 @@ jobs:
         run: |
           pytest -q \
             tests/test_phase3_seed_firewall.py \
-            tests/test_phase3_engineering_runner.py
+            tests/test_phase3_engineering_runner.py \
+            tests/test_phase3_colab_notebook.py
       - name: Run full repository test suite
         run: pytest -q
