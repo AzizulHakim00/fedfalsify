@@ -25,7 +25,7 @@ The audit targeted recent and adjacent work in:
 - noise-robust symbolic regression;
 - uncertainty-aware symbolic regression;
 - probabilistic/Bayesian symbolic structure uncertainty;
-- formal/multiplicity-controlled structural inference in symbolic regression.
+- selective inference and multiplicity-controlled structural inference in symbolic regression.
 
 Primary search concepts included:
 
@@ -39,6 +39,9 @@ Primary search concepts included:
 - `symbolic regression uncertainty quantification`
 - `structural uncertainty symbolic regression`
 - `symbolic regression false discovery`
+- `symbolic regression selective inference`
+- `symbolic regression sample splitting hypothesis testing`
+- `symbolic regression family-wise error`
 
 This is a focused novelty audit, not a PRISMA-style systematic review. It must be refreshed before manuscript submission.
 
@@ -170,13 +173,32 @@ Source: `https://proceedings.mlr.press/v337/roy26a.html`.
 
 **Novelty consequence:** structural uncertainty/UQ is not itself novel. A defensible claim must identify the specific frequentist federated scope-certificate construction.
 
-## 7. Contemporary survey evidence
+## 7. Selective inference for symbolic regression
+
+### Shiraishi et al. — Selective Inference for Symbolic Regression using Genetic Programming
+
+**Work:** Tomohiro Shiraishi, Teruyuki Katsuoka, Shuichi Nishino, Ichiro Takeuchi and collaborators, *Selective Inference for Symbolic Regression using Genetic Programming*, IEICE Technical Report IBISML2025-40, vol. 125, no. 308, pp. 125-131, December 2025.
+
+**Evidence found:** a dedicated symbolic-regression selective-inference work already exists. The IEICE index explicitly notes that this item is a technical report without peer review and that a polished version is expected elsewhere.
+
+Sources:
+
+- `https://ken.ieice.org/ken/index/ieice-techrep-125-308-e.html`
+- J-GLOBAL record: `https://jglobal.jst.go.jp/en/detail?JGLOBAL_ID=202602278124304365`
+
+**Novelty consequence:** SCSV-NCSC must **not** claim to be the first inferential, hypothesis-testing, or statistically selective symbolic-regression framework. This discovery materially narrows the novelty claim.
+
+**Remaining distinction under audit:** the present audit has not identified in that work the specific combination of horizontal federation, shared-vs-client-localized scope decomposition, additive sufficient-statistic equivalence, outside-role safety, and untouched-Probe family-wise certification. Because the full technical details were not available in the sources reviewed here, no stronger distinction should be asserted until the polished paper/full text is obtained.
+
+**Action:** before manuscript submission, retrieve and read the full technical report and any later peer-reviewed version. Add it to the related-work comparison table even if the methods are not directly benchmark-compatible.
+
+## 8. Contemporary survey evidence
 
 Palakonda et al., *A Comprehensive Survey on Symbolic Regression: State-of-the-Art Approaches, Key Applications, Benchmark Evaluations, and Future Research Directions*, Archives of Computational Methods in Engineering, 2026, DOI `10.1007/s11831-026-10681-w`, identifies robustness, uncertainty/trustworthiness, theoretical foundations, benchmarking, and federated-learning settings as active/open directions.
 
 This supports timeliness but is not evidence of novelty by itself.
 
-## 8. Current overlap matrix
+## 9. Current overlap matrix
 
 | Method/work | Federated | Shared/task-specific structure | Client-localized scope | Noise-specific mechanism | Structural uncertainty/error control | Disjoint final certificate | Additive sufficient-statistic test |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -187,11 +209,12 @@ This supports timeliness but is not evidence of novelty by itself.
 | IRMTGP | No federated setting in audited description | Yes | Task-specific | No | No audited formal control | No | No |
 | NRSR | No | No | No | Yes | No audited FWER structure certificate | No | No |
 | ERRLESS / VaSST | No | No federated scope decomposition | No | Uncertainty-aware | Bayesian/variational structural uncertainty | Different | No |
+| Shiraishi et al. selective inference | No federated claim in audited index | Not established in audited source | Not established | Not established | **Yes, selective-inference focus** | Full details pending | Not established |
 | **SCSV-NCSC candidate** | **Yes** | **Yes** | **Yes, explicit client role** | **Yes, noise-scaled partial tests** | **Holm FWER for shared + Probe deviations** | **Yes, Selector/Probe separation** | **Yes** |
 
-`No audited ...` means this focused audit did not identify the feature in the reviewed descriptions. It must not be interpreted as proof that no version of the literature contains it.
+`No audited ...` / `not established` means this focused audit did not identify the feature in the reviewed sources. It must not be interpreted as proof that no version of the literature contains it.
 
-## 9. Defensible novelty position now
+## 10. Defensible novelty position now
 
 The strongest current claim is:
 
@@ -203,9 +226,10 @@ This is more defensible than any of the following claims, which are prohibited:
 - "first shared/task-specific symbolic regression";
 - "first noise-robust symbolic regression";
 - "first uncertainty-aware symbolic regression";
+- "first inferential/selective-inference symbolic regression";
 - "first federated learning for non-identical symbolic systems".
 
-## 10. Remaining novelty risks
+## 11. Remaining novelty risks
 
 Before manuscript submission, search must be repeated specifically for:
 
@@ -214,13 +238,13 @@ Before manuscript submission, search must be repeated specifically for:
 3. client-specific symbolic deviations in federated system identification;
 4. hierarchical/mixed-effects symbolic regression;
 5. symbolic regression with confirmatory sample splitting;
-6. selective inference for symbolic regression;
+6. selective inference for symbolic regression, including the full Shiraishi et al. version;
 7. FWER/FDR-controlled symbolic feature discovery;
 8. distributed sufficient-statistic hypothesis testing for equation discovery.
 
 If a close method appears, the contribution statement must be narrowed rather than defended rhetorically.
 
-## 11. Baselines implied by the audit
+## 12. Baselines implied by the audit
 
 A later external-validation protocol should consider, where implementation and problem geometry are compatible:
 
@@ -234,9 +258,11 @@ A later external-validation protocol should consider, where implementation and p
 - a multitask/shared-specific SR baseline where task geometry is compatible;
 - FedKANs only for a genuinely comparable system-identification experiment.
 
+The Shiraishi selective-inference work should be compared conceptually/theoretically even if its code or benchmark geometry is not compatible.
+
 No baseline should be forced into an incompatible setting merely to enlarge a table.
 
-## 12. Audit decision
+## 13. Audit decision
 
 **Proceed with the SCSV-NCSC design direction, but do not use a priority/"first" claim.**
 
@@ -246,6 +272,7 @@ The current literature supports the following strategic conclusion:
 - shared/task-specific SR already exists;
 - noise-robust SR already exists;
 - structural UQ already exists;
+- selective-inference SR already exists;
 - the candidate contribution is the specific combination of **federated set-conditional scope decomposition + sequential independent structural certification + multiplicity control + sufficient-statistic equivalence + outside-role safety**.
 
 This position must be re-audited immediately before paper submission.
