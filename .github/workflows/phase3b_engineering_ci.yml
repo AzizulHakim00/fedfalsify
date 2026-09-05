@@ -45,5 +45,10 @@ jobs:
             tests/test_shared_recertification.py \
             tests/test_role_localization_v12.py \
             tests/test_localized_certification.py
+      - name: Run Phase-3B Batch-C tests
+        run: |
+          pytest -q \
+            tests/test_legacy_v11_adapter.py \
+            tests/test_scsv_v12.py
       - name: Run full repository test suite
         run: pytest -q
