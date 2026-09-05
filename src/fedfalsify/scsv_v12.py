@@ -23,18 +23,14 @@ from .localized_certification import (
     certify_on_probe,
     screen_on_selector,
 )
-from .role_localization_v12 import (
-    FrozenLocalizedHypothesis,
-    RoleRejection,
-    discover_localized_role,
-)
+from .role_localization_v12 import FrozenLocalizedHypothesis, discover_localized_role
 from .scsv_v11 import SCSVELRCV11Output, scsv_elrc_v11_method
 from .shared_recertification import (
     SharedRecertificationResult,
     certify_shared_core,
     nominate_shared_family,
 )
-from .sufficient_stats import SufficientStatsPacket, packet_from_dataset
+from .sufficient_stats import SufficientStatsPacket, packet_from_dataset, subset_packet
 
 PHASE3_METHODS = (
     "scsv-elrc-v11-full",
@@ -126,12 +122,20 @@ def _build_phase3_packets(partitions, selectors, probes, catalog, terms):
     discovery = tuple(packet_from_dataset(item.discovery, catalog, terms) for item in partitions)
     selector = tuple(packet_from_dataset(item.validation, catalog, terms) for item in selectors)
     probe = tuple(packet_from_dataset(item.validation, catalog, terms) for item in probes)
-    communication = sum(
-        _packet_payload_bytes(packet)
+    split_bytes = tuple(
+        int(sum(_packet_payload_bytes(packet) for packet in group))
         for group in (discovery, selector, probe)
-        for packet in group
     )
-    return discovery, selector, probe, int(communication)
+    return discovery, selector, probe, split_bytes
+
+
+def _subset_payload_bytes(
+    packets: Sequence[SufficientStatsPacket],
+    terms: tuple[str, ...],
+) -> int:
+    return int(
+        sum(_packet_payload_bytes(subset_packet(packet, terms)) for packet in packets)
+    )
 
 
 def _refit_preserving_structure(
@@ -212,42 +216,6 @@ def _run_ncee(
     return family, tuple(discovery_results), selector_result, probe_result
 
 
-def _make_output(
-    *,
-    method: str,
-    anchor,
-    shared_mode: str,
-    localized_mode: str,
-    shared_structure: tuple[str, ...],
-    accepted_deviations: tuple[str, ...],
-    candidate: CandidateEquation,
-    communication_bytes: int,
-    runtime_seconds: float,
-    ledger: Phase3MechanismLedger,
-) -> SCSVV12Output:
-    final_structure = _ordered_terms(
-        anchor.catalog if hasattr(anchor, "catalog") else None, ()
-    ) if False else tuple(candidate.active_terms)
-    return SCSVV12Output(
-        method=method,
-        candidate=candidate,
-        anchor=anchor,
-        shared_mode=shared_mode,
-        localized_mode=localized_mode,
-        shared_structure=tuple(shared_structure),
-        accepted_deviations=tuple(accepted_deviations),
-        final_structure=tuple(final_structure),
-        ledger=ledger,
-        communication_bytes=int(communication_bytes),
-        runtime_seconds=float(runtime_seconds),
-        stop_reason=(
-            f"{method}; shared={','.join(shared_structure)}; "
-            f"localized={','.join(accepted_deviations)}; "
-            f"final={','.join(final_structure)}"
-        ),
-    )
-
-
 def run_scsv_v12_branches(
     datasets: Sequence[object],
     catalog: TermCatalog,
@@ -265,20 +233,30 @@ def run_scsv_v12_branches(
         min_repair_score=min_repair_score,
     )
 
+    setup_start = perf_counter()
     partitions = partition_clients(datasets, seed=seed, validation_fraction=0.30)
     selectors, probes = split_selector_probe(partitions, seed=seed)
     packet_terms = _phase3_packet_terms(v11.anchor, catalog)
-    discovery_packets, selector_packets, probe_packets, packet_bytes = _build_phase3_packets(
+    discovery_packets, selector_packets, probe_packets, split_bytes = _build_phase3_packets(
         partitions, selectors, probes, catalog, packet_terms
     )
+    setup_seconds = float(perf_counter() - setup_start)
+    discovery_bytes, selector_bytes, probe_bytes = split_bytes
+    full_packet_bytes = int(discovery_bytes + selector_bytes + probe_bytes)
 
     # Shared re-certification is computed once and reused by SCR-only/full.
+    scr_cert_start = perf_counter()
     scr_result: SharedRecertificationResult = certify_shared_core(
         v11.anchor,
         selector_packets,
         catalog,
     )
+    scr_cert_seconds = float(perf_counter() - scr_cert_start)
     scr_shared = tuple(scr_result.accepted_shared_terms)
+    scr_selector_bytes = _subset_payload_bytes(
+        selector_packets,
+        tuple(scr_result.candidate_family),
+    )
 
     # SCR-only: new shared structure + exact predecessor localized logic.
     scr_start = perf_counter()
@@ -307,6 +285,7 @@ def run_scsv_v12_branches(
         include_validation=True,
         candidate_id="scr-only-final",
     )
+    scr_branch_seconds = float(perf_counter() - scr_start)
     scr_ledger = Phase3MechanismLedger(
         shared_mode="scr",
         shared_candidate_family=tuple(scr_result.candidate_family),
@@ -332,8 +311,19 @@ def run_scsv_v12_branches(
         accepted_deviations=tuple(legacy.accepted_deviations),
         final_structure=tuple(scr_final),
         ledger=scr_ledger,
-        communication_bytes=int(v11.anchor.communication_bytes + scr_core_bytes + legacy.communication_bytes + scr_refit_bytes),
-        runtime_seconds=float(v11.anchor.runtime_seconds + (perf_counter() - scr_start)),
+        communication_bytes=int(
+            v11.anchor.communication_bytes
+            + scr_selector_bytes
+            + scr_core_bytes
+            + legacy.communication_bytes
+            + scr_refit_bytes
+        ),
+        runtime_seconds=float(
+            v11.anchor.runtime_seconds
+            + setup_seconds
+            + scr_cert_seconds
+            + scr_branch_seconds
+        ),
         stop_reason=(
             f"SCR-only; shared={','.join(scr_shared)}; "
             f"localized={','.join(legacy.accepted_deviations)}; final={','.join(scr_final)}"
@@ -362,6 +352,17 @@ def run_scsv_v12_branches(
         include_validation=True,
         candidate_id="ncee-only-final",
     )
+    ncee_branch_seconds = float(perf_counter() - ncee_start)
+    ncee_terms = ("1",) + tuple(
+        term
+        for term in catalog.names()
+        if term != "1" and term in (set(v11_shared) | set(ncee_family))
+    )
+    ncee_packet_bytes = int(
+        _subset_payload_bytes(discovery_packets, ncee_terms)
+        + _subset_payload_bytes(selector_packets, ncee_terms)
+        + _subset_payload_bytes(probe_packets, ncee_terms)
+    )
     ncee_ledger = Phase3MechanismLedger(
         shared_mode="frozen-v11",
         shared_candidate_family=v11_shared,
@@ -387,8 +388,12 @@ def run_scsv_v12_branches(
         accepted_deviations=tuple(ncee_probe.accepted_terms),
         final_structure=tuple(ncee_final),
         ledger=ncee_ledger,
-        communication_bytes=int(v11.anchor.communication_bytes + packet_bytes + ncee_refit_bytes),
-        runtime_seconds=float(v11.anchor.runtime_seconds + (perf_counter() - ncee_start)),
+        communication_bytes=int(
+            v11.anchor.communication_bytes + ncee_packet_bytes + ncee_refit_bytes
+        ),
+        runtime_seconds=float(
+            v11.anchor.runtime_seconds + setup_seconds + ncee_branch_seconds
+        ),
         stop_reason=(
             f"NCEE-only; shared={','.join(v11_shared)}; "
             f"localized={','.join(ncee_probe.accepted_terms)}; final={','.join(ncee_final)}"
@@ -416,6 +421,7 @@ def run_scsv_v12_branches(
         include_validation=True,
         candidate_id="scsv-ncsc-final",
     )
+    full_branch_seconds = float(perf_counter() - full_start)
     full_ledger = Phase3MechanismLedger(
         shared_mode="scr",
         shared_candidate_family=tuple(scr_result.candidate_family),
@@ -441,8 +447,15 @@ def run_scsv_v12_branches(
         accepted_deviations=tuple(full_probe.accepted_terms),
         final_structure=tuple(full_structure),
         ledger=full_ledger,
-        communication_bytes=int(v11.anchor.communication_bytes + packet_bytes + full_refit_bytes),
-        runtime_seconds=float(v11.anchor.runtime_seconds + (perf_counter() - full_start)),
+        communication_bytes=int(
+            v11.anchor.communication_bytes + full_packet_bytes + full_refit_bytes
+        ),
+        runtime_seconds=float(
+            v11.anchor.runtime_seconds
+            + setup_seconds
+            + scr_cert_seconds
+            + full_branch_seconds
+        ),
         stop_reason=(
             f"SCSV-NCSC; shared={','.join(scr_shared)}; "
             f"localized={','.join(full_probe.accepted_terms)}; final={','.join(full_structure)}"
