@@ -96,8 +96,6 @@ def test_phase3_engineering_seed_allows_only_29300():
 
 - [ ] **Step 2: Run the test to confirm RED**
 
-Run:
-
 ```bash
 pytest -q tests/test_phase3_seed_firewall.py
 ```
@@ -202,12 +200,7 @@ class NestedFResult:
 
 - [ ] **Step 1: Write analytic and equivalence tests**
 
-Tests must cover:
-
 ```python
-import numpy as np
-
-from fedfalsify.basis import TermCatalog
 from fedfalsify.nested_tests import partial_nested_f
 from fedfalsify.sufficient_stats import packet_from_dataset
 
@@ -235,6 +228,8 @@ def test_nested_f_abstains_on_exact_collinearity(collinear_packet):
 
 Add a centralized-row reference using `np.linalg.lstsq` and `scipy.stats.f.sf`, and assert coefficients/SSE/F/p match the packet calculation within strict floating-point tolerances.
 
+Also add a zero-residual test: when the FULL model has numerical SSE zero and REDUCED has positive SSE, return `F=inf`, `p=0.0` rather than divide by zero.
+
 - [ ] **Step 2: Run RED**
 
 ```bash
@@ -245,20 +240,32 @@ Expected: module missing.
 
 - [ ] **Step 3: Implement the minimal engine**
 
-Rules:
+Validate nesting by term identity, not position:
 
 ```python
-if tuple(full_terms[:-1]) != tuple(reduced_terms) or candidate_term not in full_terms:
-    # do not rely on positional form; validate set nesting instead
+if candidate_term in reduced_terms:
+    raise ValueError("candidate term must not be in REDUCED")
+if set(full_terms) != set(reduced_terms) | {candidate_term}:
+    raise ValueError("FULL must equal REDUCED plus exactly the candidate term")
+if len(full_terms) != len(reduced_terms) + 1:
+    raise ValueError("FULL must add exactly one term")
+```
 
+Then:
+
+```python
 if full_fit.rank != reduced_fit.rank + 1:
     return abstention("STRUCTURAL-RANK-AMBIGUOUS")
 if full_fit.residual_df <= 0:
     return abstention("INSUFFICIENT-RESIDUAL-DF")
 
 gain = max(reduced_fit.sse - full_fit.sse, 0.0)
-f_value = gain / (full_fit.sse / full_fit.residual_df)
-p_value = scipy.stats.f.sf(f_value, 1, full_fit.residual_df)
+if full_fit.sse <= 1e-15:
+    f_value = float("inf") if gain > 1e-15 else 0.0
+    p_value = 0.0 if gain > 1e-15 else 1.0
+else:
+    f_value = gain / (full_fit.sse / full_fit.residual_df)
+    p_value = float(scipy.stats.f.sf(f_value, 1, full_fit.residual_df))
 ```
 
 Candidate coefficient is read by term name from the FULL fit. Sign convention: `+1` above `1e-12`, `-1` below `-1e-12`, else `0`.
@@ -333,7 +340,7 @@ pytest -q tests/test_multiple_testing.py
 
 - [ ] **Step 3: Implement exact deterministic procedures**
 
-Validate finite p-values in `[0,1]`, unique hypothesis names, and fixed `alpha/q`. Sorting uses `(raw_p, original_index)`; returned arrays remain original order.
+Validate finite p-values in `[0,1]`, unique hypothesis names, and `0 < alpha,q < 1`. Sorting uses `(raw_p, original_index)`; returned arrays remain in original order.
 
 - [ ] **Step 4: Add subset-safety regression test**
 
@@ -356,7 +363,7 @@ git commit -m "feat: add deterministic Phase-3 multiplicity control"
 - Create: `tests/test_shared_recertification.py`
 
 **Interfaces:**
-- Consumes: frozen v6 anchor output, Discovery/Selector packets, catalog, `partial_nested_f`, `holm_adjust`.
+- Consumes: frozen v6 anchor output, Selector packets, catalog, `partial_nested_f`, `holm_adjust`.
 - Produces:
   - `SharedCandidateDiagnostic`
   - `SharedRecertificationResult`
@@ -378,7 +385,7 @@ assert len(family) == len(set(family))
 
 - [ ] **Step 2: Write independent Selector certification tests**
 
-Construct synthetic packets with one required shared term, one null ordinary term, and one collinear term. Verify the required term can survive, null term can fail, collinear term abstains, and no Discovery outcome beyond the frozen family is read.
+Construct synthetic packets with one required shared term, one null ordinary term, and one collinear term. Verify the required term can survive, null term can fail, collinear term abstains, and no Discovery outcome beyond the frozen nominated family is read.
 
 - [ ] **Step 3: Write exact capacity test**
 
@@ -392,7 +399,7 @@ pytest -q tests/test_shared_recertification.py
 
 - [ ] **Step 5: Implement SCR without candidate expansion**
 
-For each non-intercept candidate `t`, FULL is the complete identifiable joint ordinary family and REDUCED removes only `t`. Apply Holm across all valid per-term p-values; rank-ambiguous terms receive an abstention diagnostic and are never silently dropped from the multiplicity ledger.
+For each non-intercept candidate `t`, FULL is the complete joint ordinary family and REDUCED removes only `t`. The Holm family remains the entire Discovery-nominated non-intercept family. If a candidate is structurally non-identifiable on Selector, record its abstention and place raw p-value `1.0` into the Holm vector so the frozen family is not silently reduced after Selector is inspected. Apply Holm at `0.05`; only Holm rejections may become operational shared terms.
 
 - [ ] **Step 6: Run GREEN and commit**
 
@@ -415,6 +422,7 @@ git commit -m "feat: implement shared-core recertification"
 - Produces:
   - `NCEEClientEvidence`
   - `FrozenLocalizedHypothesis`
+  - `RoleRejection`
   - `discover_localized_role(...) -> FrozenLocalizedHypothesis | RoleRejection`
 
 Required frozen hypothesis fields:
@@ -491,11 +499,9 @@ Snapshot the entire tuple of candidate/source/role/outside/sign before calling P
 
 - [ ] **Step 3: Write Holm whole-family test**
 
-Create at least three frozen hypotheses with known Probe p-values. Verify Holm is computed across the complete frozen family reaching Probe, then safety filters only remove Holm rejections.
+Create at least three frozen hypotheses reaching Probe with known p-values. Verify Holm is computed across that complete frozen Probe family. If a hypothesis is non-identifiable on Probe, keep its identity in the family with raw p-value `1.0` and a rank-abstention diagnostic. After Holm, deterministic safety filters may only remove Holm rejections.
 
 - [ ] **Step 4: Write outside-role tolerance test**
-
-Test the exact boundary:
 
 ```python
 assert outside_safe(reduced_sse=1.0, full_sse=1.0 + 1e-10)
@@ -725,12 +731,7 @@ After this commit, protocol scientific constants may not change in response to `
 
 - [ ] **Step 1: Write atomic checkpoint/resume tests**
 
-Create temporary checkpoint data with:
-
-1. one complete four-method group;
-2. one partial two-method group.
-
-Verify resume keeps/skips only the complete group and removes/recomputes the partial group.
+Create temporary checkpoint data with one complete four-method group and one partial two-method group. Verify resume keeps/skips only the complete group and removes/recomputes the partial group.
 
 ```python
 assert completed_keys == {complete_condition_key}
@@ -812,7 +813,7 @@ After every complete matched four-method condition:
 
 - [ ] **Step 7: Implement SHA256 manifest and ZIP verification**
 
-Hash every final artifact except the manifest itself, write sorted `sha256  filename` lines, create ZIP, reopen with `zipfile.ZipFile(...).testzip()`, then print the ZIP SHA256.
+Hash every final artifact except the manifest itself and the ZIP, write sorted `sha256  filename` lines, create the ZIP containing the manifest and archived artifacts, reopen with `zipfile.ZipFile(...).testzip()`, then calculate and print the ZIP SHA256 separately. This avoids a self-referential ZIP hash.
 
 - [ ] **Step 8: Run tests without seed 29300**
 
@@ -847,6 +848,7 @@ git commit -m "feat: add reproducible Phase-3 engineering runner"
 
 ```python
 import json
+from pathlib import Path
 
 
 def test_phase3_colab_has_exactly_one_code_cell():
@@ -858,12 +860,12 @@ def test_phase3_colab_has_exactly_one_code_cell():
 Also assert the single source contains:
 
 - `drive.mount('/content/drive')` before package execution;
-- `PINNED_SOURCE_COMMIT`;
-- `EXPECTED_PROTOCOL_SHA256`;
+- `PINNED_SOURCE_COMMIT` as a literal 40-hex commit;
+- `EXPECTED_PROTOCOL_SHA256` as a literal 64-hex SHA256;
 - exact Drive output root;
-- `pip install` against `git+https://github.com/AzizulHakim00/fedfalsify.git@<literal pinned commit>`;
+- PEP-508 VCS installation form `fedfalsify[dev,study] @ git+https://github.com/AzizulHakim00/fedfalsify.git@<literal commit>`;
 - protocol download/hash verification;
-- test gate;
+- deterministic test gate;
 - call to `fedfalsify.phase3_engineering_runner`;
 - no embedded copies of SCR/NCEE scientific functions.
 
@@ -889,10 +891,10 @@ Then generate one cell whose execution order is:
 2. mount Drive;
 3. create output directory;
 4. print pinned source/protocol/seed firewall;
-5. download the protocol at the pinned commit and verify SHA256;
-6. `pip install -q "git+https://github.com/AzizulHakim00/fedfalsify.git@${PINNED_SOURCE_COMMIT}[dev,study]"` using the literal commit value generated into the cell;
+5. download the protocol from raw GitHub at the pinned commit and verify SHA256;
+6. install with the PEP-508 form `python -m pip install -q "fedfalsify[dev,study] @ git+https://github.com/AzizulHakim00/fedfalsify.git@{PINNED_SOURCE_COMMIT}"`, where the builder has already substituted the literal commit into the cell text;
 7. print Python/NumPy/SciPy/pandas/joblib/platform metadata;
-8. run deterministic Phase-3B pytest gate from a shallow pinned source checkout or downloaded archive;
+8. obtain the exact pinned source tree for the deterministic Phase-3B pytest gate and run the required tests from that tree;
 9. invoke the engineering runner with output directory and seed 29300;
 10. print organized final tables, artifact paths, manifest path, and ZIP SHA256.
 
@@ -910,7 +912,7 @@ git add tools/build_phase3_engineering_colab.py tests/test_phase3_colab_notebook
 git commit -m "feat: add pinned one-cell Phase-3 Colab runner"
 ```
 
-Note: the notebook intentionally pins the scientific-source commit immediately before notebook generation. The later notebook commit is a runner wrapper commit; scientific package behavior remains the pinned source.
+The notebook intentionally pins the scientific-source commit immediately before notebook generation. The later notebook commit is a runner-wrapper commit; scientific package behavior remains the pinned source.
 
 ---
 
@@ -960,7 +962,7 @@ Confirm from tests/code:
 
 Any failure stops execution before seed 29300.
 
-- [ ] **Step 4: Run the one and only planned Phase-3 engineering integration smoke**
+- [ ] **Step 4: Run the planned Phase-3 engineering integration smoke**
 
 In Google Colab, execute only the generated single cell. It must mount Drive and run the exact six seed-29300 conditions with checkpoint/resume and four methods per condition.
 
@@ -1012,6 +1014,14 @@ At this point stop. Do not create or run a `29301--29310` development harness. T
 - One-cell Colab, pinned source/protocol, organized live output: Task 11.
 - No fresh development: Global Constraints, Tasks 9--12.
 - Full verification before claims: Task 12.
+
+### Self-review corrections made
+
+- Nested F implementation now specifies zero-SSE behavior instead of allowing division by zero.
+- SCR rank-abstentions stay inside the frozen Holm family with p-value `1.0` rather than silently shrinking the family after Selector is read.
+- Probe rank-abstentions likewise remain in the frozen Probe Holm family with p-value `1.0`.
+- The Colab VCS install syntax uses a valid PEP-508 direct reference with extras.
+- ZIP SHA is calculated separately so the manifest does not become self-referential.
 
 ### Scope decision
 
