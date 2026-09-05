@@ -23,20 +23,46 @@ jobs:
           cache: pip
       - name: Install package
         run: python -m pip install -e ".[dev]"
+      - name: Verify frozen comparator files are unchanged
+        run: |
+          git diff --exit-code origin/research/phase3-noise-calibrated-scope-certification -- \
+            src/fedfalsify/scsv_v11.py \
+            src/fedfalsify/scsv_v11_study.py \
+            src/fedfalsify/scsv_v10_benchmarks.py
       - name: Verify frozen v11 comparator tests
         run: pytest -q tests/test_scsv_v11.py
-      - name: Run Phase-3A tests that exist in this commit
-        shell: bash
+      - name: Run focused Phase-3A tests
         run: |
-          set -euo pipefail
-          mapfile -t files < <(find tests -maxdepth 1 -type f \( \
-            -name 'test_phase3a_*.py' -o \
-            -name 'test_sufficient_stats.py' -o \
-            -name 'test_linear_algebra.py' -o \
-            -name 'test_phase3_cache.py' \
-          \) | sort)
-          if ((${#files[@]})); then
-            pytest -q "${files[@]}"
-          else
-            echo "No Phase-3A-specific tests present yet."
-          fi
+          pytest -q \
+            tests/test_phase3a_seed_firewall.py \
+            tests/test_sufficient_stats.py \
+            tests/test_linear_algebra.py \
+            tests/test_phase3_cache.py \
+            tests/test_phase3a_parity.py
+      - name: Count and run full repository test suite
+        run: |
+          python - <<'PY'
+          import pytest
+          class Counter:
+              def pytest_collection_finish(self, session):
+                  print(f"PHASE3A_COLLECTED_TESTS={len(session.items)}")
+          code = pytest.main(["--collect-only", "-q"], plugins=[Counter()])
+          raise SystemExit(code)
+          PY
+          pytest -q
+      - name: Run six-condition engineering parity audit
+        run: |
+          python studies/phase3a_parity.py --output /tmp/phase3a_parity.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/phase3a_parity.json').read_text())
+          assert payload['seed'] == 29001
+          assert payload['conditions'] == 6
+          assert payload['passed'] is True
+          records = payload['records']
+          print('PHASE3A_PARITY_CONDITIONS=6')
+          print('PHASE3A_MAX_GRAM_ERROR=', max(r['max_abs_gram_error'] for r in records))
+          print('PHASE3A_MAX_TARGET_ERROR=', max(r['max_abs_target_error'] for r in records))
+          print('PHASE3A_MAX_SSE_ERROR=', max(r['max_abs_sse_error'] for r in records))
+          PY
