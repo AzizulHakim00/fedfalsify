@@ -1,4 +1,4 @@
-name: Phase 3B statistical foundation
+name: Phase 3B scientific implementation
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  batch-a:
+  phase3b:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -39,5 +39,11 @@ jobs:
             tests/test_linear_algebra.py \
             tests/test_nested_tests.py \
             tests/test_multiple_testing.py
+      - name: Run Phase-3B Batch-B tests
+        run: |
+          pytest -q \
+            tests/test_shared_recertification.py \
+            tests/test_role_localization_v12.py \
+            tests/test_localized_certification.py
       - name: Run full repository test suite
         run: pytest -q
