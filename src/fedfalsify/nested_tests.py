@@ -5,10 +5,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
+import numpy as np
 from scipy.stats import f as f_distribution
 
 from .linear_algebra import RankPolicy, fit_from_sufficient_stats
-from .sufficient_stats import SufficientStatsPacket, aggregate_packets
+from .sufficient_stats import (
+    SufficientStatsPacket,
+    aggregate_packets,
+    subset_packet,
+)
 
 
 @dataclass(frozen=True)
@@ -53,6 +58,41 @@ def _sign(value: float) -> int:
     return 0
 
 
+def _structural_rank(
+    packet: SufficientStatsPacket,
+    terms: tuple[str, ...],
+) -> int:
+    """Conservative rank estimate directly from the symmetric Gram matrix.
+
+    A Gram matrix is already X'X. Taking square roots of tiny roundoff
+    eigenvalues can falsely turn numerical noise into an apparent structural
+    direction. Applying a standard matrix-rank tolerance directly to the Gram
+    eigenvalues is therefore the safer rule for structural identifiability.
+    """
+    selected = subset_packet(packet, tuple(terms))
+    gram = np.asarray(selected.gram, dtype=float)
+    symmetric = (gram + gram.T) / 2.0
+    eigenvalues = np.linalg.eigvalsh(symmetric)
+    largest = float(max(np.max(np.abs(eigenvalues)), 0.0))
+    if largest == 0.0:
+        return 0
+    tolerance = (
+        np.finfo(float).eps
+        * max(1, gram.shape[0])
+        * largest
+    )
+    return int(np.count_nonzero(eigenvalues > tolerance))
+
+
+def _sse_tolerance(packet: SufficientStatsPacket, *values: float) -> float:
+    scale = max(
+        1.0,
+        abs(float(packet.target_energy)),
+        *(abs(float(value)) for value in values),
+    )
+    return float(128.0 * np.finfo(float).eps * scale)
+
+
 def partial_nested_f(
     packet: SufficientStatsPacket,
     reduced_terms: tuple[str, ...],
@@ -79,18 +119,24 @@ def partial_nested_f(
 
     reduced_fit = fit_from_sufficient_stats(packet, reduced_terms, policy)
     full_fit = fit_from_sufficient_stats(packet, full_terms, policy)
-    raw_gain = float(max(reduced_fit.sse - full_fit.sse, 0.0))
+    reduced_rank = _structural_rank(packet, reduced_terms)
+    full_rank = _structural_rank(packet, full_terms)
+    residual_df = int(packet.support) - int(full_rank)
 
-    if full_fit.rank != reduced_fit.rank + 1:
+    raw_difference = float(reduced_fit.sse - full_fit.sse)
+    tolerance = _sse_tolerance(packet, reduced_fit.sse, full_fit.sse, raw_difference)
+    raw_gain = float(raw_difference if raw_difference > tolerance else 0.0)
+
+    if full_rank != reduced_rank + 1:
         return NestedFResult(
             admissible=False,
             reason="STRUCTURAL-RANK-AMBIGUOUS",
             reduced_terms=reduced_terms,
             full_terms=full_terms,
             n=int(packet.support),
-            reduced_rank=int(reduced_fit.rank),
-            full_rank=int(full_fit.rank),
-            residual_df=int(full_fit.residual_df),
+            reduced_rank=int(reduced_rank),
+            full_rank=int(full_rank),
+            residual_df=int(residual_df),
             reduced_sse=float(reduced_fit.sse),
             full_sse=float(full_fit.sse),
             raw_gain=raw_gain,
@@ -100,16 +146,16 @@ def partial_nested_f(
             candidate_sign=0,
         )
 
-    if full_fit.residual_df <= 0:
+    if residual_df <= 0:
         return NestedFResult(
             admissible=False,
             reason="INSUFFICIENT-RESIDUAL-DF",
             reduced_terms=reduced_terms,
             full_terms=full_terms,
             n=int(packet.support),
-            reduced_rank=int(reduced_fit.rank),
-            full_rank=int(full_fit.rank),
-            residual_df=int(full_fit.residual_df),
+            reduced_rank=int(reduced_rank),
+            full_rank=int(full_rank),
+            residual_df=int(residual_df),
             reduced_sse=float(reduced_fit.sse),
             full_sse=float(full_fit.sse),
             raw_gain=raw_gain,
@@ -121,17 +167,18 @@ def partial_nested_f(
 
     coefficient_by_term = dict(zip(full_fit.terms, full_fit.coefficients))
     candidate_coefficient = float(coefficient_by_term[candidate_term])
+    candidate_sign = _sign(candidate_coefficient)
 
-    if full_fit.sse <= 1e-15:
-        if raw_gain > 1e-15:
-            f_statistic = float("inf")
-            p_value = 0.0
-        else:
-            f_statistic = 0.0
-            p_value = 1.0
+    if raw_gain <= tolerance or candidate_sign == 0:
+        f_statistic = 0.0
+        p_value = 1.0
+        raw_gain = 0.0
+    elif float(full_fit.sse) <= tolerance:
+        f_statistic = float("inf")
+        p_value = 0.0
     else:
-        f_statistic = float(raw_gain / (full_fit.sse / full_fit.residual_df))
-        p_value = float(f_distribution.sf(f_statistic, 1, full_fit.residual_df))
+        f_statistic = float(raw_gain / (float(full_fit.sse) / residual_df))
+        p_value = float(f_distribution.sf(f_statistic, 1, residual_df))
 
     return NestedFResult(
         admissible=True,
@@ -139,14 +186,14 @@ def partial_nested_f(
         reduced_terms=reduced_terms,
         full_terms=full_terms,
         n=int(packet.support),
-        reduced_rank=int(reduced_fit.rank),
-        full_rank=int(full_fit.rank),
-        residual_df=int(full_fit.residual_df),
+        reduced_rank=int(reduced_rank),
+        full_rank=int(full_rank),
+        residual_df=int(residual_df),
         reduced_sse=float(reduced_fit.sse),
         full_sse=float(full_fit.sse),
         raw_gain=raw_gain,
         f_statistic=f_statistic,
         p_value=p_value,
         candidate_coefficient=candidate_coefficient,
-        candidate_sign=_sign(candidate_coefficient),
+        candidate_sign=candidate_sign,
     )
