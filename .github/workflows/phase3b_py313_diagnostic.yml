@@ -1,0 +1,24 @@
+name: Phase 3B Python 3.13 diagnostic
+
+on:
+  push:
+    branches:
+      - research/phase3b-scientific-implementation
+  workflow_dispatch:
+
+jobs:
+  py313:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Checkout pinned scientific source
+        run: git checkout --detach b67a07371bcf244728536028593373ca7d1990b1
+      - name: Install pinned package
+        run: python -m pip install -e '.[dev,study]'
+      - name: Full pinned-source test gate under Python 3.13
+        run: pytest -q
