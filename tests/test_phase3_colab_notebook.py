@@ -60,7 +60,13 @@ def test_phase3_colab_is_self_contained_for_fresh_colab_runtime():
 
 def test_phase3_colab_test_gate_precedes_engineering_seed_execution():
     source = _single_code_source()
-    pytest_pos = source.index('"pytest",\n            "-q"')
+    pytest_match = re.search(
+        r'run_live\(\s*\[\s*str\(VENV_PY\)\s*,\s*["\']-m["\']\s*,\s*["\']pytest["\']\s*,\s*["\']-q["\']\s*\]',
+        source,
+        re.S,
+    )
+    assert pytest_match is not None
+    pytest_pos = pytest_match.start()
     gate_pos = source.index('run_env["FEDFALSIFY_PHASE3_TEST_GATE"] = "PASS"')
     engineering_pos = source.index('"fedfalsify.phase3_engineering_runner"')
     assert pytest_pos < gate_pos < engineering_pos
