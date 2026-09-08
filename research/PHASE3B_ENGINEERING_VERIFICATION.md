@@ -4,40 +4,32 @@
 **Execution branch:** `research/phase3b-scientific-implementation`  
 **Frozen scientific source executed in Colab:** `b67a07371bcf244728536028593373ca7d1990b1`  
 **Frozen engineering protocol SHA256:** `afcbc20da959a34b4f4e052ea0270ca98a3724fe9c8ec76edb2cc4c39b716be9`  
-**Post-run reproducibility-wrapper seal head:** `6e031a78fa6a1ab4f6dfef3d46ced3efd1d8b8ee`  
-**Post-run wrapper-seal CI run:** `34198093831`  
-**Engineering seed:** `29300` only
+**Engineering seed:** `29300` only  
+**Post-run code/wrapper seal CI:** run `34198093831` at `6e031a78fa6a1ab4f6dfef3d46ced3efd1d8b8ee`
 
 ## 1. Scope and decision boundary
 
-This report records the Phase-3B engineering integration evidence for FedFalsify v12 / SCSV-NCSC. The engineering protocol was frozen before the first execution of seed `29300`. The run is an integration/reproducibility smoke, not a development-performance sample.
+This report closes the Phase-3B engineering-integration task for FedFalsify v12 / SCSV-NCSC. The engineering protocol was frozen before the first execution of seed `29300`. The six-condition run is an integration, reproducibility, persistence, and mechanism-ledger smoke; it is **not** a development-performance sample.
 
-The only protocol-defined engineering decision is `PHASE3-ENGINEERING-PASS` or `PHASE3-ENGINEERING-FAIL`, based exclusively on test-gate, completeness, method-set, seed/firewall, integrity, artifact, and ZIP criteria. Exact recovery, NMSE, precision/recall, runtime, communication, and method comparisons are descriptive only and are not used to tune or accept the scientific method.
+The protocol-defined engineering decision is based only on test-gate, completeness, method-set, seed/firewall, artifact, checkpoint, and ZIP-integrity criteria. Exact recovery, NMSE, precision/recall, runtime, communication, and method comparisons are descriptive only and were not used to tune or accept the scientific method.
 
-No scientific GO/NO-GO claim is made from seed `29300`.
+**No scientific GO/NO-GO claim is made from seed `29300`.**
 
 ## 2. Frozen scientific and seed provenance
 
-The successful Colab execution checked out the detached scientific source commit
+The successful Colab execution checked out the detached scientific source commit:
 
 `b67a07371bcf244728536028593373ca7d1990b1`
 
-and verified the protocol SHA256
+and verified protocol SHA256:
 
 `afcbc20da959a34b4f4e052ea0270ca98a3724fe9c8ec76edb2cc4c39b716be9`.
 
-The successful execution used only seed `29300`. The following namespaces remained blocked during the engineering protocol:
-
-- spent Phase-1 development: `29101--29105`;
-- spent Phase-2 development: `29201--29205`;
-- fresh Phase-3 development: `29301--29310`;
-- final confirmation: `11001--11999`.
-
-No Phase-3 fresh-development harness was created or executed as part of this verification.
+Only seed `29300` was used by the Phase-3 engineering matrix. Fresh Phase-3 development seeds `29301--29310` and final-confirmation seeds `11001--11999` remained blocked and untouched. No fresh-development harness was created or executed as part of Phase-3B engineering verification.
 
 ## 3. Frozen comparator integrity
 
-The frozen comparator files remain byte-identical to the sealed comparator reference. Current Git blob identities are:
+The frozen comparator files remain byte-identical to the sealed comparator reference:
 
 | File | Git blob SHA |
 |---|---|
@@ -45,26 +37,17 @@ The frozen comparator files remain byte-identical to the sealed comparator refer
 | `src/fedfalsify/scsv_v11_study.py` | `35e54100107538758c056a1a9a45cd2319f7fec2` |
 | `src/fedfalsify/scsv_v10_benchmarks.py` | `11c0046f53e83d9a0b188e391eba4cdec234fac8` |
 
-The current wrapper-seal CI also ran the frozen comparator diff against `78d0ab7ca7afb1edfa4725a45dfd20ce2db39659` and passed before the remaining test groups.
+The post-run code/wrapper seal CI passed the frozen-comparator diff against Phase-3A seal `78d0ab7ca7afb1edfa4725a45dfd20ce2db39659` before running the remaining test groups.
 
 ## 4. Deterministic test evidence
 
-### Pre-execution Colab gate
+### Successful Colab pre-execution gate
 
-The successful engineering notebook ran in a clean isolated environment with:
+The successful engineering notebook ran in an isolated environment with Python `3.13.15`, NumPy `2.1.3`, SciPy `1.16.3`, pandas `2.2.3`, joblib `1.5.3`, and pytest `8.4.2`. The complete pinned-source test gate passed before the runner authorized seed `29300`.
 
-- Python `3.13.15`;
-- NumPy `2.1.3`;
-- SciPy `1.16.3`;
-- pandas `2.2.3`;
-- joblib `1.5.3`;
-- pytest `8.4.2`.
+### Post-run code/wrapper seal
 
-The complete pinned-source test gate passed before `29300` was authorized. The pytest progress output contains `249` test cases with zero failures. The scientific runner did not start until this gate had passed.
-
-### Post-run reproducibility-wrapper seal
-
-After the successful run, only the Colab infrastructure/wrapper was repaired so the checked-in notebook exactly represents the fresh-runtime execution path that succeeded. The final wrapper-seal CI run `34198093831` at head `6e031a78fa6a1ab4f6dfef3d46ced3efd1d8b8ee` passed:
+After the successful engineering run, the checked-in Colab wrapper was made self-contained for a fresh Colab runtime without changing the frozen scientific source. CI run `34198093831` at head `6e031a78fa6a1ab4f6dfef3d46ced3efd1d8b8ee` passed:
 
 - frozen comparator diff;
 - frozen v11 tests: `6`;
@@ -74,18 +57,18 @@ After the successful run, only the Colab infrastructure/wrapper was repaired so 
 - Batch-D engineering/wrapper focused tests: `16`;
 - full current repository suite: `256` tests, zero failures.
 
-These post-run wrapper changes do not modify the frozen scientific source executed at `b67a073...` and do not rerun seed `29300`.
+The post-run wrapper work did not rerun `29300` and did not modify scientific thresholds, candidate families, split roles, capacity rules, rank policy, or outside-role safety.
 
 ## 5. Scientific invariant review
 
-The pre-run line-by-line review and tests established the following frozen invariants:
+The reviewed implementation preserves the frozen Phase-3B invariants:
 
 - SCR final shared certification uses Selector evidence and Holm `alpha_shared = 0.05`.
 - NCEE provisional role construction uses Discovery evidence only and BH `q_role = 0.10`.
-- Localized active support floor is `10` rows per client.
-- Localized FULL-model residual degrees-of-freedom floor is `5`.
+- Localized active-support floor is `10` rows per client.
+- Localized FULL-model residual-df floor is `5`.
 - Maximum localized role fraction is `0.50`, with at least one outside client.
-- Selector localized screening can only remove/screen a frozen hypothesis; it cannot create or change one.
+- Selector localized screening can only remove/screen a frozen hypothesis.
 - Probe cannot nominate a term, change a role/source, or alter the Discovery sign.
 - Final Probe localized multiplicity control is Holm `alpha_dev = 0.05` over the frozen family.
 - Outside-role non-degradation tolerance is exactly `1e-10` SSE units.
@@ -98,7 +81,7 @@ The pre-run line-by-line review and tests established the following frozen invar
 
 ## 6. Numerical foundation inherited from sealed Phase 3A
 
-Phase-3B uses the sealed sufficient-statistic and deterministic linear-algebra foundation from Phase 3A. The six-condition centralized/federated parity audit recorded these maximum absolute discrepancies:
+Phase-3B reuses the sealed sufficient-statistic and deterministic linear-algebra foundation from Phase 3A. The centralized/federated parity audit recorded maximum absolute discrepancies:
 
 | Quantity | Maximum absolute error |
 |---|---:|
@@ -106,11 +89,11 @@ Phase-3B uses the sealed sufficient-statistic and deterministic linear-algebra f
 | target cross-products | `2.7284841053187847e-12` |
 | reconstructed SSE | `2.0463630789890885e-12` |
 
-No scientific threshold was adjusted to obtain these numerical equivalences. The Phase-3B engineering package did not emit a separate new centralized/federated maximum-discrepancy table, so this report does not invent one; it records the sealed numerical foundation actually reused by Phase 3B.
+No scientific threshold was adjusted to obtain those equivalences.
 
 ## 7. Engineering matrix and integrity result
 
-All six prespecified engineering conditions completed with exactly four method rows per condition:
+All six prespecified engineering conditions completed with exactly four rows each:
 
 1. `quadratic_role_v10 | K=4 | balanced | single | noise=0.10 | 29300`
 2. `trig_role_v10 | K=4 | balanced | single | noise=0.30 | 29300`
@@ -119,16 +102,16 @@ All six prespecified engineering conditions completed with exactly four method r
 5. `weak_source_role_v10 | K=8 | balanced | quarter | noise=0.10 | 29300`
 6. `dual_role_v10 | K=8 | imbalanced | quarter | noise=0.30 | 29300`
 
-Exact method set:
+Exact method set per condition:
 
-- `scsv-elrc-v11-full`;
-- `scr-only`;
-- `ncee-only`;
-- `scsv-ncsc`.
+- `scsv-elrc-v11-full`
+- `scr-only`
+- `ncee-only`
+- `scsv-ncsc`
 
-The successful engineering integrity payload reported:
+The delivered integrity payload records:
 
-| Integrity item | Recorded result |
+| Integrity item | Result |
 |---|---:|
 | expected conditions | `6` |
 | complete conditions | `6` |
@@ -142,17 +125,25 @@ The successful engineering integrity payload reported:
 | base artifacts OK | `true` |
 | ZIP verified | `true` |
 
-The runner therefore recorded the protocol-defined integrity decision:
+The protocol-defined engineering decision is therefore:
 
 **`PHASE3-ENGINEERING-PASS`**.
 
-## 8. Successful archive identifiers
+## 8. Independent external archive replay — COMPLETE
 
-The successful run reported final ZIP SHA256:
+The delivered binary archive `FedFalsify_PHASE3_NCSC_ENGINEERING_RESULTS.zip` was independently replayed outside Colab after upload to the verification environment.
 
-`6e6827ae156f2057ef15b9f0feb511779d279e1ab0317d206762bdbba7a54db7`
+### ZIP-level checks
 
-The in-run manifest recorded:
+- archive size: `130217` bytes;
+- external ZIP SHA256: `6e6827ae156f2057ef15b9f0feb511779d279e1ab0317d206762bdbba7a54db7`;
+- the external SHA exactly matches the SHA printed by the governed Colab run;
+- `zipfile.ZipFile(...).testzip()` returned `None`;
+- archive contains the expected 14 members: 13 hash-governed artifacts plus `phase3_engineering_sha256.txt`; the ZIP itself is naturally external to its own archive.
+
+### Manifest replay
+
+The manifest contains 13 non-self-referential SHA256 entries. Every delivered artifact independently recomputed to exactly the recorded SHA:
 
 | Artifact | SHA256 |
 |---|---|
@@ -170,33 +161,49 @@ The in-run manifest recorded:
 | `phase3_engineering_state.joblib` | `880cf82b41fcb25b550e1b28b8755059ba6adb63f2baf1d487a22b3eb809cfc9` |
 | `phase3_engineering_state.pkl` | `8e0d7b6e20e66f5650291439711bd037954509ce45945b104bb3e84e9526d9d2` |
 
-The manifest intentionally excludes itself and the ZIP to avoid self-reference. The Colab wrapper independently reopened the ZIP and reported `testzip()` success after the runner package step.
+All 13 comparisons passed exactly.
 
-### External archive-audit limitation
+### Checkpoint and primary-row replay
 
-At the time this report was written, the chat handoff contained the complete console transcript but not the binary ZIP itself. Therefore two Task-12 archive checks are **not independently replayed outside Colab in this report**:
+- `phase3_engineering_checkpoint.csv` and `phase3_engineering_rows.csv` are byte-identical;
+- primary table has `24` rows and `35` columns;
+- the six condition keys are present exactly once as complete four-method groups;
+- every group contains the exact four-method set;
+- duplicate `(condition, method)` rows: `0`;
+- row-level integrity-violation values: all `0`;
+- seed values: only `29300`.
 
-1. reloading `phase3_engineering_state.pkl` and `phase3_engineering_state.joblib` from the delivered archive bytes;
-2. recomputing every manifest SHA256 from the delivered archive bytes and comparing them line-by-line with the manifest.
+### PKL/joblib replay
 
-Their creation, presence, hashing, and ZIP CRC verification succeeded inside the governed run, but an external byte-level replay requires the actual `FedFalsify_PHASE3_NCSC_ENGINEERING_RESULTS.zip`. This limitation does not change the runner's protocol-defined `PHASE3-ENGINEERING-PASS`; it prevents this report from claiming an independent external archive replay that has not yet occurred.
+Both `phase3_engineering_state.pkl` and `phase3_engineering_state.joblib` loaded successfully. Each contains the same state dictionary with:
+
+- `schema_version`;
+- `engineering_seed = 29300`;
+- the exact four-method tuple;
+- `6` completed condition keys;
+- `24` persisted primary rows.
+
+The PKL and joblib objects compare equal. When compared with the CSV representation, the only parser-level representation difference is that empty `accepted_deviations` strings become `NaN` under default pandas CSV parsing; this is not a scientific or state-content discrepancy.
+
+### Summary reconstruction
+
+`phase3_engineering_method_summary.csv` was independently reconstructed from `phase3_engineering_rows.csv` using means for the declared accuracy/NMSE metrics and medians for runtime/communication. It matches the delivered summary to floating-point roundoff, with maximum absolute numerical discrepancy no larger than approximately `1.11e-16` across direct summary metrics.
+
+`phase3_engineering_ablation_summary.csv` was then independently reconstructed from the method summary relative to v11. It matches to floating-point roundoff, with maximum absolute discrepancy no larger than approximately `2.22e-16`.
+
+The shared-diagnostics table contains `80` rows and the localized-diagnostics table contains `128` rows; both contain only seed `29300` and the exact four governed method IDs.
+
+**External archive replay result: PASS.**
 
 ## 9. Non-scientific infrastructure defects repaired
 
-Before the successful `29300` execution, several Colab-only infrastructure failures were diagnosed. Every failure stopped before seed execution:
+Before the successful `29300` execution, several Colab-only infrastructure failures were diagnosed. Every failed attempt stopped before scientific seed execution. The final successful wrapper became self-contained: it clones the exact frozen source into ephemeral `/content`, checks out the detached frozen commit, verifies the protocol, creates an isolated environment, disables unrelated pytest plugin auto-loading, runs the complete test gate, and only then authorizes `29300`.
 
-1. The original Colab test invocation was contaminated by the ambient Colab environment. A clean Python 3.13 reproduction and then the exact Colab numerical dependency versions passed the pinned source tests.
-2. An intermediate recovery wrapper assumed `/content/fedfalsify_phase3_pinned` persisted across Colab runtime restarts; a fresh runtime correctly showed that `/content` is ephemeral.
-3. One intermediate handoff accidentally contained notebook-builder code that attempted to write `/mnt/data`, a path belonging to the artifact-generation environment rather than Colab.
-4. The successful wrapper became self-contained: it clones the exact frozen source into `/content`, checks out the detached frozen commit, verifies the protocol, creates an isolated environment, disables unrelated pytest plugin auto-loading, runs the complete test gate, and only then authorizes `29300`.
-
-No scientific constant, hypothesis family, split rule, capacity, rank rule, outside-role tolerance, candidate grammar, or evaluation target changed during these repairs.
-
-After the successful run, the repository's checked-in builder/notebook and tests were updated solely to preserve that successful fresh-runtime wrapper path. TDD for this post-run infrastructure seal first demonstrated that the old checked-in wrapper failed the strengthened fresh-runtime tests; the corrected wrapper then passed focused and full CI. Seed `29300` was not rerun for this wrapper-seal work.
+No scientific constant, hypothesis family, split rule, capacity, rank rule, outside-role tolerance, candidate grammar, or evaluation target changed during those repairs. Seed `29300` was not rerun for the later repository wrapper-seal work.
 
 ## 10. Descriptive engineering observations — not a decision gate
 
-The six-condition smoke produced the following descriptive averages:
+The six-condition engineering sample produced:
 
 | Method | Exact recovery | Shared recall | Deviation recall | Test NMSE | Runtime ratio vs v11 | Communication ratio vs v11 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -205,43 +212,28 @@ The six-condition smoke produced the following descriptive averages:
 | `ncee-only` | `0.333333` | `0.944444` | `0.333333` | `0.088480` | `0.985799` | `0.933391` |
 | `scsv-ncsc` | `0.333333` | `0.944444` | `0.500000` | `0.022968` | `0.986501` | `0.934300` |
 
-Per-condition exact recovery in this engineering-only sample was:
-
-| Condition | v11 | SCR-only | NCEE-only | SCSV-NCSC |
-|---|---:|---:|---:|---:|
-| quadratic role, noise 0.10 | 1 | 0 | 0 | 0 |
-| trig role, noise 0.30 | 0 | 0 | 0 | 0 |
-| null role, noise 0.10 | 1 | 1 | 1 | 1 |
-| anchor-contamination null, noise 0.30 | 1 | 1 | 1 | 1 |
-| weak-source role, noise 0.10 | 1 | 0 | 0 | 0 |
-| dual role, noise 0.30 | 0 | 0 | 0 | 0 |
-
-These six observations are too small and were explicitly designated as engineering-only. They do not justify a scientific rule change, a scientific rejection, or a superiority claim.
+These observations are engineering-only and are too small for scientific inference. They do not justify a post-hoc rule change, scientific rejection, or superiority claim.
 
 ## 11. Prospective scientific-review items recorded without tuning
 
-The mechanism ledger exposes questions that should be reviewed **prospectively before any fresh Phase-3 development protocol is frozen**, without changing the current method in response to `29300`:
+The mechanism ledger exposes issues that should be considered only in a **separate prospective review before any fresh-development protocol is frozen**:
 
-- In some localized-role geometries, an exception basis can be rank-collinear with its source term on a role client when that client's entire local support lies inside the exception scope. The NCEE ledger then records `STRUCTURAL-RANK-AMBIGUOUS`. This is a structural identifiability question, not evidence for post-hoc threshold tuning.
-- SCR can independently remove a true ordinary term or retain an extra ordinary term in difficult conditions. The appropriate prospective question is whether the prespecified shared hypothesis family and independent partial-F estimand are structurally aligned with the benchmark target, not whether `alpha_shared` should be tuned from `29300`.
-- The dual-role difficult condition remained unresolved by all branches in this smoke. No rescue mechanism may be introduced from this one engineering condition.
+- In some localized-role geometries, an exception basis can become rank-collinear with its source term on a role client when that client's entire local support lies inside the exception scope; the NCEE ledger can then record `STRUCTURAL-RANK-AMBIGUOUS`. This is an identifiability/design question, not evidence for threshold tuning.
+- The engineering sample shows that SCR/NCEE can change exact recovery relative to v11. Because `29300` was not a development sample, those outcomes cannot be used to choose new alpha levels, BH thresholds, support floors, capacities, or safety tolerances.
+- The next research action must therefore be a prospective fresh-development protocol review, not an immediate parameter optimization pass.
 
-These items are recorded only to define what a separate fresh-development protocol review must reason about before spending `29301--29310`.
+## 12. Final Phase-3B engineering conclusion
 
-## 12. Engineering conclusion and stop condition
+All protocol-defined engineering integrity checks pass, and the delivered archive has now passed an independent byte-level replay.
 
-The governed Colab run itself satisfies the protocol-defined engineering integrity gate and records:
+**PHASE3B-ENGINEERING-SEALED.**
 
-**`PHASE3-ENGINEERING-PASS`**.
+This seal establishes that:
 
-The scientific implementation is therefore suitable to **freeze as an engineering integration artifact and enter a separate prospective fresh-development protocol review**. This statement is not a scientific GO and does not authorize immediate execution of `29301--29310`.
+1. the frozen v12 scientific implementation is reproducibly executable under the governed engineering protocol;
+2. the six-condition `29300` matrix completed with correct method grouping and no seed/integrity violations;
+3. the final archive, hashes, checkpoint, PKL/joblib state, CSV summaries, diagnostics, and ZIP are mutually consistent;
+4. the frozen v11 comparator remains unchanged;
+5. `29301--29310` and `11001--11999` remain untouched.
 
-At this checkpoint:
-
-- `29300` is spent for engineering integration and may not be used for tuning;
-- `29301--29310` remain untouched and unauthorized pending a separately reviewed frozen development protocol;
-- `11001--11999` remain untouched and blocked;
-- no final-confirmation run is authorized;
-- no scientific superiority claim is authorized.
-
-For a fully independent external archive seal, upload the successful `FedFalsify_PHASE3_NCSC_ENGINEERING_RESULTS.zip` and replay the two binary/hash checks listed in Section 8 before labeling the archive handoff independently verified.
+This seal **does not** establish scientific superiority or scientific development GO. The next permitted research activity is a separate, prospective review and freeze of the fresh Phase-3 development protocol. No fresh-development or final-confirmation seed may be executed until that separate protocol is approved and frozen.
