@@ -2,16 +2,20 @@ from __future__ import annotations
 
 import copy
 
+import pandas as pd
 import pytest
 
 from fedfalsify.phase3_development_runner import (
     AUTHORIZATION_TOKEN,
     DEVELOPMENT_SEEDS,
     PHASE3_METHODS,
+    _run_condition_groups,
+    _true_role_map,
     condition_key_string,
     gate_checks,
     paired_analysis,
     require_development_authorization,
+    save_development_artifacts,
     scientific_conditions,
     scope_exact_recovery,
     validate_checkpoint_groups,
@@ -108,6 +112,47 @@ def test_checkpoint_keeps_only_complete_unique_authorized_four_method_groups():
     assert completed == set()
 
 
+def test_resume_checkpoint_uses_mocked_groups_and_never_reexecutes_complete_groups(tmp_path):
+    conditions = scientific_conditions(DEVELOPMENT_SEEDS)[:2]
+    calls: list[tuple] = []
+
+    def evaluator(condition):
+        calls.append(condition)
+        return [_row(condition, method) for method in PHASE3_METHODS]
+
+    rows, completed = _run_condition_groups(
+        tmp_path,
+        conditions,
+        evaluator=evaluator,
+        live=False,
+    )
+    assert len(rows) == 8
+    assert completed == set(conditions)
+    assert calls == list(conditions)
+    assert len(pd.read_csv(tmp_path / "phase3_development_checkpoint.csv")) == 8
+
+    def must_not_run(_condition):
+        raise AssertionError("completed checkpoint group was re-executed")
+
+    resumed_rows, resumed_completed = _run_condition_groups(
+        tmp_path,
+        conditions,
+        evaluator=must_not_run,
+        live=False,
+    )
+    assert len(resumed_rows) == 8
+    assert resumed_completed == set(conditions)
+
+
+def test_final_artifacts_refuse_incomplete_mocked_study(tmp_path):
+    condition = scientific_conditions(DEVELOPMENT_SEEDS)[0]
+    with pytest.raises(RuntimeError, match="1200 complete"):
+        save_development_artifacts(
+            [_row(condition, method) for method in PHASE3_METHODS],
+            tmp_path,
+        )
+
+
 def test_authorization_fails_closed_until_test_gate_and_explicit_token(monkeypatch):
     monkeypatch.delenv("FEDFALSIFY_PHASE3_TEST_GATE", raising=False)
     with pytest.raises(RuntimeError):
@@ -126,6 +171,30 @@ def test_scope_exact_recovery_requires_exact_term_to_client_role_mapping():
     assert scope_exact_recovery({}, {}) == 1.0
     assert scope_exact_recovery({"dev-a": ("client-4",)}, {"dev-a": ("client-3",)}) == 0.0
     assert scope_exact_recovery({"dev-a": ("client-4",)}, {"dev-a": ("client-4",), "extra": ("client-2",)}) == 0.0
+
+
+def test_truth_role_map_matches_single_quarter_weak_dual_and_null_geometries():
+    single = ("quadratic_role_v10", 4, "balanced", "single", 0.10, 29301)
+    assert _true_role_map(single) == {"I(x3<-0.90)*x3^2": ("client-4",)}
+
+    quarter = ("trig_role_v10", 8, "balanced", "quarter", 0.10, 29301)
+    assert _true_role_map(quarter) == {
+        "I(x2>0.90)*cos(x2)": ("client-7", "client-8")
+    }
+
+    weak = ("weak_source_role_v10", 8, "balanced", "quarter", 0.10, 29301)
+    assert _true_role_map(weak) == {
+        "I(x4<-0.90)*x4^2": ("client-7", "client-8")
+    }
+
+    dual = ("dual_role_v10", 8, "balanced", "quarter", 0.10, 29301)
+    assert _true_role_map(dual) == {
+        "I(x3<-0.90)*x3^2": ("client-7", "client-8"),
+        "I(x1<-0.90)*x1": ("client-5", "client-6"),
+    }
+
+    null = ("null_role_v10", 8, "balanced", "none", 0.10, 29301)
+    assert _true_role_map(null) == {}
 
 
 def _paired_row(key: str, seed: int, method: str, exact: float) -> dict:
