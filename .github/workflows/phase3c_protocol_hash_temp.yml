@@ -1,0 +1,17 @@
+name: Phase3C protocol hash temporary
+
+on:
+  push:
+    branches:
+      - research/phase3c-fresh-development
+
+permissions:
+  contents: read
+
+jobs:
+  hash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SHA256
+        run: sha256sum research/FROZEN_PHASE3C_DEVELOPMENT_PROTOCOL.md
