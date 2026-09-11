@@ -324,7 +324,7 @@ else:
         flush=True,
     )
 
-    runner_code = r'''from pathlib import Path
+    runner_code = r"""from pathlib import Path
 from fedfalsify.phase3_development_runner import AUTHORIZATION_TOKEN, run_development
 import os
 
@@ -337,7 +337,7 @@ print("__PHASE3C_RESULT__")
 print(result["decision"])
 print(result["zip_path"])
 print(result["zip_sha256"])
-'''
+"""
     run_env["FEDFALSIFY_PHASE3C_OUTPUT_DIR"] = str(OUTPUT_DIR)
     run_live(
         [str(VENV_PY), "-u", "-c", runner_code],
