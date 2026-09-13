@@ -1,0 +1,43 @@
+name: Phase 3E v13 fresh noisy development
+
+on:
+  push:
+    branches:
+      - research/phase3e-v13-fresh-noisy-development
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase3e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install package
+        run: python -m pip install -e ".[dev,study]"
+      - name: Verify frozen predecessor science unchanged
+        run: |
+          git diff --exit-code 435a8c1af7436fac3d3b1a625e356cf6de180bb0 -- \
+            src/fedfalsify/scsv_v11.py \
+            src/fedfalsify/scsv_v11_study.py \
+            src/fedfalsify/scsv_v10_benchmarks.py \
+            src/fedfalsify/scsv_v12.py \
+            src/fedfalsify/scsv_v13.py \
+            src/fedfalsify/scope_contrast_v13.py \
+            src/fedfalsify/phase3d_fixtures.py \
+            src/fedfalsify/nested_tests.py \
+            src/fedfalsify/multiple_testing.py \
+            src/fedfalsify/sufficient_stats.py \
+            src/fedfalsify/linear_algebra.py
+      - name: Run Phase-3E tests
+        run: pytest -q tests/test_phase3e_v13_development_runner.py
+      - name: Run full repository suite
+        run: pytest -q
