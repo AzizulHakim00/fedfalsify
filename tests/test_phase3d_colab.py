@@ -21,7 +21,7 @@ def _load_builder():
 def test_phase3d_builder_has_exact_nonplaceholder_source_pin():
     assert BUILDER.exists()
     builder = _load_builder()
-    assert builder.PHASE3D_EXECUTION_SOURCE == "d0e2907b1a3fe2e02096ec65ce4883da03ae34f8"
+    assert builder.PHASE3D_EXECUTION_SOURCE == "1e03ba5655518e5e311d629e1f4bea233e46bcb1"
     assert builder.FROZEN_PHASE3C_SCIENTIFIC_SOURCE == "b67a07371bcf244728536028593373ca7d1990b1"
     assert len(builder.PHASE3D_EXECUTION_SOURCE) == 40
     assert "UNPINNED" not in builder.PHASE3D_EXECUTION_SOURCE
