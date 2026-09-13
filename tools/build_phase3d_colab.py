@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK = ROOT / "colab" / "FedFalsify_Phase3D_V13_Scope_Contrast_OneCell.ipynb"
 PY_WRAPPER = ROOT / "colab" / "FedFalsify_Phase3D_V13_Scope_Contrast_OneCell.py"
 
-# Stage-1 execution pin. After this wrapper commit is CI-green, regenerate with
-# that verified commit SHA and make the final wrapper-seal commit.
-PHASE3D_EXECUTION_SOURCE = "d0e2907b1a3fe2e02096ec65ce4883da03ae34f8"
+# Reproducible execution pin: this commit passed the complete Phase-3D CI gate
+# (frozen-science integrity, focused tests, and the full repository suite).
+PHASE3D_EXECUTION_SOURCE = "1e03ba5655518e5e311d629e1f4bea233e46bcb1"
 FROZEN_PHASE3C_SCIENTIFIC_SOURCE = "b67a07371bcf244728536028593373ca7d1990b1"
 
 REPO_URL = "https://github.com/AzizulHakim00/fedfalsify.git"
