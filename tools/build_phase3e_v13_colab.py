@@ -225,7 +225,7 @@ else:
     # STAGE 7 — Run/resume governed study. Valid condition groups on Drive are skipped by the runner.
     banner("[STAGE 7/8] RUN / RESUME FROZEN Phase-3E 29401-29410 BLOCK")
     print("[SCIENTIFIC CONSEQUENCE] Phase-3E fresh block is now considered spent.", flush=True)
-    runner_code = r'''from pathlib import Path
+    runner_code = r"""from pathlib import Path
 import os
 from fedfalsify.phase3e_v13_development_runner import run_phase3e_development
 
@@ -236,7 +236,7 @@ result = run_phase3e_development(
 )
 print("__PHASE3E_RESULT__")
 print(result["decision"])
-'''
+"""
     run_live(
         [str(VENV_PY), "-u", "-c", runner_code],
         cwd=SOURCE_DIR,
