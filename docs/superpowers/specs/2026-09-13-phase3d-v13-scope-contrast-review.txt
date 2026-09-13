@@ -1,0 +1,8 @@
+Phase-3D v13 design self-review
+
+Placeholder scan: PASS — no TBD/TODO placeholders.
+Internal consistency: PASS — method registry, fixture set, resume unit, seed firewall, persistence layout, and pass criteria are consistent.
+Scope check: PASS — limited to zero-seed deterministic architectural admissibility; external baselines, real data, and fresh development are explicitly excluded.
+Ambiguity check: PASS — work unit is fixture×model×outer_fold; initial OUTER_FOLDS=(0,); complete units skip, incomplete/corrupt units rerun; source-linked identifiability is evaluated on aggregated role+outside scope, not within a single role client.
+
+No design changes required after self-review.
