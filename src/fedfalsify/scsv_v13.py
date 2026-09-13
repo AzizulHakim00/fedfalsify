@@ -289,11 +289,11 @@ def _outside_safety_for_scope(
     full_terms: tuple[str, ...],
     candidate_term: str,
     outside_client_ids: tuple[str, ...],
-) -> tuple[bool, float, float]:
+) -> tuple[bool, float | None, float | None]:
     outside_set = set(outside_client_ids)
     selected = tuple(packet for packet in packets if packet.client_id in outside_set)
     if not selected:
-        return False, float("nan"), float("nan")
+        return False, None, None
     outside = aggregate_packets(selected)
     reduced_terms = tuple(term for term in full_terms if term != candidate_term)
     full_fit = fit_from_sufficient_stats(pooled, full_terms)
@@ -327,7 +327,7 @@ def _joint_certify(
 
     raw_values: list[float] = []
     nested_results = []
-    safety: dict[str, tuple[bool, float, float]] = {}
+    safety: dict[str, tuple[bool, float | None, float | None]] = {}
     for term in tested:
         reduced = tuple(item for item in full_family if item != term)
         result = partial_nested_f(pooled, reduced, full_family, candidate_term=term)
@@ -354,7 +354,7 @@ def _joint_certify(
     diagnostics: list[dict[str, object]] = []
     for term, raw_p, nested in zip(tested, raw_values, nested_results):
         is_scope = term in scope_by_name
-        outside_safe, outside_full, outside_reduced = safety.get(term, (True, float("nan"), float("nan")))
+        outside_safe, outside_full, outside_reduced = safety.get(term, (True, None, None))
         hypothesis = scope_by_name.get(term)
         sign_ok = bool(
             not is_scope
