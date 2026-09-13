@@ -5,8 +5,15 @@ import pytest
 from fedfalsify.phase3e_v13_development_runner import (
     DEVELOPMENT_SEEDS,
     PHASE3E_METHODS,
+    benchmark_to_v13_fixture,
     scientific_conditions,
+    true_role_map,
     validate_development_seed_block,
+)
+from fedfalsify.scsv_v10_benchmarks import (
+    LINEAR_DEV_V10,
+    QUADRATIC_DEV_V10,
+    generate_v10_benchmark,
 )
 
 
@@ -62,3 +69,32 @@ def test_phase3e_method_family_contains_frozen_predecessors_ablation_and_v13() -
         "scope-contrast-only",
         "v13-full",
     )
+
+
+def test_single_role_truth_and_v13_fixture_are_derived_from_frozen_benchmark_metadata() -> None:
+    condition = ("quadratic_role_v10", 4, "balanced", "single", 0.10, 29401)
+    generated = generate_v10_benchmark(
+        condition[0],
+        nominal_samples_per_client=100,
+        noise_ratio=condition[4],
+        seed=condition[5],
+        num_clients=condition[1],
+        balance_profile=condition[2],
+        role_profile=condition[3],
+    )
+    roles = true_role_map(condition)
+    assert roles == {QUADRATIC_DEV_V10: ("client-4",)}
+
+    fixture = benchmark_to_v13_fixture(generated, condition)
+    assert fixture.clients == generated.clients
+    assert fixture.true_shared_terms == ("1", "x3^2", "sin(x2)", "x1")
+    assert fixture.true_localized_terms == (QUADRATIC_DEV_V10,)
+    assert fixture.truth_scopes == ((QUADRATIC_DEV_V10, ("client-4",)),)
+
+
+def test_dual_role_truth_keeps_two_nonoverlapping_client_scopes() -> None:
+    condition = ("dual_role_v10", 8, "imbalanced", "quarter", 0.30, 29410)
+    assert true_role_map(condition) == {
+        QUADRATIC_DEV_V10: ("client-7", "client-8"),
+        LINEAR_DEV_V10: ("client-5", "client-6"),
+    }
