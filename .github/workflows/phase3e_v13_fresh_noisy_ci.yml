@@ -37,7 +37,21 @@ jobs:
             src/fedfalsify/multiple_testing.py \
             src/fedfalsify/sufficient_stats.py \
             src/fedfalsify/linear_algebra.py
-      - name: Run Phase-3E tests
+      - name: Generate deterministic Phase-3E Colab handoff
+        run: python tools/build_phase3e_v13_colab.py
+      - name: Run Phase-3E runner tests
         run: pytest -q tests/test_phase3e_v13_development_runner.py
+      - name: Run Phase-3E Colab tests
+        run: pytest -q tests/test_phase3e_v13_colab.py
       - name: Run full repository suite
         run: pytest -q
+      - name: Upload verified Phase-3E Colab handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase3e-v13-colab-handoff
+          if-no-files-found: error
+          path: |
+            colab/FedFalsify_Phase3E_V13_Fresh_Noisy_Development_OneCell.ipynb
+            colab/FedFalsify_Phase3E_V13_Fresh_Noisy_Development_OneCell.py
+            tools/build_phase3e_v13_colab.py
+            research/FROZEN_PHASE3E_V13_DEVELOPMENT_PROTOCOL.md
