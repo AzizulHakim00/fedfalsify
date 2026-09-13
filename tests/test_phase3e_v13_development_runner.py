@@ -3,11 +3,17 @@ from __future__ import annotations
 import pytest
 
 from fedfalsify.phase3e_v13_development_runner import (
+    AUTHORIZATION_TOKEN,
     DEVELOPMENT_SEEDS,
+    FROZEN_PROTOCOL_SHA256,
     PHASE3E_METHODS,
     benchmark_to_v13_fixture,
+    condition_key_string,
+    gate_checks,
+    require_development_authorization,
     scientific_conditions,
     true_role_map,
+    validate_checkpoint_groups,
     validate_development_seed_block,
 )
 from fedfalsify.scsv_v10_benchmarks import (
@@ -20,6 +26,7 @@ from fedfalsify.scsv_v10_benchmarks import (
 def test_phase3e_uses_new_unspent_ten_seed_block() -> None:
     assert DEVELOPMENT_SEEDS == tuple(range(29401, 29411))
     validate_development_seed_block(DEVELOPMENT_SEEDS)
+    assert FROZEN_PROTOCOL_SHA256 == "2eebcf892e3acd90c9a133f7945850f60cb8a89fd577f2c3ac6011f5f8fbeac7"
 
 
 @pytest.mark.parametrize(
@@ -98,3 +105,80 @@ def test_dual_role_truth_keeps_two_nonoverlapping_client_scopes() -> None:
         QUADRATIC_DEV_V10: ("client-7", "client-8"),
         LINEAR_DEV_V10: ("client-5", "client-6"),
     }
+
+
+def test_authorization_fails_closed_until_test_gate_and_exact_token(monkeypatch) -> None:
+    monkeypatch.delenv("FEDFALSIFY_PHASE3E_TEST_GATE", raising=False)
+    with pytest.raises(RuntimeError):
+        require_development_authorization(AUTHORIZATION_TOKEN)
+    monkeypatch.setenv("FEDFALSIFY_PHASE3E_TEST_GATE", "PASS")
+    with pytest.raises(RuntimeError):
+        require_development_authorization("wrong")
+    require_development_authorization(AUTHORIZATION_TOKEN)
+
+
+def _fake_group(condition):
+    family, clients, balance, role, noise, seed = condition
+    key = condition_key_string(condition)
+    return [
+        {
+            "family": family,
+            "num_clients": clients,
+            "balance_profile": balance,
+            "role_profile": role,
+            "noise_ratio": noise,
+            "seed": seed,
+            "condition_key": key,
+            "method": method,
+        }
+        for method in PHASE3E_METHODS
+    ]
+
+
+def test_resume_accepts_only_complete_unique_four_method_groups() -> None:
+    condition = scientific_conditions()[0]
+    cleaned, completed = validate_checkpoint_groups(_fake_group(condition))
+    assert len(cleaned) == 4
+    assert completed == {condition}
+
+    cleaned_partial, completed_partial = validate_checkpoint_groups(_fake_group(condition)[:-1])
+    assert cleaned_partial == []
+    assert completed_partial == set()
+
+    duplicate = _fake_group(condition) + [_fake_group(condition)[-1]]
+    cleaned_duplicate, completed_duplicate = validate_checkpoint_groups(duplicate)
+    assert cleaned_duplicate == []
+    assert completed_duplicate == set()
+
+
+def test_gate_has_no_fake_communication_requirement_and_passes_prespecified_thresholds() -> None:
+    metrics = {
+        "overall_exact_gain": 0.04,
+        "bootstrap_ci_low": 0.001,
+        "deviation_precision_pooled": 0.995,
+        "deviation_recall_pooled": 0.95,
+        "shared_precision_pooled": 0.98,
+        "shared_recall_pooled": 0.985,
+        "null_localized_fp_rate": 0.01,
+        "null_shared_fp_rate": 0.01,
+        "exact_harm_rate": 0.005,
+        "scope_exact_nonnull": 0.95,
+        "family_recovery": {
+            "quadratic_role_v10": 0.93,
+            "linear_role_v10": 0.93,
+            "trig_role_v10": 0.93,
+            "interaction_role_v10": 0.93,
+        },
+        "client_recovery": {"4": 0.91, "8": 0.94, "16": 0.96},
+        "high_noise_main_deviation_recovery": 0.91,
+        "high_noise_main_exact_gain": 0.06,
+        "weak_source_recovery": 0.91,
+        "dual_role_recovery": 0.91,
+        "integrity_violations": 0,
+        "complete_conditions": 1200,
+        "primary_rows": 4800,
+    }
+    checks = gate_checks(metrics)
+    assert checks
+    assert all(checks.values())
+    assert not any("communication" in name for name in checks)
