@@ -9,7 +9,7 @@ import joblib
 
 import fedfalsify.phase3d_runner as runner
 from fedfalsify.phase3d_fixtures import build_phase3d_fixtures
-from fedfalsify.scsv_v13 import Phase3DModelResult
+from fedfalsify.scsv_v13 import Phase3DModelResult, run_phase3d_model
 
 
 def _fake_result(fixture, model_name, outer_fold=0):
@@ -55,6 +55,17 @@ def test_atomic_unit_roundtrip_and_hash_validation(tmp_path):
     corrupted["result"]["value"] = 8
     path.write_text(json.dumps(corrupted), encoding="utf-8")
     assert runner.verify_unit(path, key, "abc123") is None
+
+
+def test_real_v13_result_is_strict_json_serializable():
+    fixture = build_phase3d_fixtures()[0]
+    result = run_phase3d_model(fixture, "v13-full", outer_fold=0)
+    key = {"fixture": fixture.name, "model": "v13-full", "outer_fold": 0}
+    payload = runner.make_unit_payload(key, "abc123", result.as_dict())
+    encoded = runner._canonical_json_bytes(payload)
+    assert encoded
+    assert b"NaN" not in encoded
+    assert b"Infinity" not in encoded
 
 
 def test_disconnect_then_resume_skips_completed_model_fold(tmp_path, monkeypatch):
