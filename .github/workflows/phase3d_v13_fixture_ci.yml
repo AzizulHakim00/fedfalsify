@@ -38,7 +38,9 @@ jobs:
             src/fedfalsify/sufficient_stats.py \
             src/fedfalsify/linear_algebra.py \
             src/fedfalsify/legacy_v11_adapter.py
-      - name: Run focused Phase-3D scope-contrast tests
+      - name: Run focused Phase-3D scientific tests
         run: pytest -q tests/test_phase3d_scope_contrast.py
+      - name: Run focused Phase-3D resume tests
+        run: pytest -q tests/test_phase3d_runner.py
       - name: Run full repository suite
         run: pytest -q
