@@ -1,9 +1,11 @@
 """Scope-contrast structural tests for FedFalsify v13 / SCSV-SCC.
 
-The key difference from v12 is identifiability geometry.  A localized source
-shift may be exactly collinear with its source inside a role client.  v13
+The key difference from v12 is identifiability geometry. A localized source
+shift may be exactly collinear with its source inside a role client. v13
 therefore tests a client-scope regressor on the aggregate role+outside design:
 zero outside the frozen scope and equal to the shared source basis inside it.
+Gate occupancy is only an estimability/nominating guard; effect evidence still
+decides whether a nominated scope is accepted.
 """
 
 from __future__ import annotations
@@ -181,13 +183,27 @@ def scope_contrast_test(
     )
 
 
-def _candidate_scopes(num_clients: int) -> tuple[tuple[int, ...], ...]:
-    max_size = max(1, int(np.floor(MAX_ROLE_FRACTION * num_clients)))
+def _candidate_scopes(
+    eligible_indices: Sequence[int],
+    num_clients: int,
+) -> tuple[tuple[int, ...], ...]:
+    eligible = tuple(sorted(int(index) for index in eligible_indices))
+    maximum = min(len(eligible), max(1, int(np.floor(MAX_ROLE_FRACTION * num_clients))))
     return tuple(
         scope
-        for size in range(1, max_size + 1)
-        for scope in combinations(range(num_clients), size)
+        for size in range(1, maximum + 1)
+        for scope in combinations(eligible, size)
         if size < num_clients
+    )
+
+
+def _eligible_by_gate(clients: Sequence[object], catalog, localized_term: str) -> tuple[int, ...]:
+    """Use gate occupancy only to nominate scopes that are estimable."""
+    term = catalog.get(localized_term)
+    return tuple(
+        index
+        for index, client in enumerate(clients)
+        if int(np.count_nonzero(np.abs(term.evaluate(client.x)) > 1e-12)) > 0
     )
 
 
@@ -201,6 +217,7 @@ def discover_scope_contrast(
     source_term: str,
 ) -> FrozenScopeHypothesis | ScopeContrastRejection:
     """Discover one localized client scope using Discovery evidence only."""
+    del fixture  # identity is deliberately not used as an oracle.
     clients = tuple(discovery_clients)
     metadata = catalog.get(localized_term)
     if metadata.kind != "exception":
@@ -210,7 +227,13 @@ def discover_scope_contrast(
     if source_term not in set(shared_terms):
         return ScopeContrastRejection(localized_term, source_term, "SOURCE-NOT-PROTECTED", 0)
 
-    scopes = _candidate_scopes(len(clients))
+    eligible = _eligible_by_gate(clients, catalog, localized_term)
+    if not eligible:
+        return ScopeContrastRejection(localized_term, source_term, "NO-ACTIVE-GATE-SUPPORT", 0)
+    if len(eligible) >= len(clients) or len(eligible) > MAX_ROLE_FRACTION * len(clients):
+        return ScopeContrastRejection(localized_term, source_term, "GLOBAL-SCOPE-AMBIGUOUS", 0)
+
+    scopes = _candidate_scopes(eligible, len(clients))
     results: list[ScopeContrastResult] = []
     for scope in scopes:
         result = scope_contrast_test(
@@ -231,11 +254,15 @@ def discover_scope_contrast(
     bh = bh_adjust(names, p_values, q=ROLE_Q)
     adjusted = dict(zip(bh.names, bh.adjusted_values))
     rejected = set(bh.rejected)
-    supported = [result for result in results if result.candidate_term in rejected and result.candidate_sign != 0]
+    supported = [
+        result
+        for result in results
+        if result.candidate_term in rejected and result.candidate_sign != 0
+    ]
     if not supported:
         return ScopeContrastRejection(localized_term, source_term, "EFFECT-SCOPE-NOT-LOCALIZED", len(scopes))
 
-    # Full SSE is the primary structural criterion.  The exact true scope is the
+    # Full SSE is the primary structural criterion. The exact true scope is the
     # unique scope that can reproduce a deterministic/noiseless source shift.
     # Adjusted p-value and scope size are deterministic secondary tie-breakers.
     chosen = min(
