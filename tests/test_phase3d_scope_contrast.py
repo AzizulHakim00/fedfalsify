@@ -15,6 +15,7 @@ from fedfalsify.scope_contrast_v13 import (
     scope_contrast_test,
 )
 from fedfalsify.scsv_v10_benchmarks import QUADRATIC_DEV_V10, v10_catalog
+from fedfalsify.scsv_v13 import PHASE3D_MODELS, run_phase3d_model
 
 
 EXPECTED_FIXTURES = (
@@ -26,6 +27,13 @@ EXPECTED_FIXTURES = (
     "dual_scope_shift",
     "null_no_localized",
     "anchor_contamination_null",
+)
+
+EXPECTED_MODELS = (
+    "v11-frozen",
+    "v12-frozen",
+    "scope-contrast-only",
+    "v13-full",
 )
 
 
@@ -123,3 +131,35 @@ def test_discovery_recovers_quadratic_scope_from_role_outside_contrast():
         client.client_id for client in discovery if client.client_id not in result.role_client_ids
     )
     assert result.discovery_sign == 1
+
+
+def test_phase3d_model_registry_is_frozen():
+    assert PHASE3D_MODELS == EXPECTED_MODELS
+
+
+def test_scope_contrast_only_recovers_every_true_localized_scope():
+    for fixture in build_phase3d_fixtures():
+        result = run_phase3d_model(fixture, "scope-contrast-only", outer_fold=0)
+        assert result.exact_localized
+        assert result.exact_scope
+        if fixture.true_localized_terms:
+            assert set(result.accepted_localized) == set(fixture.true_localized_terms)
+        else:
+            assert result.accepted_localized == ()
+
+
+def test_v13_full_exactly_recovers_all_eight_deterministic_fixtures():
+    for fixture in build_phase3d_fixtures():
+        result = run_phase3d_model(fixture, "v13-full", outer_fold=0)
+        assert result.exact_shared, (fixture.name, result.shared_structure)
+        assert result.exact_localized, (fixture.name, result.accepted_localized)
+        assert result.exact_scope, (fixture.name, result.localized_scopes)
+        assert result.exact_structure, fixture.name
+
+
+def test_v13_null_fixtures_accept_no_localized_mechanism():
+    for name in ("null_no_localized", "anchor_contamination_null"):
+        result = run_phase3d_model(_fixture(name), "v13-full", outer_fold=0)
+        assert result.accepted_localized == ()
+        assert result.localized_scopes == ()
+        assert result.exact_structure
